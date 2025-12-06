@@ -5,10 +5,17 @@
 www.hamoopi.com
 dev@hamoopi.com
 
+## Branches
+
+- **main**: Original Allegro 4 version
+- **sdl2**: SDL2 port with full compatibility layer
+
 ENGLISH
 -------
 
 "HAMOOPI" is an Open Source Fighting game made in C ++ / Allegro. Its name is an acronym for "Half-Moon Punch", a very Brazilian and particular way of referring to the movement of releasing a hadouken, classic movement and emblem of fighting games. This is a Brazilian engine, which is in an ALPHA and EXPERIMENTAL phase of development. This is free software, under the GPL v2 license.
+
+The **sdl2** branch contains a complete port to SDL2 using a compatibility layer. See [SDL2_MIGRATION.md](SDL2_MIGRATION.md) for details.
 
 Please read the documents in the 'DOCS' folder for more information on how the engine works.
 
@@ -17,5 +24,7 @@ PTBR
 ----
 
 "HAMOOPI" é um jogo de Luta Open Source feito em C++/Allegro. Seu nome é um acrônimo de "Half-Moon Punch", ou "Meia Lua Soco", uma maneira muito brasileira e particular de se referir ao movimento de soltar um hadouken, movimento clássico e emblemático dos jogos de luta. Esta é uma Engine Brasileira, que está em fase ALPHA e EXPERIMENTAL de desenvolvimento. Este é um software livre, sob a licença GPL v2.
+
+O branch **sdl2** contém um port completo para SDL2 usando uma camada de compatibilidade. Veja [SDL2_MIGRATION.md](SDL2_MIGRATION.md) para detalhes.
 
 Por favor leia os documentos da pasta 'DOCS' para maiores informações sobre o funcionamento da engine.
