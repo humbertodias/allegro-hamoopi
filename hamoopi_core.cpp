@@ -285,12 +285,28 @@ static void load_character_sprites(int char_id)
     
     // State 200: Crouching
     load_animation(sprites, 200, char_name);
-    
-    // State 207: Start blocking crouched
+
+    // 201 – Crouching Light Punch
+    load_animation(sprites, 201, char_name);
+    // 202 – Crouching Medium Punch
+    load_animation(sprites, 202, char_name);
+    // 203 – Crouching Heavy Punch
+    load_animation(sprites, 203, char_name);
+    // 204 – Crouching Light Kick
+    load_animation(sprites, 204, char_name);
+    // 205 – Crouching Medium Kick
+    load_animation(sprites, 205, char_name);
+    // 206 – Crouching Heavy Kick
+    load_animation(sprites, 206, char_name);
+    // 207 – Start of Crouch Guard
     load_animation(sprites, 207, char_name);
-    
-    // State 208: Blocking crouched
+    // 208 – Guarding While Crouched
     load_animation(sprites, 208, char_name);
+    // 209 – End of Crouch Guard
+    load_animation(sprites, 209, char_name);
+    // 210 – Crouch Guard, Applied
+    load_animation(sprites, 210, char_name);
+    
     
     // State 501: Getting hit type 1 weak
     load_animation(sprites, 501, char_name);
@@ -393,7 +409,7 @@ static BITMAP* get_sprite_frame(Player* p)
     }
     else  // Idle
     {
-        sprite_state = 0;  // Stance
+        sprite_state = 100;  // Stance
     }
     
     Animation* anim = get_animation(sprites, sprite_state);
