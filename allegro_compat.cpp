@@ -615,17 +615,13 @@ FONT* _load_pcx_font(const char* filename) {
     SDL_Surface* surf = _load_pcx(filename);
     if (!surf) return nullptr;
     
-    // Allegro bitmap fonts typically have black characters on magenta/transparent background
-    // We need to convert black to white so SDL color modulation works
-    // (black * any_color = black, but white * any_color = any_color)
-    
     // Convert surface to RGBA format for easier manipulation
     SDL_Surface* rgba_surf = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
     SDL_FreeSurface(surf);
     
     if (!rgba_surf) return nullptr;
     
-    // Invert black pixels to white, keep magenta as transparent
+    // Process pixels: make background transparent, keep characters opaque
     SDL_LockSurface(rgba_surf);
     Uint32* pixels = (Uint32*)rgba_surf->pixels;
     int pixel_count = rgba_surf->w * rgba_surf->h;
@@ -634,15 +630,21 @@ FONT* _load_pcx_font(const char* filename) {
         Uint8 r, g, b, a;
         SDL_GetRGBA(pixels[i], rgba_surf->format, &r, &g, &b, &a);
         
-        // If pixel is magenta (transparency), make it fully transparent
+        // Magenta (transparency color) → fully transparent
         if (r == 255 && g == 0 && b == 255) {
             pixels[i] = SDL_MapRGBA(rgba_surf->format, 255, 255, 255, 0);
         }
-        // If pixel is black or very dark (character), make it white
-        else if (r < 50 && g < 50 && b < 50) {
+        // Yellow borders and other colored pixels (not character) → transparent
+        else if ((r == 255 && g == 255 && b == 0) || // yellow
+                 (r > 200 && g > 200 && b < 50) ||     // yellowish
+                 (r < 50 && g < 50 && b < 50)) {       // black (shouldn't exist but just in case)
+            pixels[i] = SDL_MapRGBA(rgba_surf->format, 255, 255, 255, 0);
+        }
+        // White/light pixels (the characters) → keep as opaque white
+        else if (r > 200 && g > 200 && b > 200) {
             pixels[i] = SDL_MapRGBA(rgba_surf->format, 255, 255, 255, 255);
         }
-        // Everything else (like yellow borders) make transparent
+        // Everything else → make transparent
         else {
             pixels[i] = SDL_MapRGBA(rgba_surf->format, 255, 255, 255, 0);
         }
