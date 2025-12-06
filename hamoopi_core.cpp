@@ -21,7 +21,7 @@ typedef struct {
     float x, y;
     float vx, vy;
     int health;
-    int state; // 0=idle, 1=walk, 2=jump, 3=attack, 4=hit, 5=blocking
+    int state; // 0=idle, 1=walk, 2=jump, 3=attack, 4=hit
     int anim_frame;
     int facing; // 1=right, -1=left
     bool on_ground;
@@ -48,6 +48,12 @@ static bool p2_a_pressed = false;
 
 // Character system constants
 #define NUM_CHARACTERS 4
+
+// Combat balance constants
+#define NORMAL_DAMAGE 5
+#define BLOCKED_DAMAGE 1
+#define BLOCKING_SPEED_MULTIPLIER 0.5f
+#define BLOCKING_COLOR_DIVISOR 2
 
 // Character colors for visual distinction
 static const int char_colors[NUM_CHARACTERS][3] = {
@@ -120,9 +126,9 @@ static void draw_player(BITMAP* dest, Player* p)
     if (p->is_blocking)
     {
         // Draw darker body when blocking
-        int dark_color = makecol(char_colors[p->character_id][0] / 2, 
-                                  char_colors[p->character_id][1] / 2, 
-                                  char_colors[p->character_id][2] / 2);
+        int dark_color = makecol(char_colors[p->character_id][0] / BLOCKING_COLOR_DIVISOR, 
+                                  char_colors[p->character_id][1] / BLOCKING_COLOR_DIVISOR, 
+                                  char_colors[p->character_id][2] / BLOCKING_COLOR_DIVISOR);
         rectfill(dest, x - 15, y - 50, x + 15, y, dark_color);
         circlefill(dest, x, y - 60, 10, dark_color);
         
@@ -442,7 +448,7 @@ void hamoopi_run_frame(void)
             p1->is_blocking = key[p1_bt2_key];
             
             // Movement (slower when blocking)
-            float speed_multiplier = p1->is_blocking ? 0.5f : 1.0f;
+            float speed_multiplier = p1->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
             if (key[p1_left_key]) { p1->vx = -3.0f * speed_multiplier; p1->facing = -1; }
             else if (key[p1_right_key]) { p1->vx = 3.0f * speed_multiplier; p1->facing = 1; }
             else { p1->vx *= 0.8f; }
@@ -466,13 +472,13 @@ void hamoopi_run_frame(void)
                     if (p2->is_blocking)
                     {
                         // Reduced damage when blocking
-                        p2->health -= 1; // Only 1 damage instead of 5
+                        p2->health -= BLOCKED_DAMAGE;
                         if (p2->health < 0) p2->health = 0;
                     }
                     else
                     {
                         // Full damage
-                        p2->health -= 5;
+                        p2->health -= NORMAL_DAMAGE;
                         if (p2->health < 0) p2->health = 0;
                     }
                     p1_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
@@ -508,7 +514,7 @@ void hamoopi_run_frame(void)
             p2->is_blocking = key[p2_bt2_key];
             
             // Movement (slower when blocking)
-            float speed_multiplier = p2->is_blocking ? 0.5f : 1.0f;
+            float speed_multiplier = p2->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
             if (key[p2_left_key]) { p2->vx = -3.0f * speed_multiplier; p2->facing = -1; }
             else if (key[p2_right_key]) { p2->vx = 3.0f * speed_multiplier; p2->facing = 1; }
             else { p2->vx *= 0.8f; }
@@ -531,13 +537,13 @@ void hamoopi_run_frame(void)
                     if (p1->is_blocking)
                     {
                         // Reduced damage when blocking
-                        p1->health -= 1; // Only 1 damage instead of 5
+                        p1->health -= BLOCKED_DAMAGE;
                         if (p1->health < 0) p1->health = 0;
                     }
                     else
                     {
                         // Full damage
-                        p1->health -= 5;
+                        p1->health -= NORMAL_DAMAGE;
                         if (p1->health < 0) p1->health = 0;
                     }
                     p2_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
