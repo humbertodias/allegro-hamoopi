@@ -615,11 +615,19 @@ FONT* _load_pcx_font(const char* filename) {
     SDL_Surface* surf = _load_pcx(filename);
     if (!surf) return nullptr;
     
+    // Set magenta (255, 0, 255) as transparent for font
+    SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 0, 255));
+    
     FONT* font = new FONT();
     font->ttf_font = nullptr;
-    font->bitmap_font = SDL_CreateTextureFromSurface(_sdl_renderer, surf);
     font->char_height = surf->h / 16; // Assume 16 rows
     font->char_width = surf->w / 16;  // Assume 16 cols
+    
+    // Create texture with blend mode for transparency
+    font->bitmap_font = SDL_CreateTextureFromSurface(_sdl_renderer, surf);
+    if (font->bitmap_font) {
+        SDL_SetTextureBlendMode(font->bitmap_font, SDL_BLENDMODE_BLEND);
+    }
     
     SDL_FreeSurface(surf);
     return font;
@@ -677,17 +685,28 @@ void textout_ex(BITMAP* bmp, FONT* f, const char* str, int x, int y, int color, 
         SDL_FreeSurface(text_surf);
     } else if (f->bitmap_font) {
         // Bitmap font rendering - render character by character
+        if (!bmp->texture) return;
+        
         SDL_SetRenderTarget(_sdl_renderer, bmp == screen ? nullptr : bmp->texture);
         
-        // Set color modulation for the bitmap font
+        // For bitmap fonts, we assume white characters on transparent background
+        // So we can use color modulation to change the color
         Uint8 r = (color >> 16) & 0xFF;
         Uint8 g = (color >> 8) & 0xFF;
         Uint8 b = color & 0xFF;
+        
+        // Try setting both color mod and alpha mod
         SDL_SetTextureColorMod(f->bitmap_font, r, g, b);
+        SDL_SetTextureAlphaMod(f->bitmap_font, 255);
         
         int current_x = x;
         for (const char* c = str; *c != '\0'; c++) {
             unsigned char ch = (unsigned char)*c;
+            
+            // Skip non-printable characters except space
+            if (ch < 32 && ch != ' ') {
+                continue;
+            }
             
             // Calculate source rect in the bitmap font (16x16 grid)
             int char_row = ch / 16;
@@ -700,6 +719,8 @@ void textout_ex(BITMAP* bmp, FONT* f, const char* str, int x, int y, int color, 
             };
             
             SDL_Rect dst_rect = {current_x, y, f->char_width, f->char_height};
+            
+            // Render the character
             SDL_RenderCopy(_sdl_renderer, f->bitmap_font, &src_rect, &dst_rect);
             
             current_x += f->char_width;
@@ -707,6 +728,7 @@ void textout_ex(BITMAP* bmp, FONT* f, const char* str, int x, int y, int color, 
         
         // Reset color modulation
         SDL_SetTextureColorMod(f->bitmap_font, 255, 255, 255);
+        SDL_SetTextureAlphaMod(f->bitmap_font, 255);
         SDL_SetRenderTarget(_sdl_renderer, nullptr);
     }
 }
