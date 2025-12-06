@@ -3,8 +3,8 @@ build
 .idea
 cmake-build-debug
 
-# Libretro build artifacts
+# Libretro build artifacts (but keep .info file)
 *.so
 *.dylib
 *.dll
-hamoopi_libretro.*
+!hamoopi_libretro.info

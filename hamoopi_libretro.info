@@ -1,0 +1,35 @@
+# Software Information
+display_name = "HAMOOPI"
+authors = "Daniel Moura"
+supported_extensions = ""
+corename = "HAMOOPI"
+categories = "Game"
+license = "GPLv2"
+permissions = ""
+display_version = "v0.01a"
+
+# Hardware Information
+manufacturer = "HAMOOPI Team"
+systemname = "HAMOOPI Fighting Game Engine"
+systemid = "hamoopi"
+
+# Libretro Features
+supports_no_game = "true"
+database = "HAMOOPI"
+savestate = "false"
+savestate_features = "null"
+cheats = "false"
+input_descriptors = "true"
+memory_descriptors = "false"
+libretro_saves = "false"
+core_options = "false"
+core_options_version = "1.0"
+load_subsystem = "false"
+hw_render = "false"
+needs_fullpath = "false"
+disk_control = "false"
+
+# Firmware
+firmware_count = "0"
+
+description = "HAMOOPI is an Open Source Fighting game engine made in C++/Allegro. Its name is an acronym for 'Half-Moon Punch' (Meia Lua Soco in Portuguese), referring to the hadouken movement, a classic fighting game emblem. This is a Brazilian engine in ALPHA/EXPERIMENTAL development phase under GPL v2 license."
