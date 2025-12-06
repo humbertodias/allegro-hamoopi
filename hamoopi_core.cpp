@@ -348,12 +348,18 @@ static void draw_character_box(BITMAP* dest, int char_id, int x, int y, bool sel
 // Draw stage background based on characters
 static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
 {
-    // Determine stage theme based on characters (use P1's character primarily)
+    // Determine stage theme based on P1's character (simpler than blending two themes)
     int stage_theme = p1_char;
     
-    // Animated background frame
+    // Animated background frame (only increments when drawing stages)
     stage_animation_frame++;
     if (stage_animation_frame >= 360) stage_animation_frame = 0;
+    
+    // Animation constants
+    const int CLOUD_SPACING = 120;
+    const int CLOUD_WRAP = 1280;
+    const int CLOUD_SCREEN_WIDTH = 800;
+    const int CLOUD_OFFSET = 100;
     
     // Sky/background layer
     switch (stage_theme)
@@ -370,16 +376,22 @@ static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
                 }
                 
                 // Distant mountains (dark)
-                for (int x = 0; x < 640; x++)
+                // Pre-calculate sine values for better performance
+                for (int x = 0; x < 640; x += 4)
                 {
                     int height = 250 + (int)(20 * sin((x + stage_animation_frame) * 0.02f));
-                    vline(dest, x, height, 300, makecol(60, 20, 10));
+                    // Fill 4 pixels at once for performance
+                    for (int px = x; px < x + 4 && px < 640; px++)
+                    {
+                        vline(dest, px, height, 300, makecol(60, 20, 10));
+                    }
                 }
                 
                 // Lava glow effect (animated)
                 int glow = 200 + (int)(30 * sin(stage_animation_frame * 0.1f));
+                int glow_dim = (glow > 20) ? glow - 20 : 0; // Clamp to prevent negative values
                 hline(dest, 0, 395, 640, makecol(glow, 100, 30));
-                hline(dest, 0, 396, 640, makecol(glow - 20, 80, 20));
+                hline(dest, 0, 396, 640, makecol(glow_dim, 80, 20));
             }
             break;
             
@@ -454,7 +466,7 @@ static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
                 // Floating clouds (animated)
                 for (int i = 0; i < 6; i++)
                 {
-                    int x = ((i * 120) - stage_animation_frame + 1280) % 800 - 100;
+                    int x = ((i * CLOUD_SPACING) - stage_animation_frame + CLOUD_WRAP) % CLOUD_SCREEN_WIDTH - CLOUD_OFFSET;
                     int y = 80 + i * 30;
                     
                     // Cloud puffs
