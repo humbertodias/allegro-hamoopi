@@ -992,12 +992,14 @@ void hamoopi_run_frame(void)
                 }
                 else
                 {
-                    // Start next round
+                    // Start next round - preserve character selections
                     current_round++;
+                    int p1_char = players[0].character_id;
+                    int p2_char = players[1].character_id;
                     init_player(&players[0], 0);
-                    players[0].character_id = players[0].character_id; // Keep character
+                    players[0].character_id = p1_char;
                     init_player(&players[1], 1);
-                    players[1].character_id = players[1].character_id; // Keep character
+                    players[1].character_id = p2_char;
                 }
             }
         }
