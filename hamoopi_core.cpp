@@ -41,6 +41,7 @@ typedef struct {
 // Sprite cache for all characters
 static SpriteSet character_sprites[4];  // One for each character (FIRE, WATER, EARTH, WIND)
 static bool sprites_loaded = false;
+static bool use_sprite_animations = true;  // Can be toggled with SELECT + START
 
 // Game state
 typedef struct {
@@ -891,8 +892,8 @@ static void draw_player(BITMAP* dest, Player* p)
                         char_colors[p->character_id][1], 
                         char_colors[p->character_id][2]);
     
-    // Try to get sprite frame
-    BITMAP* sprite = get_sprite_frame(p);
+    // Try to get sprite frame (only if sprite animations are enabled)
+    BITMAP* sprite = use_sprite_animations ? get_sprite_frame(p) : NULL;
     
     if (sprite)
     {
@@ -1495,11 +1496,28 @@ void hamoopi_run_frame(void)
     {
         // Fighting game logic
         
-        // Toggle debug boxes with SELECT button (P1 only to avoid toggle conflicts)
+        // Toggle debug boxes with SELECT button (P1 only)
+        // Toggle sprite animations with SELECT + START combo (P1 only)
         static bool select_pressed = false;
-        if (key[p1_select_key])
+        static bool combo_pressed = false;
+        
+        bool select_down = key[p1_select_key];
+        bool start_down = key[p1_start_key];
+        
+        if (select_down && start_down)
         {
-            if (!select_pressed)
+            // SELECT + START combo: toggle sprite animations
+            if (!combo_pressed)
+            {
+                use_sprite_animations = !use_sprite_animations;
+                combo_pressed = true;
+                select_pressed = true;  // Prevent single SELECT from triggering
+            }
+        }
+        else if (select_down && !start_down)
+        {
+            // Just SELECT: toggle debug boxes
+            if (!select_pressed && !combo_pressed)
             {
                 show_debug_boxes = !show_debug_boxes;
                 select_pressed = true;
@@ -1507,7 +1525,9 @@ void hamoopi_run_frame(void)
         }
         else
         {
+            // Release
             select_pressed = false;
+            combo_pressed = false;
         }
         
         // Draw stage background
@@ -1905,6 +1925,12 @@ void hamoopi_run_frame(void)
         {
             textout_ex(game_buffer, game_font, "DEBUG MODE - SELECT to toggle", 10, 460, makecol(255, 255, 0), -1);
             textout_ex(game_buffer, game_font, "Yellow=Body Green=Hurtbox Red=Hitbox Orange=Clash", 10, 470, makecol(255, 255, 255), -1);
+        }
+        
+        // Display sprite animation status
+        if (!use_sprite_animations)
+        {
+            textout_ex(game_buffer, game_font, "SPRITES OFF - SELECT+START to toggle", 200, 460, makecol(255, 128, 0), -1);
         }
         
         // Check for round winner

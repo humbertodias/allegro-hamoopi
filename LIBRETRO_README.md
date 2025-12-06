@@ -19,7 +19,7 @@ The libretro core includes:
 - ✅ Real-time gameplay at 60 FPS
 - ✅ Title screen and winner announcement
 - ✅ Controller/keyboard support for both players
-- ✅ **Debug Visualization** - Toggle collision boxes with SELECT button
+- ✅ **Debug Visualization** - Toggle collision boxes with SELECT, sprite animations with SELECT+START
 
 ## Building the Libretro Core
 
@@ -190,7 +190,8 @@ HAMOOPI implements a professional fighting game collision system with multiple b
   - Respects blocking mechanics
 
 **Debug Visualization:**
-- Press SELECT button during fight to toggle debug boxes
+- Press **SELECT** button during fight to toggle debug collision boxes
+- Press **SELECT + START** buttons together to toggle sprite animations on/off
 - Color-coded boxes show all active collision areas
 - Legend displays at bottom of screen
 - Helps understand attack ranges and timing
@@ -232,7 +233,7 @@ This is a fully functional libretro fighting game:
 - ✅ **Physics engine (gravity, movement, collision)**
 - ✅ **Combat system with health management and blocking**
 - ✅ **Game states (title, character select, fight, round transitions, match winner)**
-- ✅ **Debug visualization mode** - Toggle with SELECT button
+- ✅ **Debug visualization mode** - Toggle collision boxes with SELECT, sprites with SELECT+START
 - ❌ Save states not implemented
 - ⚠️ Full HAMOOPI character system pending (using simple sprites for now)
 
