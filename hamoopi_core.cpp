@@ -533,6 +533,20 @@ static bool p2_a_pressed = false;
 // Stage/background animation
 static int stage_animation_frame = 0;
 
+// Background system - dynamic loading from config.ini
+#define MAX_BACKGROUNDS 4
+typedef struct {
+    BITMAP* image;  // Background image loaded from PCX
+    int map_pos_x;  // Horizontal position from config.ini
+    int map_pos_y;  // Vertical position from config.ini
+    bool loaded;
+    char name[64];
+} Background;
+
+static Background backgrounds[MAX_BACKGROUNDS];
+static int background_count = 0;
+static bool backgrounds_initialized = false;
+
 // Audio constants
 #define AUDIO_SAMPLE_RATE 44100
 #define AUDIO_BUFFER_SIZE 735  // ~60 FPS: 44100/60 = 735 samples per frame
@@ -1124,6 +1138,69 @@ static void draw_character_box(BITMAP* dest, int char_id, int x, int y, bool sel
     textout_centre_ex(dest, font, names[char_id], x + 40, y - 12, makecol(255, 255, 255), -1);
 }
 
+// Load backgrounds from backgrounds/ directory
+static void load_backgrounds()
+{
+    if (backgrounds_initialized) return;
+    
+    background_count = 0;
+    
+    // Try to load Background1, Background2, etc.
+    for (int i = 1; i <= MAX_BACKGROUNDS; i++)
+    {
+        char dir_name[256];
+        char config_path[256];
+        char image_path[256];
+        
+        snprintf(dir_name, sizeof(dir_name), "backgrounds/Background%d", i);
+        snprintf(config_path, sizeof(config_path), "%s/config.ini", dir_name);
+        snprintf(image_path, sizeof(image_path), "%s/000_00.pcx", dir_name);
+        
+        // Check if config file exists
+        PACKFILE* test_file = pack_fopen(config_path, "r");
+        if (!test_file) continue;
+        pack_fclose(test_file);
+        
+        // Load config.ini using Allegro config functions
+        set_config_file(config_path);
+        
+        Background* bg = &backgrounds[background_count];
+        bg->map_pos_x = get_config_int("DATA", "MapPosX", 0);
+        bg->map_pos_y = get_config_int("DATA", "MapPosY", 0);
+        
+        // Load background image
+        bg->image = load_bitmap(image_path, NULL);
+        if (bg->image)
+        {
+            bg->loaded = true;
+            snprintf(bg->name, sizeof(bg->name), "Background%d", i);
+            background_count++;
+        }
+        else
+        {
+            bg->loaded = false;
+        }
+    }
+    
+    backgrounds_initialized = true;
+}
+
+// Free all loaded backgrounds
+static void free_backgrounds()
+{
+    for (int i = 0; i < background_count; i++)
+    {
+        if (backgrounds[i].loaded && backgrounds[i].image)
+        {
+            destroy_bitmap(backgrounds[i].image);
+            backgrounds[i].image = NULL;
+            backgrounds[i].loaded = false;
+        }
+    }
+    background_count = 0;
+    backgrounds_initialized = false;
+}
+
 // Draw stage background based on characters
 static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
 {
@@ -1134,6 +1211,26 @@ static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
     stage_animation_frame++;
     if (stage_animation_frame >= 360) stage_animation_frame = 0;
     
+    // Check if we have a loaded background for this stage
+    if (backgrounds_initialized && stage_theme < background_count && backgrounds[stage_theme].loaded)
+    {
+        // Use dynamic background from config.ini
+        Background* bg = &backgrounds[stage_theme];
+        
+        // Draw background image at configured position
+        // Apply scrolling animation based on MapPos values
+        int draw_x = bg->map_pos_x + (stage_animation_frame / 10);
+        int draw_y = bg->map_pos_y;
+        
+        // Draw the background image (may be larger than screen)
+        blit(bg->image, dest, 0, 0, draw_x, draw_y, 640, 480);
+        
+        // Draw ground line
+        hline(dest, 0, 400, 640, makecol(100, 70, 30));
+        return;
+    }
+    
+    // Fallback to procedural backgrounds if no custom background loaded
     // Animation constants
     const int CLOUD_SPACING = 120;
     const int CLOUD_WRAP = 1280;
@@ -1303,6 +1400,9 @@ void hamoopi_init(void)
     // Initialize sprite system
     init_sprite_system();
     
+    // Load backgrounds from config files
+    load_backgrounds();
+    
     // Initialize players with default characters
     init_player(&players[0], 0);
     players[0].character_id = 0;
@@ -1332,6 +1432,9 @@ void hamoopi_deinit(void)
 {
     if (!initialized)
         return;
+    
+    // Cleanup backgrounds
+    free_backgrounds();
     
     // Cleanup sprite system
     cleanup_sprite_system();
