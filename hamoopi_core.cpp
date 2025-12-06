@@ -25,10 +25,25 @@ typedef struct {
     int anim_frame;
     int facing; // 1=right, -1=left
     bool on_ground;
+    int character_id; // Character selection (0-3)
 } Player;
 
 static Player players[2];
-static int game_mode = 0; // 0=title, 1=fight, 2=winner
+static int game_mode = 0; // 0=title, 1=character_select, 2=fight, 3=winner
+
+// Character selection state
+static int p1_cursor = 0;
+static int p2_cursor = 1;
+static bool p1_ready = false;
+static bool p2_ready = false;
+
+// Character colors for visual distinction
+static const int char_colors[4][3] = {
+    {255, 100, 100},  // Red
+    {100, 100, 255},  // Blue
+    {100, 255, 100},  // Green
+    {255, 255, 100}   // Yellow
+};
 
 // Fonts
 static FONT* game_font = NULL;
@@ -74,13 +89,19 @@ static void init_player(Player* p, int player_num)
     p->anim_frame = 0;
     p->facing = (player_num == 0) ? 1 : -1;
     p->on_ground = true;
+    // character_id is preserved from selection
 }
 
-// Draw a simple fighter sprite
-static void draw_player(BITMAP* dest, Player* p, int color)
+// Draw a simple fighter sprite with character color
+static void draw_player(BITMAP* dest, Player* p, int player_num)
 {
     int x = (int)p->x;
     int y = (int)p->y;
+    
+    // Get character color
+    int color = makecol(char_colors[p->character_id][0], 
+                        char_colors[p->character_id][1], 
+                        char_colors[p->character_id][2]);
     
     // Draw body
     rectfill(dest, x - 15, y - 50, x + 15, y, color);
@@ -97,6 +118,38 @@ static void draw_player(BITMAP* dest, Player* p, int color)
     // Draw facing indicator (simple line)
     int dir = p->facing;
     line(dest, x, y - 60, x + dir * 20, y - 60, makecol(255, 255, 0));
+}
+
+// Draw character selection box
+static void draw_character_box(BITMAP* dest, int char_id, int x, int y, bool selected, bool ready)
+{
+    int color = makecol(char_colors[char_id][0], 
+                        char_colors[char_id][1], 
+                        char_colors[char_id][2]);
+    
+    // Draw character preview
+    rectfill(dest, x, y, x + 80, y + 100, color);
+    
+    // Draw character body in box
+    rectfill(dest, x + 25, y + 40, x + 55, y + 80, color);
+    circlefill(dest, x + 40, y + 30, 8, color);
+    
+    // Draw selection border
+    if (selected)
+    {
+        rect(dest, x - 2, y - 2, x + 82, y + 102, makecol(255, 255, 255));
+        rect(dest, x - 3, y - 3, x + 83, y + 103, makecol(255, 255, 255));
+    }
+    
+    // Draw ready indicator
+    if (ready)
+    {
+        textout_centre_ex(dest, font, "READY!", x + 40, y + 85, makecol(255, 255, 255), -1);
+    }
+    
+    // Draw character name
+    const char* names[] = {"FIRE", "WATER", "EARTH", "WIND"};
+    textout_centre_ex(dest, font, names[char_id], x + 40, y - 12, makecol(255, 255, 255), -1);
 }
 
 void hamoopi_init(void)
@@ -126,12 +179,20 @@ void hamoopi_init(void)
     // Initialize game font
     game_font = font;
     
-    // Initialize players
+    // Initialize players with default characters
     init_player(&players[0], 0);
+    players[0].character_id = 0;
     init_player(&players[1], 1);
+    players[1].character_id = 1;
     
     game_mode = 0; // Start at title screen
     frame_count = 0;
+    
+    // Reset character selection state
+    p1_cursor = 0;
+    p2_cursor = 1;
+    p1_ready = false;
+    p2_ready = false;
     
     initialized = true;
     running = false;
@@ -163,9 +224,18 @@ void hamoopi_reset(void)
 {
     // Reset game state
     init_player(&players[0], 0);
+    players[0].character_id = 0;
     init_player(&players[1], 1);
+    players[1].character_id = 1;
+    
     game_mode = 0;
     frame_count = 0;
+    
+    // Reset character selection state
+    p1_cursor = 0;
+    p2_cursor = 1;
+    p1_ready = false;
+    p2_ready = false;
     
     if (screen_buffer)
         clear_to_color(screen_buffer, makecol(0, 0, 0));
@@ -222,12 +292,113 @@ void hamoopi_run_frame(void)
         
         if (key[p1_start_key] || key[p2_start_key])
         {
-            game_mode = 1;
-            init_player(&players[0], 0);
-            init_player(&players[1], 1);
+            game_mode = 1; // Go to character select
+            p1_ready = false;
+            p2_ready = false;
         }
     }
     else if (game_mode == 1)
+    {
+        // Character selection screen
+        textout_centre_ex(game_buffer, game_font, "SELECT YOUR FIGHTER", 320, 30, makecol(255, 255, 255), -1);
+        
+        // Draw character selection boxes
+        int start_x = 120;
+        int start_y = 100;
+        int spacing = 100;
+        
+        for (int i = 0; i < 4; i++)
+        {
+            int x = start_x + (i * spacing);
+            draw_character_box(game_buffer, i, x, start_y, 
+                             (i == p1_cursor), p1_ready);
+        }
+        
+        // Draw second row for Player 2
+        for (int i = 0; i < 4; i++)
+        {
+            int x = start_x + (i * spacing);
+            draw_character_box(game_buffer, i, x, start_y + 150, 
+                             (i == p2_cursor), p2_ready);
+        }
+        
+        // Draw player labels
+        textout_ex(game_buffer, game_font, "PLAYER 1", 50, start_y + 40, makecol(255, 100, 100), -1);
+        textout_ex(game_buffer, game_font, "PLAYER 2", 50, start_y + 190, makecol(100, 100, 255), -1);
+        
+        // Instructions
+        textout_centre_ex(game_buffer, game_font, "Left/Right to select, A to confirm", 320, 420, makecol(200, 200, 200), -1);
+        
+        static bool p1_left_pressed = false;
+        static bool p1_right_pressed = false;
+        static bool p1_a_pressed = false;
+        static bool p2_left_pressed = false;
+        static bool p2_right_pressed = false;
+        static bool p2_a_pressed = false;
+        
+        // Player 1 input (only if not ready)
+        if (!p1_ready)
+        {
+            if (key[p1_left_key] && !p1_left_pressed)
+            {
+                p1_cursor = (p1_cursor - 1 + 4) % 4;
+                p1_left_pressed = true;
+            }
+            if (!key[p1_left_key]) p1_left_pressed = false;
+            
+            if (key[p1_right_key] && !p1_right_pressed)
+            {
+                p1_cursor = (p1_cursor + 1) % 4;
+                p1_right_pressed = true;
+            }
+            if (!key[p1_right_key]) p1_right_pressed = false;
+            
+            if (key[p1_bt1_key] && !p1_a_pressed)
+            {
+                p1_ready = true;
+                players[0].character_id = p1_cursor;
+                p1_a_pressed = true;
+            }
+            if (!key[p1_bt1_key]) p1_a_pressed = false;
+        }
+        
+        // Player 2 input (only if not ready)
+        if (!p2_ready)
+        {
+            if (key[p2_left_key] && !p2_left_pressed)
+            {
+                p2_cursor = (p2_cursor - 1 + 4) % 4;
+                p2_left_pressed = true;
+            }
+            if (!key[p2_left_key]) p2_left_pressed = false;
+            
+            if (key[p2_right_key] && !p2_right_pressed)
+            {
+                p2_cursor = (p2_cursor + 1) % 4;
+                p2_right_pressed = true;
+            }
+            if (!key[p2_right_key]) p2_right_pressed = false;
+            
+            if (key[p2_bt1_key] && !p2_a_pressed)
+            {
+                p2_ready = true;
+                players[1].character_id = p2_cursor;
+                p2_a_pressed = true;
+            }
+            if (!key[p2_bt1_key]) p2_a_pressed = false;
+        }
+        
+        // Both players ready - start fight
+        if (p1_ready && p2_ready)
+        {
+            game_mode = 2; // Go to fight
+            init_player(&players[0], 0);
+            players[0].character_id = p1_cursor;
+            init_player(&players[1], 1);
+            players[1].character_id = p2_cursor;
+        }
+    }
+    else if (game_mode == 2)
     {
         // Fighting game logic
         
@@ -336,8 +507,8 @@ void hamoopi_run_frame(void)
         }
         
         // Draw players
-        draw_player(game_buffer, p1, makecol(255, 100, 100));
-        draw_player(game_buffer, p2, makecol(100, 100, 255));
+        draw_player(game_buffer, p1, 0);
+        draw_player(game_buffer, p2, 1);
         
         // Draw HUD
         textout_ex(game_buffer, game_font, "P1", 50, 20, makecol(255, 100, 100), -1);
@@ -353,10 +524,10 @@ void hamoopi_run_frame(void)
         // Check for winner
         if (p1->health <= 0 || p2->health <= 0)
         {
-            game_mode = 2;
+            game_mode = 3;
         }
     }
-    else if (game_mode == 2)
+    else if (game_mode == 3)
     {
         // Winner screen
         clear_to_color(game_buffer, makecol(20, 20, 40));
@@ -374,9 +545,11 @@ void hamoopi_run_frame(void)
         
         if (key[p1_start_key] || key[p2_start_key])
         {
-            game_mode = 1;
-            init_player(&players[0], 0);
-            init_player(&players[1], 1);
+            game_mode = 1; // Back to character select
+            p1_ready = false;
+            p2_ready = false;
+            p1_cursor = players[0].character_id;
+            p2_cursor = players[1].character_id;
         }
     }
     

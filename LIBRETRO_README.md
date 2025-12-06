@@ -5,6 +5,7 @@ This directory contains the libretro port of HAMOOPI, allowing it to run on Retr
 ## Features
 
 The libretro core includes:
+- ✅ **Character Selection Screen** - Choose from 4 unique fighters
 - ✅ Full 2-player fighting game implementation
 - ✅ Physics-based movement (walking, jumping)
 - ✅ Combat system with health tracking
@@ -62,21 +63,37 @@ make -f Makefile.libretro platform=win
 1. Launch RetroArch
 2. Go to "Load Core" and select "HAMOOPI"
 3. Since HAMOOPI doesn't require content files, you can start it directly from "Start Core"
-4. Press START to begin fighting!
+4. Press START to begin
+5. Select your character!
+
+## Game Flow
+
+1. **Title Screen** → Press START to continue
+2. **Character Selection** → Choose your fighter (4 characters available)
+   - Use LEFT/RIGHT to browse characters
+   - Press A button to confirm selection
+   - Both players must select before continuing
+3. **Fight!** → Battle begins when both players are ready
+4. **Winner Screen** → Press START to return to character selection
+
+## Characters
+
+Choose from 4 unique fighters, each with distinct colors:
+- **FIRE** (Red) - Aggressive fighter
+- **WATER** (Blue) - Balanced fighter  
+- **EARTH** (Green) - Defensive fighter
+- **WIND** (Yellow) - Speed fighter
 
 ## Controls
 
 The libretro core maps standard RetroArch controller buttons to HAMOOPI controls:
 
 ### Player 1
-- **D-Pad**: Movement (Left/Right = Walk, Up = Jump)
-- **A Button**: Punch attack
-- **B Button**: (Reserved)
-- **Y Button**: (Reserved)
-- **X Button**: (Reserved)
-- **L Button**: (Reserved)
-- **R Button**: (Reserved)
-- **Start**: Begin game / Rematch
+- **D-Pad**: 
+  - Left/Right: Character selection navigation OR Movement in fight
+  - Up: Jump (in fight)
+- **A Button**: Confirm character selection OR Punch attack (in fight)
+- **Start**: Begin game / Continue
 
 ### Player 2
 - Same layout as Player 1
@@ -84,16 +101,17 @@ The libretro core maps standard RetroArch controller buttons to HAMOOPI controls
 ## Gameplay
 
 - **Title Screen**: Press START to begin
+- **Character Select**: Choose from 4 fighters, press A to confirm
 - **Fight**: Move with D-pad, jump with UP, attack with A button
 - **Objective**: Reduce opponent's health to zero
-- **Winner Screen**: Press START for rematch
+- **Winner Screen**: Press START to return to character selection
 
 Each player starts with 100 HP. Land attacks to damage your opponent!
 
 ## Files
 
 - `libretro.cpp` - Main libretro API implementation
-- `hamoopi_core.cpp` - Fighting game logic and bridge between libretro and game engine
+- `hamoopi_core.cpp` - Fighting game logic with character selection
 - `hamoopi_core.h` - Header file for core functions
 - `libretro.h` - Official libretro API header
 - `Makefile.libretro` - Build system for the libretro core
@@ -103,14 +121,16 @@ Each player starts with 100 HP. Land attacks to damage your opponent!
 ## Current Status
 
 This is a fully functional libretro fighting game:
-- ✅ Core builds successfully (27KB)
+- ✅ Core builds successfully (32KB)
 - ✅ Video output working (640x480 @ 60fps)
 - ✅ Input handling implemented (2 players)
 - ✅ Frame-based execution
+- ✅ **Character selection screen fully integrated**
+- ✅ **4 playable characters with unique colors**
 - ✅ **Game logic fully integrated**
 - ✅ **Physics engine (gravity, movement, collision)**
 - ✅ **Combat system with health management**
-- ✅ **Game states (title, fight, winner)**
+- ✅ **Game states (title, character select, fight, winner)**
 - ⚠️ Audio output not yet implemented
 - ❌ Save states not implemented
 - ⚠️ Full HAMOOPI character system pending (using simple sprites for now)
@@ -118,15 +138,16 @@ This is a fully functional libretro fighting game:
 ## Technical Details
 
 The core implements a complete fighting game with:
+- **Character Selection**: 4 fighters with distinct visual styles
 - **Physics System**: Gravity-based movement, ground collision detection
 - **Combat Mechanics**: Attack range detection, health tracking
-- **Game Flow**: Title screen → Fight → Winner → Rematch
+- **Game Flow**: Title screen → Character selection → Fight → Winner → Repeat
 - **Real-time Rendering**: Direct Allegro rendering at 60 FPS
 - **Input Processing**: Frame-accurate controller input via libretro API
 
 ## Development Notes
 
-The current implementation uses simplified sprite rendering (rectangles and circles) to demonstrate the fighting game mechanics. The architecture supports extending to full HAMOOPI character sprites and animations by integrating the original game's asset loading and rendering systems.
+The current implementation uses simplified sprite rendering (rectangles and circles) with color-coding per character to demonstrate the fighting game mechanics and character selection system. The architecture supports extending to full HAMOOPI character sprites and animations by integrating the original game's asset loading and rendering systems.
 
 ## License
 
