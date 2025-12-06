@@ -55,6 +55,9 @@ static bool p2_a_pressed = false;
 #define BLOCKING_SPEED_MULTIPLIER 0.5f
 #define BLOCKING_COLOR_DIVISOR 2
 
+// Stage/background animation
+static int stage_animation_frame = 0;
+
 // Audio constants
 #define AUDIO_SAMPLE_RATE 44100
 #define AUDIO_BUFFER_SIZE 735  // ~60 FPS: 44100/60 = 735 samples per frame
@@ -342,6 +345,143 @@ static void draw_character_box(BITMAP* dest, int char_id, int x, int y, bool sel
     textout_centre_ex(dest, font, names[char_id], x + 40, y - 12, makecol(255, 255, 255), -1);
 }
 
+// Draw stage background based on characters
+static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
+{
+    // Determine stage theme based on characters (use P1's character primarily)
+    int stage_theme = p1_char;
+    
+    // Animated background frame
+    stage_animation_frame++;
+    if (stage_animation_frame >= 360) stage_animation_frame = 0;
+    
+    // Sky/background layer
+    switch (stage_theme)
+    {
+        case 0: // FIRE stage - Volcano/Lava
+            {
+                // Red-orange gradient sky
+                for (int y = 0; y < 300; y++)
+                {
+                    int r = 180 + (y * 75 / 300);
+                    int g = 50 + (y * 30 / 300);
+                    int b = 20;
+                    hline(dest, 0, y, 640, makecol(r, g, b));
+                }
+                
+                // Distant mountains (dark)
+                for (int x = 0; x < 640; x++)
+                {
+                    int height = 250 + (int)(20 * sin((x + stage_animation_frame) * 0.02f));
+                    vline(dest, x, height, 300, makecol(60, 20, 10));
+                }
+                
+                // Lava glow effect (animated)
+                int glow = 200 + (int)(30 * sin(stage_animation_frame * 0.1f));
+                hline(dest, 0, 395, 640, makecol(glow, 100, 30));
+                hline(dest, 0, 396, 640, makecol(glow - 20, 80, 20));
+            }
+            break;
+            
+        case 1: // WATER stage - Ocean/Beach
+            {
+                // Blue gradient sky
+                for (int y = 0; y < 300; y++)
+                {
+                    int r = 100 + (y * 55 / 300);
+                    int g = 150 + (y * 55 / 300);
+                    int b = 220 - (y * 20 / 300);
+                    hline(dest, 0, y, 640, makecol(r, g, b));
+                }
+                
+                // Ocean waves (animated)
+                for (int x = 0; x < 640; x++)
+                {
+                    int wave1 = 200 + (int)(15 * sin((x + stage_animation_frame) * 0.03f));
+                    int wave2 = 240 + (int)(10 * sin((x + stage_animation_frame * 1.5f) * 0.04f));
+                    
+                    vline(dest, x, wave1, wave2, makecol(60, 100, 180));
+                    vline(dest, x, wave2, 300, makecol(40, 80, 150));
+                }
+                
+                // Beach/sand
+                rectfill(dest, 0, 300, 640, 400, makecol(220, 200, 140));
+            }
+            break;
+            
+        case 2: // EARTH stage - Forest
+            {
+                // Green-blue sky
+                for (int y = 0; y < 300; y++)
+                {
+                    int r = 120 - (y * 20 / 300);
+                    int g = 180 - (y * 30 / 300);
+                    int b = 140 - (y * 40 / 300);
+                    hline(dest, 0, y, 640, makecol(r, g, b));
+                }
+                
+                // Distant trees (dark green)
+                for (int i = 0; i < 20; i++)
+                {
+                    int x = i * 35 + ((stage_animation_frame / 2) % 35);
+                    int y = 220 + (i % 3) * 10;
+                    triangle(dest, x, y, x - 15, y + 60, x + 15, y + 60, makecol(30, 80, 30));
+                }
+                
+                // Grass ground
+                rectfill(dest, 0, 300, 640, 400, makecol(80, 140, 60));
+                
+                // Grass blades (simple details)
+                for (int i = 0; i < 40; i++)
+                {
+                    int x = (i * 16 + stage_animation_frame) % 640;
+                    vline(dest, x, 380, 385, makecol(100, 160, 80));
+                }
+            }
+            break;
+            
+        case 3: // WIND stage - Sky/Clouds
+            {
+                // Light blue sky gradient
+                for (int y = 0; y < 300; y++)
+                {
+                    int r = 150 + (y * 55 / 300);
+                    int g = 200 + (y * 35 / 300);
+                    int b = 255 - (y * 25 / 300);
+                    hline(dest, 0, y, 640, makecol(r, g, b));
+                }
+                
+                // Floating clouds (animated)
+                for (int i = 0; i < 6; i++)
+                {
+                    int x = ((i * 120) - stage_animation_frame + 1280) % 800 - 100;
+                    int y = 80 + i * 30;
+                    
+                    // Cloud puffs
+                    circlefill(dest, x, y, 25, makecol(255, 255, 255));
+                    circlefill(dest, x + 20, y, 20, makecol(255, 255, 255));
+                    circlefill(dest, x + 40, y, 25, makecol(255, 255, 255));
+                    circlefill(dest, x - 20, y, 20, makecol(255, 255, 255));
+                }
+                
+                // Distant platforms/mountains
+                for (int i = 0; i < 8; i++)
+                {
+                    int x = i * 90 + ((stage_animation_frame / 3) % 90);
+                    int y = 260 + (i % 2) * 20;
+                    rectfill(dest, x - 40, y, x + 40, y + 10, makecol(180, 180, 200));
+                }
+                
+                // Ground platform
+                rectfill(dest, 0, 300, 640, 310, makecol(200, 200, 220));
+            }
+            break;
+    }
+    
+    // Draw ground line (common for all stages)
+    hline(dest, 0, 400, 640, makecol(80, 80, 80));
+}
+
 void hamoopi_init(void)
 {
     if (initialized)
@@ -585,8 +725,8 @@ void hamoopi_run_frame(void)
     {
         // Fighting game logic
         
-        // Draw ground
-        hline(game_buffer, 0, 400, 640, makecol(100, 200, 100));
+        // Draw stage background
+        draw_stage_background(game_buffer, players[0].character_id, players[1].character_id);
         
         // Update Player 1
         Player* p1 = &players[0];

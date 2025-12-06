@@ -7,6 +7,7 @@ This directory contains the libretro port of HAMOOPI, allowing it to run on Retr
 The libretro core includes:
 - ✅ **Character Selection Screen** - Choose from 4 unique fighters
 - ✅ Full 2-player fighting game implementation
+- ✅ **Animated Stage Backgrounds** - Themed stages for each character
 - ✅ Physics-based movement (walking, jumping)
 - ✅ **Block/Defend Mechanic** - Defend against attacks with B button
 - ✅ **Audio Effects** - Sound effects for attacks, jumps, hits, and blocks
@@ -78,13 +79,19 @@ make -f Makefile.libretro platform=win
 3. **Fight!** → Battle begins when both players are ready
 4. **Winner Screen** → Press START to return to character selection
 
-## Characters
+## Characters & Stages
 
-Choose from 4 unique fighters, each with distinct colors:
+Choose from 4 unique fighters, each with distinct colors and themed stage:
 - **FIRE** (Red) - Aggressive fighter
-- **WATER** (Blue) - Balanced fighter  
+  - Stage: Volcano with lava glow and dark mountains
+- **WATER** (Blue) - Balanced fighter
+  - Stage: Ocean beach with animated waves
 - **EARTH** (Green) - Defensive fighter
+  - Stage: Forest with trees and grass details
 - **WIND** (Yellow) - Speed fighter
+  - Stage: Sky with floating clouds and platforms
+
+Each stage features animated elements and parallax layers for depth!
 
 ## Controls
 
@@ -136,13 +143,14 @@ Each player starts with 100 HP. Land attacks to damage your opponent!
 ## Current Status
 
 This is a fully functional libretro fighting game:
-- ✅ Core builds successfully (32KB)
+- ✅ Core builds successfully (36KB)
 - ✅ Video output working (640x480 @ 60fps)
 - ✅ **Audio output fully implemented** - Procedural sound effects at 44.1kHz
+- ✅ **Animated stage backgrounds** - Themed stages with parallax effects
 - ✅ Input handling implemented (2 players)
 - ✅ Frame-based execution
 - ✅ **Character selection screen fully integrated**
-- ✅ **4 playable characters with unique colors**
+- ✅ **4 playable characters with unique colors and stages**
 - ✅ **Block/Defend mechanic fully implemented**
 - ✅ **Audio effects for all actions** (jump, attack, hit, block)
 - ✅ **Game logic fully integrated**
@@ -156,6 +164,12 @@ This is a fully functional libretro fighting game:
 
 The core implements a complete fighting game with:
 - **Character Selection**: 4 fighters with distinct visual styles
+- **Stage Backgrounds**: Character-themed animated stages
+  - **FIRE**: Volcano with lava glow and mountain silhouettes
+  - **WATER**: Ocean beach with animated wave effects
+  - **EARTH**: Forest with parallax trees and grass details
+  - **WIND**: Sky arena with floating clouds and platforms
+  - Animated elements at 60 FPS for dynamic atmosphere
 - **Physics System**: Gravity-based movement, ground collision detection
 - **Combat Mechanics**: Attack range detection, health tracking, blocking with damage reduction
 - **Blocking System**: B button to defend, 80% damage reduction, visual shield indicator
