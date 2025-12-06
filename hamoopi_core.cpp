@@ -48,13 +48,14 @@ typedef struct {
     float x, y;
     float vx, vy;
     int health;
-    int state; // 0=idle, 1=walk, 2=jump, 3=attack, 4=hit
+    int state; // 0=idle, 1=walk, 2=jump, 3=attack, 4=hit, 5=crouch, 6=crouch_attack
     int anim_frame;
     int anim_timer;  // Timer for animation frame updates
     int facing; // 1=right, -1=left
     bool on_ground;
     int character_id; // Character selection (0-3)
     bool is_blocking; // Whether player is currently blocking
+    bool is_crouching; // Whether player is currently crouching
     int special_move_cooldown; // Cooldown for special moves
     bool is_dashing; // For WIND character dash attack
     int dash_timer; // Duration of dash
@@ -91,7 +92,15 @@ static CollisionBox get_body_box(Player* p)
 static CollisionBox get_hurtbox(Player* p)
 {
     CollisionBox box;
-    if (p->is_blocking)
+    if (p->is_crouching)
+    {
+        // Smaller hurtbox when crouching (only 50% height)
+        box.x = p->x - 12;
+        box.y = p->y - 19;  // Half height, closer to ground
+        box.w = 24;
+        box.h = 19;
+    }
+    else if (p->is_blocking)
     {
         // Smaller hurtbox when blocking
         box.x = p->x - 10;
@@ -329,7 +338,22 @@ static BITMAP* get_sprite_frame(Player* p)
     // Map game state to sprite animation state (HAMOOPI specification)
     int sprite_state = 0;
     
-    if (p->is_blocking)
+    if (p->state == 6)  // Crouching attack
+    {
+        sprite_state = 201;  // Soco Fraco Abaixado (Crouching weak punch)
+    }
+    else if (p->state == 5)  // Crouching
+    {
+        if (p->is_blocking)
+        {
+            sprite_state = 208;  // Defendendo Abaixado (Blocking crouched)
+        }
+        else
+        {
+            sprite_state = 200;  // Abaixado (Crouch stance)
+        }
+    }
+    else if (p->is_blocking)
     {
         sprite_state = 208;  // Blocking crouched (208) - defensive stance
     }
@@ -369,7 +393,7 @@ static BITMAP* get_sprite_frame(Player* p)
     }
     else  // Idle
     {
-        sprite_state = 100;  // Stance
+        sprite_state = 0;  // Stance
     }
     
     Animation* anim = get_animation(sprites, sprite_state);
@@ -811,6 +835,7 @@ static void init_player(Player* p, int player_num)
     p->facing = (player_num == 0) ? 1 : -1;
     p->on_ground = true;
     p->is_blocking = false;
+    p->is_crouching = false;
     p->special_move_cooldown = 0;
     p->is_dashing = false;
     p->dash_timer = 0;
@@ -1541,6 +1566,9 @@ void hamoopi_run_frame(void)
         
         if (p1->health > 0)
         {
+            // Check if crouching (DOWN button)
+            p1->is_crouching = key[p1_down_key] && p1->on_ground;
+            
             // Check if blocking (B button / bt2)
             bool was_blocking = p1->is_blocking;
             p1->is_blocking = key[p1_bt2_key];
@@ -1551,14 +1579,22 @@ void hamoopi_run_frame(void)
                 play_sound(SOUND_BLOCK);
             }
             
-            // Movement (slower when blocking)
-            float speed_multiplier = p1->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
-            if (key[p1_left_key]) { p1->vx = -3.0f * speed_multiplier; p1->facing = -1; }
-            else if (key[p1_right_key]) { p1->vx = 3.0f * speed_multiplier; p1->facing = 1; }
-            else { p1->vx *= 0.8f; }
+            // Movement (slower when blocking, can't move horizontally when crouching)
+            if (!p1->is_crouching)
+            {
+                float speed_multiplier = p1->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
+                if (key[p1_left_key]) { p1->vx = -3.0f * speed_multiplier; p1->facing = -1; }
+                else if (key[p1_right_key]) { p1->vx = 3.0f * speed_multiplier; p1->facing = 1; }
+                else { p1->vx *= 0.8f; }
+            }
+            else
+            {
+                // Can't move horizontally while crouching
+                p1->vx *= 0.8f;
+            }
             
-            // Jump (can't jump while blocking)
-            if (key[p1_up_key] && p1->on_ground && !p1->is_blocking)
+            // Jump (can't jump while blocking or crouching)
+            if (key[p1_up_key] && p1->on_ground && !p1->is_blocking && !p1->is_crouching)
             {
                 p1->vy = -12.0f;
                 p1->on_ground = false;
@@ -1569,13 +1605,20 @@ void hamoopi_run_frame(void)
             if (key[p1_bt1_key] && p1_attack_cooldown == 0 && !p1->is_blocking)
             {
                 play_sound(SOUND_ATTACK); // Attack sound effect
-                p1->state = 3; // Attack state
+                if (p1->is_crouching)
+                {
+                    p1->state = 6; // Crouch attack state
+                }
+                else
+                {
+                    p1->state = 3; // Normal attack state
+                }
                 p1->attack_frame = 0; // Start attack animation
                 p1_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
             }
             
             // Update attack animation
-            if (p1->state == 3)
+            if (p1->state == 3 || p1->state == 6)
             {
                 p1->attack_frame++;
                 if (p1->attack_frame >= 10) // Attack lasts 10 frames
@@ -1665,6 +1708,9 @@ void hamoopi_run_frame(void)
         
         if (p2->health > 0)
         {
+            // Check if crouching (DOWN button)
+            p2->is_crouching = key[p2_down_key] && p2->on_ground;
+            
             // Check if blocking (B button / bt2)
             bool was_blocking = p2->is_blocking;
             p2->is_blocking = key[p2_bt2_key];
@@ -1675,14 +1721,22 @@ void hamoopi_run_frame(void)
                 play_sound(SOUND_BLOCK);
             }
             
-            // Movement (slower when blocking)
-            float speed_multiplier = p2->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
-            if (key[p2_left_key]) { p2->vx = -3.0f * speed_multiplier; p2->facing = -1; }
-            else if (key[p2_right_key]) { p2->vx = 3.0f * speed_multiplier; p2->facing = 1; }
-            else { p2->vx *= 0.8f; }
+            // Movement (slower when blocking, can't move horizontally when crouching)
+            if (!p2->is_crouching)
+            {
+                float speed_multiplier = p2->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
+                if (key[p2_left_key]) { p2->vx = -3.0f * speed_multiplier; p2->facing = -1; }
+                else if (key[p2_right_key]) { p2->vx = 3.0f * speed_multiplier; p2->facing = 1; }
+                else { p2->vx *= 0.8f; }
+            }
+            else
+            {
+                // Can't move horizontally while crouching
+                p2->vx *= 0.8f;
+            }
             
-            // Jump (can't jump while blocking)
-            if (key[p2_up_key] && p2->on_ground && !p2->is_blocking)
+            // Jump (can't jump while blocking or crouching)
+            if (key[p2_up_key] && p2->on_ground && !p2->is_blocking && !p2->is_crouching)
             {
                 p2->vy = -12.0f;
                 p2->on_ground = false;
@@ -1693,13 +1747,20 @@ void hamoopi_run_frame(void)
             if (key[p2_bt1_key] && p2_attack_cooldown == 0 && !p2->is_blocking)
             {
                 play_sound(SOUND_ATTACK); // Attack sound effect
-                p2->state = 3; // Attack state
+                if (p2->is_crouching)
+                {
+                    p2->state = 6; // Crouch attack state
+                }
+                else
+                {
+                    p2->state = 3; // Normal attack state
+                }
                 p2->attack_frame = 0; // Start attack animation
                 p2_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
             }
             
             // Update attack animation
-            if (p2->state == 3)
+            if (p2->state == 3 || p2->state == 6)
             {
                 p2->attack_frame++;
                 if (p2->attack_frame >= 10) // Attack lasts 10 frames
@@ -1818,11 +1879,15 @@ void hamoopi_run_frame(void)
         // Update player states based on movement
         if (p1->health > 0)
         {
-            if (p1->state != 3 && !p1->is_blocking)  // Not attacking or blocking
+            if (p1->state != 3 && p1->state != 6 && !p1->is_blocking)  // Not attacking or blocking
             {
                 if (!p1->on_ground)
                 {
                     p1->state = 2;  // Jump
+                }
+                else if (p1->is_crouching)
+                {
+                    p1->state = 5;  // Crouch
                 }
                 else if (fabs(p1->vx) > 0.5f)
                 {
@@ -1837,11 +1902,15 @@ void hamoopi_run_frame(void)
         
         if (p2->health > 0)
         {
-            if (p2->state != 3 && !p2->is_blocking)  // Not attacking or blocking
+            if (p2->state != 3 && p2->state != 6 && !p2->is_blocking)  // Not attacking or blocking
             {
                 if (!p2->on_ground)
                 {
                     p2->state = 2;  // Jump
+                }
+                else if (p2->is_crouching)
+                {
+                    p2->state = 5;  // Crouch
                 }
                 else if (fabs(p2->vx) > 0.5f)
                 {
@@ -1854,8 +1923,8 @@ void hamoopi_run_frame(void)
             }
         }
         
-        // Attack clashing - check if both players are attacking
-        if (p1->state == 3 && p2->state == 3)
+        // Attack clashing - check if both players are attacking (normal or crouch attacks)
+        if ((p1->state == 3 || p1->state == 6) && (p2->state == 3 || p2->state == 6))
         {
             CollisionBox p1_clash = get_clash_box(p1);
             CollisionBox p2_clash = get_clash_box(p2);
