@@ -43,6 +43,48 @@ static SpriteSet character_sprites[4];  // One for each character (FIRE, WATER, 
 static bool sprites_loaded = false;
 static bool use_sprite_animations = true;  // Can be toggled with SELECT + START
 
+// INI-based character configuration system
+#define MAX_CHAR_ANIMATIONS 50
+#define MAX_COLLISION_BOXES 10
+
+typedef struct {
+    int state_id;          // Animation state (e.g., 000, 151, 420)
+    int xalign, yalign;    // Sprite alignment points
+    int frame_times[MAX_ANIM_FRAMES];  // Frame timing for each frame
+    int frame_count;       // Number of frames in animation
+    float hspeed, vspeed;  // Horizontal/vertical speed during animation
+    float gravity;         // Gravity applied during animation
+} AnimationConfig;
+
+typedef struct {
+    int state_id;          // Animation state
+    int frame;             // Frame number
+    CollisionBox hurtboxes[MAX_COLLISION_BOXES];
+    int hurtbox_count;
+    CollisionBox hitboxes[MAX_COLLISION_BOXES];
+    int hitbox_count;
+} CollisionBoxConfig;
+
+typedef struct {
+    char name[64];
+    int command_sequence[10];  // Button/direction commands
+    int command_count;
+    int damage;
+    int type;  // 0=projectile, 1=melee, 2=buff
+} SpecialMoveConfig;
+
+typedef struct {
+    AnimationConfig animations[MAX_CHAR_ANIMATIONS];
+    int animation_count;
+    CollisionBoxConfig collision_boxes[100];
+    int collision_box_count;
+    SpecialMoveConfig special_moves[10];
+    int special_move_count;
+    bool loaded;
+} CharacterConfig;
+
+static CharacterConfig character_configs[4];  // One for each character
+
 // Game state
 typedef struct {
     float x, y;
@@ -1201,6 +1243,257 @@ static void free_backgrounds()
     backgrounds_initialized = false;
 }
 
+// INI Character Configuration Loading System
+static void load_char_ini(int char_id, const char* char_name)
+{
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "chars/%s/char.ini", char_name);
+    
+    PACKFILE* fp = pack_fopen(filepath, F_READ_PACKED);
+    if (!fp)
+    {
+        fprintf(stderr, "char.ini not found for %s, using defaults\n", char_name);
+        return;
+    }
+    
+    CharacterConfig* config = &character_configs[char_id];
+    config->animation_count = 0;
+    
+    // Parse char.ini file manually (simple INI parser)
+    char line[256];
+    int current_state_id = -1;
+    AnimationConfig* current_anim = NULL;
+    
+    while (pack_fgets(line, sizeof(line), fp))
+    {
+        // Trim whitespace
+        char* start = line;
+        while (*start == ' ' || *start == '\t') start++;
+        if (*start == '\0' || *start == '\n' || *start == ';' || *start == '#') continue;
+        
+        // Check for section header [NNN]
+        if (*start == '[')
+        {
+            int state_id;
+            if (sscanf(start, "[%d]", &state_id) == 1)
+            {
+                current_state_id = state_id;
+                if (config->animation_count < MAX_CHAR_ANIMATIONS)
+                {
+                    current_anim = &config->animations[config->animation_count++];
+                    current_anim->state_id = state_id;
+                    current_anim->frame_count = 0;
+                    current_anim->hspeed = 0.0f;
+                    current_anim->vspeed = 0.0f;
+                    current_anim->gravity = 0.5f;
+                    current_anim->xalign = 0;
+                    current_anim->yalign = 0;
+                }
+            }
+        }
+        else if (current_anim)
+        {
+            // Parse key=value pairs
+            char key[64], value[64];
+            if (sscanf(start, "%[^=]=%s", key, value) == 2)
+            {
+                if (strcmp(key, "XAlign") == 0)
+                    current_anim->xalign = atoi(value);
+                else if (strcmp(key, "YAlign") == 0)
+                    current_anim->yalign = atoi(value);
+                else if (strcmp(key, "Hspeed") == 0)
+                    current_anim->hspeed = atof(value);
+                else if (strcmp(key, "Vspeed") == 0)
+                    current_anim->vspeed = atof(value);
+                else if (strcmp(key, "Gravity") == 0)
+                    current_anim->gravity = atof(value);
+                else if (strncmp(key, "FrameTime_", 10) == 0)
+                {
+                    int frame_num = atoi(key + 10);
+                    if (frame_num < MAX_ANIM_FRAMES)
+                    {
+                        current_anim->frame_times[frame_num] = atoi(value);
+                        if (frame_num >= current_anim->frame_count)
+                            current_anim->frame_count = frame_num + 1;
+                    }
+                }
+            }
+        }
+    }
+    
+    pack_fclose(fp);
+    config->loaded = true;
+    fprintf(stderr, "Loaded char.ini for %s: %d animations\n", char_name, config->animation_count);
+}
+
+static void load_chbox_ini(int char_id, const char* char_name)
+{
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "chars/%s/chbox.ini", char_name);
+    
+    PACKFILE* fp = pack_fopen(filepath, F_READ_PACKED);
+    if (!fp)
+    {
+        fprintf(stderr, "chbox.ini not found for %s, using defaults\n", char_name);
+        return;
+    }
+    
+    CharacterConfig* config = &character_configs[char_id];
+    config->collision_box_count = 0;
+    
+    char line[256];
+    int current_state_id = -1;
+    int current_frame = -1;
+    CollisionBoxConfig* current_box_config = NULL;
+    
+    while (pack_fgets(line, sizeof(line), fp))
+    {
+        char* start = line;
+        while (*start == ' ' || *start == '\t') start++;
+        if (*start == '\0' || *start == '\n' || *start == ';' || *start == '#') continue;
+        
+        // Check for section header [NNN_FF]
+        if (*start == '[')
+        {
+            int state_id, frame;
+            if (sscanf(start, "[%d_%d]", &state_id, &frame) == 2)
+            {
+                current_state_id = state_id;
+                current_frame = frame;
+                if (config->collision_box_count < 100)
+                {
+                    current_box_config = &config->collision_boxes[config->collision_box_count++];
+                    current_box_config->state_id = state_id;
+                    current_box_config->frame = frame;
+                    current_box_config->hurtbox_count = 0;
+                    current_box_config->hitbox_count = 0;
+                }
+            }
+        }
+        else if (current_box_config)
+        {
+            // Parse collision box coordinates
+            char key[64];
+            int x1, y1, x2, y2;
+            if (sscanf(start, "%[^=]=%d,%d,%d,%d", key, &x1, &y1, &x2, &y2) == 5)
+            {
+                CollisionBox box;
+                box.x = x1;
+                box.y = y1;
+                box.w = x2 - x1;
+                box.h = y2 - y1;
+                
+                if (strncmp(key, "HurtBox", 7) == 0 && current_box_config->hurtbox_count < MAX_COLLISION_BOXES)
+                {
+                    current_box_config->hurtboxes[current_box_config->hurtbox_count++] = box;
+                }
+                else if (strncmp(key, "HitBox", 6) == 0 && current_box_config->hitbox_count < MAX_COLLISION_BOXES)
+                {
+                    current_box_config->hitboxes[current_box_config->hitbox_count++] = box;
+                }
+            }
+        }
+    }
+    
+    pack_fclose(fp);
+    fprintf(stderr, "Loaded chbox.ini for %s: %d box configs\n", char_name, config->collision_box_count);
+}
+
+static void load_special_ini(int char_id, const char* char_name)
+{
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "chars/%s/special.ini", char_name);
+    
+    PACKFILE* fp = pack_fopen(filepath, F_READ_PACKED);
+    if (!fp)
+    {
+        fprintf(stderr, "special.ini not found for %s, using defaults\n", char_name);
+        return;
+    }
+    
+    CharacterConfig* config = &character_configs[char_id];
+    config->special_move_count = 0;
+    
+    char line[256];
+    SpecialMoveConfig* current_special = NULL;
+    
+    while (pack_fgets(line, sizeof(line), fp))
+    {
+        char* start = line;
+        while (*start == ' ' || *start == '\t') start++;
+        if (*start == '\0' || *start == '\n' || *start == ';' || *start == '#') continue;
+        
+        // Check for section header [NNN]
+        if (*start == '[')
+        {
+            int special_id;
+            if (sscanf(start, "[%d]", &special_id) == 1)
+            {
+                if (config->special_move_count < 10)
+                {
+                    current_special = &config->special_moves[config->special_move_count++];
+                    current_special->command_count = 0;
+                    current_special->damage = 0;
+                    current_special->type = 0;
+                    strcpy(current_special->name, "Special");
+                }
+            }
+        }
+        else if (current_special)
+        {
+            char key[64], value[128];
+            if (sscanf(start, "%[^=]=%[^\n]", key, value) == 2)
+            {
+                if (strcmp(key, "name") == 0)
+                {
+                    strncpy(current_special->name, value, sizeof(current_special->name) - 1);
+                }
+                else if (strncmp(key, "c", 1) == 0 && strlen(key) > 1)
+                {
+                    // Command sequence (c1, c2, c3, ...)
+                    int cmd_num = atoi(key + 1);
+                    if (cmd_num > 0 && cmd_num <= 10)
+                    {
+                        current_special->command_sequence[cmd_num - 1] = atoi(value);
+                        if (cmd_num > current_special->command_count)
+                            current_special->command_count = cmd_num;
+                    }
+                }
+                else if (strcmp(key, "V1_Damage") == 0 || strcmp(key, "V2_Damage") == 0 || strcmp(key, "V3_Damage") == 0)
+                {
+                    current_special->damage = atoi(value);
+                }
+            }
+        }
+    }
+    
+    pack_fclose(fp);
+    fprintf(stderr, "Loaded special.ini for %s: %d special moves\n", char_name, config->special_move_count);
+}
+
+static void load_character_config(int char_id)
+{
+    const char* char_names[] = {"CharTemplate", "CharTemplate", "CharTemplate", "CharTemplate"};
+    if (char_id < 0 || char_id >= 4) return;
+    
+    character_configs[char_id].loaded = false;
+    character_configs[char_id].animation_count = 0;
+    character_configs[char_id].collision_box_count = 0;
+    character_configs[char_id].special_move_count = 0;
+    
+    load_char_ini(char_id, char_names[char_id]);
+    load_chbox_ini(char_id, char_names[char_id]);
+    load_special_ini(char_id, char_names[char_id]);
+}
+
+static void init_character_configs()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        load_character_config(i);
+    }
+}
+
 // Draw stage background based on characters
 static void draw_stage_background(BITMAP* dest, int p1_char, int p2_char)
 {
@@ -1402,6 +1695,9 @@ void hamoopi_init(void)
     
     // Load backgrounds from config files
     load_backgrounds();
+    
+    // Load character configurations from INI files
+    init_character_configs();
     
     // Initialize players with default characters
     init_player(&players[0], 0);
