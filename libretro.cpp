@@ -12,6 +12,7 @@ extern void hamoopi_deinit();
 extern void hamoopi_reset();
 extern BITMAP* hamoopi_get_screen_buffer();
 extern void hamoopi_set_input_state(unsigned port, unsigned device, unsigned index, unsigned id, int16_t state);
+extern void hamoopi_get_audio_samples(int16_t* buffer, size_t frames);
 
 static retro_log_printf_t log_cb;
 static retro_video_refresh_t video_cb;
@@ -218,17 +219,26 @@ static void convert_allegro_bitmap_to_rgb(void)
 
 void retro_run(void)
 {
-   // Update input state
-   update_input();
-   
-   // Run one frame of the game
-   hamoopi_run_frame();
-   
-   // Convert Allegro bitmap to RGB buffer
-   convert_allegro_bitmap_to_rgb();
-   
-   // Send video frame to frontend
-   video_cb(frame_buf, HAMOOPI_WIDTH, HAMOOPI_HEIGHT, HAMOOPI_WIDTH * sizeof(uint32_t));
+    // Update input state
+    update_input();
+    
+    // Run one frame of the game
+    hamoopi_run_frame();
+    
+    // Convert Allegro bitmap to RGB buffer
+    convert_allegro_bitmap_to_rgb();
+    
+    // Send video frame to frontend
+    video_cb(frame_buf, HAMOOPI_WIDTH, HAMOOPI_HEIGHT, HAMOOPI_WIDTH * sizeof(uint32_t));
+    
+    // Generate and send audio samples
+    // 44100 Hz / 60 FPS = 735 samples per frame
+    if (audio_batch_cb)
+    {
+        static int16_t audio_samples[735 * 2]; // Stereo
+        hamoopi_get_audio_samples(audio_samples, 735);
+        audio_batch_cb(audio_samples, 735);
+    }
 }
 
 bool retro_load_game(const struct retro_game_info *info)

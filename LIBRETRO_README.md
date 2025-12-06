@@ -9,6 +9,7 @@ The libretro core includes:
 - ✅ Full 2-player fighting game implementation
 - ✅ Physics-based movement (walking, jumping)
 - ✅ **Block/Defend Mechanic** - Defend against attacks with B button
+- ✅ **Audio Effects** - Sound effects for attacks, jumps, hits, and blocks
 - ✅ Combat system with health tracking
 - ✅ Real-time gameplay at 60 FPS
 - ✅ Title screen and winner announcement
@@ -135,18 +136,19 @@ Each player starts with 100 HP. Land attacks to damage your opponent!
 ## Current Status
 
 This is a fully functional libretro fighting game:
-- ✅ Core builds successfully (31KB)
+- ✅ Core builds successfully (32KB)
 - ✅ Video output working (640x480 @ 60fps)
+- ✅ **Audio output fully implemented** - Procedural sound effects at 44.1kHz
 - ✅ Input handling implemented (2 players)
 - ✅ Frame-based execution
 - ✅ **Character selection screen fully integrated**
 - ✅ **4 playable characters with unique colors**
 - ✅ **Block/Defend mechanic fully implemented**
+- ✅ **Audio effects for all actions** (jump, attack, hit, block)
 - ✅ **Game logic fully integrated**
 - ✅ **Physics engine (gravity, movement, collision)**
 - ✅ **Combat system with health management and blocking**
 - ✅ **Game states (title, character select, fight, winner)**
-- ⚠️ Audio output not yet implemented
 - ❌ Save states not implemented
 - ⚠️ Full HAMOOPI character system pending (using simple sprites for now)
 
@@ -157,6 +159,11 @@ The core implements a complete fighting game with:
 - **Physics System**: Gravity-based movement, ground collision detection
 - **Combat Mechanics**: Attack range detection, health tracking, blocking with damage reduction
 - **Blocking System**: B button to defend, 80% damage reduction, visual shield indicator
+- **Audio System**: Procedural sound generation at 44.1kHz stereo
+  - **Jump Sound**: Rising pitch sweep (200Hz → 600Hz)
+  - **Attack Sound**: Sharp percussive with falling pitch
+  - **Hit Sound**: Impact noise burst
+  - **Block Sound**: Metallic clang effect
 - **Game Flow**: Title screen → Character selection → Fight → Winner → Repeat
 - **Real-time Rendering**: Direct Allegro rendering at 60 FPS
 - **Input Processing**: Frame-accurate controller input via libretro API

@@ -15,6 +15,9 @@ void hamoopi_run_frame(void);
 // Video
 BITMAP* hamoopi_get_screen_buffer(void);
 
+// Audio
+void hamoopi_get_audio_samples(int16_t* buffer, size_t frames);
+
 // Input
 void hamoopi_set_input_state(unsigned port, unsigned device, unsigned index, unsigned id, int16_t state);
 

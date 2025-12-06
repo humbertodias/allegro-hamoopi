@@ -55,6 +55,29 @@ static bool p2_a_pressed = false;
 #define BLOCKING_SPEED_MULTIPLIER 0.5f
 #define BLOCKING_COLOR_DIVISOR 2
 
+// Audio constants
+#define AUDIO_SAMPLE_RATE 44100
+#define AUDIO_BUFFER_SIZE 735  // ~60 FPS: 44100/60 = 735 samples per frame
+
+// Sound effect types
+enum SoundEffect {
+    SOUND_NONE = 0,
+    SOUND_JUMP = 1,
+    SOUND_ATTACK = 2,
+    SOUND_HIT = 3,
+    SOUND_BLOCK = 4
+};
+
+// Audio state
+static int16_t audio_buffer[AUDIO_BUFFER_SIZE * 2]; // Stereo
+static int audio_position = 0;
+
+// Sound effect queue (simple system)
+static enum SoundEffect sound_queue[4] = {SOUND_NONE, SOUND_NONE, SOUND_NONE, SOUND_NONE};
+static int sound_queue_pos = 0;
+static int sound_effect_timer[4] = {0, 0, 0, 0};
+static int sound_effect_duration[4] = {0, 0, 0, 0};
+
 // Character colors for visual distinction
 static const int char_colors[NUM_CHARACTERS][3] = {
     {255, 100, 100},  // Red - FIRE
@@ -65,6 +88,136 @@ static const int char_colors[NUM_CHARACTERS][3] = {
 
 // Fonts
 static FONT* game_font = NULL;
+
+// Function to play a sound effect
+static void play_sound(enum SoundEffect effect)
+{
+    // Find an empty slot in the sound queue
+    for (int i = 0; i < 4; i++)
+    {
+        if (sound_effect_timer[i] <= 0)
+        {
+            sound_queue[i] = effect;
+            sound_effect_timer[i] = 1;
+            
+            // Set duration based on effect type
+            switch (effect)
+            {
+                case SOUND_JUMP:
+                    sound_effect_duration[i] = AUDIO_SAMPLE_RATE / 20; // 0.05 seconds
+                    break;
+                case SOUND_ATTACK:
+                    sound_effect_duration[i] = AUDIO_SAMPLE_RATE / 15; // 0.067 seconds
+                    break;
+                case SOUND_HIT:
+                    sound_effect_duration[i] = AUDIO_SAMPLE_RATE / 25; // 0.04 seconds
+                    break;
+                case SOUND_BLOCK:
+                    sound_effect_duration[i] = AUDIO_SAMPLE_RATE / 30; // 0.033 seconds
+                    break;
+                default:
+                    sound_effect_duration[i] = 0;
+                    break;
+            }
+            break;
+        }
+    }
+}
+
+// Generate a single audio sample for a sound effect
+static int16_t generate_sound_sample(enum SoundEffect effect, int position, int duration)
+{
+    if (effect == SOUND_NONE || duration == 0)
+        return 0;
+    
+    float t = (float)position / (float)duration;
+    float amplitude = (1.0f - t) * 0.15f; // Decay envelope
+    int16_t sample = 0;
+    
+    switch (effect)
+    {
+        case SOUND_JUMP:
+            // Rising pitch sweep
+            {
+                float freq = 200.0f + t * 400.0f; // 200Hz to 600Hz sweep
+                float phase = (float)position * freq * 2.0f * 3.14159f / AUDIO_SAMPLE_RATE;
+                sample = (int16_t)(sin(phase) * amplitude * 32767.0f);
+            }
+            break;
+            
+        case SOUND_ATTACK:
+            // Sharp percussive sound
+            {
+                float freq = 150.0f * (1.0f - t * 0.5f); // Falling pitch
+                float phase = (float)position * freq * 2.0f * 3.14159f / AUDIO_SAMPLE_RATE;
+                sample = (int16_t)(sin(phase) * amplitude * 32767.0f);
+            }
+            break;
+            
+        case SOUND_HIT:
+            // Impact sound with noise
+            {
+                float noise = ((float)(rand() % 1000) / 500.0f - 1.0f);
+                sample = (int16_t)(noise * amplitude * 32767.0f);
+            }
+            break;
+            
+        case SOUND_BLOCK:
+            // Metallic clang
+            {
+                float freq = 800.0f + (float)(rand() % 200);
+                float phase = (float)position * freq * 2.0f * 3.14159f / AUDIO_SAMPLE_RATE;
+                sample = (int16_t)(sin(phase) * amplitude * 32767.0f * 0.5f);
+            }
+            break;
+            
+        default:
+            sample = 0;
+            break;
+    }
+    
+    return sample;
+}
+
+// Fill audio buffer with generated sound effects
+void hamoopi_get_audio_samples(int16_t* buffer, size_t frames)
+{
+    for (size_t i = 0; i < frames; i++)
+    {
+        int16_t left = 0;
+        int16_t right = 0;
+        
+        // Mix all active sound effects
+        for (int j = 0; j < 4; j++)
+        {
+            if (sound_effect_timer[j] > 0)
+            {
+                int pos = sound_effect_duration[j] - sound_effect_timer[j];
+                int16_t sample = generate_sound_sample(sound_queue[j], pos, sound_effect_duration[j]);
+                
+                left += sample;
+                right += sample;
+                
+                sound_effect_timer[j]--;
+                
+                if (sound_effect_timer[j] <= 0)
+                {
+                    sound_queue[j] = SOUND_NONE;
+                    sound_effect_duration[j] = 0;
+                }
+            }
+        }
+        
+        // Clamp to prevent overflow
+        if (left > 32767) left = 32767;
+        if (left < -32768) left = -32768;
+        if (right > 32767) right = 32767;
+        if (right < -32768) right = -32768;
+        
+        buffer[i * 2] = left;
+        buffer[i * 2 + 1] = right;
+    }
+}
 
 // Key mapping for players
 // Player 1 keys
@@ -445,7 +598,14 @@ void hamoopi_run_frame(void)
         if (p1->health > 0)
         {
             // Check if blocking (B button / bt2)
+            bool was_blocking = p1->is_blocking;
             p1->is_blocking = key[p1_bt2_key];
+            
+            // Block sound effect (when starting to block)
+            if (p1->is_blocking && !was_blocking)
+            {
+                play_sound(SOUND_BLOCK);
+            }
             
             // Movement (slower when blocking)
             float speed_multiplier = p1->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
@@ -458,11 +618,14 @@ void hamoopi_run_frame(void)
             {
                 p1->vy = -12.0f;
                 p1->on_ground = false;
+                play_sound(SOUND_JUMP); // Jump sound effect
             }
             
             // Attack with cooldown (can't attack while blocking)
             if (key[p1_bt1_key] && p1_attack_cooldown == 0 && !p1->is_blocking)
             {
+                play_sound(SOUND_ATTACK); // Attack sound effect
+                
                 // Simple punch attack - check collision with P2
                 Player* p2 = &players[1];
                 float dist = fabs(p1->x - p2->x);
@@ -474,12 +637,14 @@ void hamoopi_run_frame(void)
                         // Reduced damage when blocking
                         p2->health -= BLOCKED_DAMAGE;
                         if (p2->health < 0) p2->health = 0;
+                        play_sound(SOUND_BLOCK); // Block impact sound
                     }
                     else
                     {
                         // Full damage
                         p2->health -= NORMAL_DAMAGE;
                         if (p2->health < 0) p2->health = 0;
+                        play_sound(SOUND_HIT); // Hit sound effect
                     }
                     p1_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
                 }
@@ -511,7 +676,14 @@ void hamoopi_run_frame(void)
         if (p2->health > 0)
         {
             // Check if blocking (B button / bt2)
+            bool was_blocking = p2->is_blocking;
             p2->is_blocking = key[p2_bt2_key];
+            
+            // Block sound effect (when starting to block)
+            if (p2->is_blocking && !was_blocking)
+            {
+                play_sound(SOUND_BLOCK);
+            }
             
             // Movement (slower when blocking)
             float speed_multiplier = p2->is_blocking ? BLOCKING_SPEED_MULTIPLIER : 1.0f;
@@ -524,11 +696,14 @@ void hamoopi_run_frame(void)
             {
                 p2->vy = -12.0f;
                 p2->on_ground = false;
+                play_sound(SOUND_JUMP); // Jump sound effect
             }
             
             // Attack with cooldown (can't attack while blocking)
             if (key[p2_bt1_key] && p2_attack_cooldown == 0 && !p2->is_blocking)
             {
+                play_sound(SOUND_ATTACK); // Attack sound effect
+                
                 // Simple punch attack - check collision with P1
                 float dist = fabs(p2->x - p1->x);
                 if (dist < 50.0f && p1->health > 0)
@@ -539,12 +714,14 @@ void hamoopi_run_frame(void)
                         // Reduced damage when blocking
                         p1->health -= BLOCKED_DAMAGE;
                         if (p1->health < 0) p1->health = 0;
+                        play_sound(SOUND_BLOCK); // Block impact sound
                     }
                     else
                     {
                         // Full damage
                         p1->health -= NORMAL_DAMAGE;
                         if (p1->health < 0) p1->health = 0;
+                        play_sound(SOUND_HIT); // Hit sound effect
                     }
                     p2_attack_cooldown = 15; // 15 frames cooldown (~0.25 seconds)
                 }
