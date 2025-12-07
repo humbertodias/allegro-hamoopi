@@ -8,8 +8,8 @@
 #include "allegro_system_backend.h"
 #include <allegro.h>
 
-// Global backend pointer
-BackendManager* g_backend = nullptr;
+// Use external backend pointer defined in backend_init.cpp
+extern BackendManager* g_backend;
 
 void example_usage() {
     // Initialize backends

@@ -15,6 +15,8 @@ extern BackendManager* g_backend;
 #define KEY_CHECK(scancode) (key[scancode])
 
 // Graphics compatibility wrappers
+// Note: Background color parameter is ignored in these wrappers as the backend
+// interface uses -1 for transparent background by default
 inline BITMAP* wrapper_create_bitmap(int w, int h) {
     return (BITMAP*)g_backend->getGraphics()->create_bitmap(w, h);
 }
@@ -67,11 +69,18 @@ inline FONT* wrapper_load_font(const char* filename) {
     return (FONT*)g_backend->getGraphics()->load_font(filename);
 }
 
+// IMPORTANT: These wrapper functions for textout accept a background color parameter
+// for compatibility with Allegro's textout_ex functions, but the parameter is
+// intentionally ignored. The backend implementation always uses -1 (transparent background)
+// which is the most common use case. If you need a specific background color,
+// use rectfill to draw a background rectangle before drawing text.
 inline void wrapper_textout_ex(BITMAP* bmp, FONT* font, const char* text, int x, int y, int color, int bg) {
+    // Note: 'bg' parameter is ignored - backend uses transparent background (-1)
     g_backend->getGraphics()->textout(bmp, font, text, x, y, color);
 }
 
 inline void wrapper_textout_centre_ex(BITMAP* bmp, FONT* font, const char* text, int x, int y, int color, int bg) {
+    // Note: 'bg' parameter is ignored - backend uses transparent background (-1)
     g_backend->getGraphics()->textout_centre(bmp, font, text, x, y, color);
 }
 

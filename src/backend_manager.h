@@ -37,12 +37,11 @@ public:
     SystemBackend* getSystem() { return system; }
     
     bool initAll() {
-        bool success = true;
-        if (system) success &= system->init();
-        if (graphics) success &= graphics->init();
-        if (input) success &= input->init();
-        if (audio) success &= audio->init();
-        return success;
+        if (system && !system->init()) return false;
+        if (graphics && !graphics->init()) return false;
+        if (input && !input->init()) return false;
+        if (audio && !audio->init()) return false;
+        return true;
     }
     
     void shutdownAll() {
@@ -56,8 +55,5 @@ public:
         shutdownAll();
     }
 };
-
-// Initialize static instance
-BackendManager* BackendManager::instance = nullptr;
 
 #endif // BACKEND_MANAGER_H

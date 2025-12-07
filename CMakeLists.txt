@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 project(HAMOOPI)
-add_executable(HAMOOPI src/HAMOOPI.cpp src/backend_init.cpp)
+add_executable(HAMOOPI src/HAMOOPI.cpp src/backend_init.cpp src/backend_manager.cpp)
 
 # Find Allegro
 find_package(Alleg4 4)

@@ -6,16 +6,8 @@
 #include <cstdarg>
 
 class AllegroSystemBackend : public SystemBackend {
-private:
-    TimerCallback timer_callback;
-    
-    static void timer_wrapper() {
-        // This would need to be implemented with a global or singleton pattern
-        // to properly forward to the callback
-    }
-    
 public:
-    AllegroSystemBackend() : timer_callback(nullptr) {}
+    AllegroSystemBackend() {}
     
     bool init() override {
         return allegro_init() == 0 && ::install_timer() == 0;
@@ -26,7 +18,6 @@ public:
     }
     
     void install_timer(TimerCallback callback, int fps) override {
-        timer_callback = callback;
         ::install_int_ex(callback, BPS_TO_TIMER(fps));
     }
     
