@@ -1,6 +1,6 @@
-# TTF to PCX Font Generator (Qt Version)
+# TTF to PCX Font Generator
 
-This is a cross-platform Qt6-based version of the TTF to PCX font generator, converted from the original Windows MFC application.
+A cross-platform Qt6 tool that converts TrueType fonts to PCX files for use with the Allegro game engine. Originally a Windows-only MFC application, now rewritten with Qt6 for Linux, Windows, and macOS.
 
 ## Features
 
@@ -102,14 +102,16 @@ To use antialiased fonts in Allegro:
 
 ## Architecture
 
-The Qt version maintains the same functionality as the original MFC version while being platform-agnostic:
+This tool is built with Qt6 for cross-platform compatibility:
 
-- **mainwindow.cpp/h**: Main UI and application logic (replaces ttf2pcxdlg.cpp/h)
-- **character_qt.cpp/h**: Platform-agnostic character rendering using Qt (replaces character.cpp/h with Windows GDI)
-- **previewwidget.cpp/h**: Font preview widget (replaces previewbutton.cpp/h)
-- **main.cpp**: Application entry point (replaces ttf2pcx.cpp with MFC initialization)
+- **mainwindow.cpp/h**: Main UI and application logic
+- **character_qt.cpp/h**: Platform-agnostic character rendering using Qt
+- **previewwidget.cpp/h**: Font preview widget
+- **main.cpp**: Application entry point
 
-The PCX export format and algorithm remain identical to ensure compatibility with Allegro.
+The PCX export format and algorithm remain identical to the original for compatibility with Allegro.
+
+For details on the migration from the original MFC version, see [MIGRATION.md](MIGRATION.md).
 
 ## Original Credits
 

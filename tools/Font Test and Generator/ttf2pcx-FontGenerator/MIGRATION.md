@@ -1,6 +1,8 @@
 # Migration Guide: MFC to Qt
 
-This document explains how the original MFC codebase maps to the new Qt implementation.
+This document explains how the original MFC codebase was migrated to the new Qt implementation.
+
+**Note:** The original MFC files have been removed from the repository. This tool is now Qt-only and cross-platform.
 
 ## File Mapping
 
@@ -16,6 +18,7 @@ This document explains how the original MFC codebase maps to the new Qt implemen
 | `resource.h` | *removed* | MFC resource definitions (not needed in Qt) |
 | `ttf2pcx.rc` | *removed* | MFC resource file (Qt uses code-based UI) |
 | `*.dsp, *.dsw` | `CMakeLists.txt` | Build system (Visual Studio → CMake) |
+| `readme.txt` | `README.md` | Documentation |
 
 ## Key Changes
 
@@ -55,14 +58,10 @@ The following remain **identical** to ensure compatibility with Allegro:
 
 ## Building
 
-### Original (MFC)
-```cmd
-rem Visual C++ 6 required
-rem Open ttf2pcx.dsw in Visual Studio
-rem Build → Build ttf2pcx.exe
-```
+### Original (MFC) - No Longer Available
+The original MFC version required Visual C++ 6 and was Windows-only. It has been replaced by the Qt version.
 
-### New (Qt)
+### Current (Qt)
 ```bash
 # Works on Linux, Windows, macOS
 mkdir build && cd build
@@ -72,7 +71,7 @@ make  # or: cmake --build .
 
 ## Testing
 
-The new Qt version includes automated tests:
+The Qt version includes automated tests:
 - `test_core.cpp`: Tests character rendering and core functionality
 - `test.sh`: Basic smoke test for application startup
 
@@ -81,11 +80,3 @@ Run tests:
 cd build
 ./test_core
 ```
-
-## Coexistence
-
-Both implementations can coexist in the repository:
-- **MFC version**: For legacy Windows builds (Visual C++ 6)
-- **Qt version**: For modern cross-platform development
-
-Use CMake to build the Qt version, which doesn't interfere with the MFC project files.
