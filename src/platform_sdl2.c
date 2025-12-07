@@ -184,6 +184,26 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         flags |= SDL_WINDOW_FULLSCREEN;
     }
     
+    // Destroy existing resources if they exist
+    if (g_screen) {
+        if (g_screen->surface) {
+            SDL_FreeSurface((SDL_Surface*)g_screen->surface);
+        }
+        if (g_screen->texture) {
+            SDL_DestroyTexture((SDL_Texture*)g_screen->texture);
+        }
+        free(g_screen);
+        g_screen = NULL;
+    }
+    if (g_renderer) {
+        SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
+    }
+    if (g_window) {
+        SDL_DestroyWindow(g_window);
+        g_window = NULL;
+    }
+    
     g_window = SDL_CreateWindow("HAMOOPI",
                                  SDL_WINDOWPOS_CENTERED,
                                  SDL_WINDOWPOS_CENTERED,
@@ -201,6 +221,10 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         SDL_DestroyWindow(g_window);
         return -1;
     }
+    
+    // Set logical size to match requested resolution
+    // This ensures correct scaling on high-DPI displays
+    SDL_RenderSetLogicalSize(g_renderer, width, height);
     
     // Create screen surface
     g_screen = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
