@@ -963,7 +963,7 @@ int SelectBGID=1;
 //Carrega Miniaturas - SELECT CHARS
 for(int ind=1;ind<=MAX_CHARS;ind++){
 if (Qtde_Personagens_Instalados>=ind) {
-char MINIstring[99]=""; sprintf(MINIstring, "data/data/chars/%s/000_01.pcx", Lista_de_Personagens_Instalados[ind]);
+char MINIstring[99]=""; sprintf(MINIstring, "data/chars/%s/000_01.pcx", Lista_de_Personagens_Instalados[ind]);
 MINIspr[ind] = load_bitmap(MINIstring, NULL);
 if (!MINIspr[ind]) { MINIspr[ind]=load_bitmap("data/system/000_01.pcx", NULL); }
 stretch_blit(MINIspr[ind], MINIsprDisplay[ind], 0, 0, MINIspr[ind]->w, MINIspr[ind]->h, 0, 0, MINIsprDisplay[1]->w, MINIsprDisplay[1]->h);
@@ -974,7 +974,7 @@ destroy_bitmap(MINIspr[ind]);
 //miniaturas do arcade mode
 for(int ind=1;ind<=8;ind++){
 if (Qtde_Personagens_Instalados>=ind) {
-char MINIstring[99]=""; sprintf(MINIstring, "data/data/chars/%s/000_01.pcx", Lista_de_Personagens_ArcadeMode[ind]);
+char MINIstring[99]=""; sprintf(MINIstring, "data/chars/%s/000_01.pcx", Lista_de_Personagens_ArcadeMode[ind]);
 MINIspr[ind] = load_bitmap(MINIstring, NULL);
 if (!MINIspr[ind]) { MINIspr[ind]=load_bitmap("data/system/000_01.pcx", NULL); }
 stretch_blit(MINIspr[ind], MINIsprDisplayArcadeMode[ind], 0, 0, MINIspr[ind]->w, MINIspr[ind]->h, 0, 0, MINIsprDisplay[1]->w, MINIsprDisplay[1]->h);
@@ -985,7 +985,7 @@ destroy_bitmap(MINIspr[ind]);
 //P1 miniatura da foto ingame
 strcpy(P[1].Name, (char *)get_config_string("CHARS", "char1", ""));
 char P1_1s[25]="";
-sprintf(P1_1s, "data/data/chars/%s/000_01.pcx", P[1].Name);
+sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
 BITMAP *P1_1 = load_bitmap(P1_1s, NULL);
 if (!P1_1) { P1_1=load_bitmap("data/system/000_01.pcx", NULL); }
 //P2 miniatura da foto ingame
@@ -7332,7 +7332,7 @@ destroy_midi(bgm_versus_mode);
 clear_keybuf();
 return 0;
 } //main()
-END_OF_MAIN();
+//END_OF_MAIN();
 /* FIM DO PROGRAMA */
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
