@@ -403,19 +403,19 @@ void platform_draw_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int 
 void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
                           int src_x, int src_y, int src_w, int src_h,
                           int dest_x, int dest_y, int dest_w, int dest_h) {
-    if (src && ((SDL_Surface*)src->surface) && dest && dest->surface) {
+    if (src && src->surface && dest && dest->surface) {
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
-        SDL_BlitScaled(((SDL_Surface*)src->surface), &src_rect, dest->surface, &dest_rect);
+        SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
     }
 }
 
 void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
                   int src_x, int src_y, int dest_x, int dest_y, int w, int h) {
-    if (src && ((SDL_Surface*)src->surface) && dest && dest->surface) {
+    if (src && src->surface && dest && dest->surface) {
         SDL_Rect src_rect = { src_x, src_y, w, h };
         SDL_Rect dest_rect = { dest_x, dest_y, w, h };
-        SDL_BlitSurface(((SDL_Surface*)src->surface), &src_rect, dest->surface, &dest_rect);
+        SDL_BlitSurface((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
     }
 }
 
