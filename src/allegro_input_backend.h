@@ -6,7 +6,13 @@
 
 class AllegroInputBackend : public InputBackend {
 private:
-    // Map our KeyCode enum to Allegro scancodes
+    // NOTE: Key mapping limitation
+    // Currently maps abstract KeyCode enums to Allegro KEY_* constants.
+    // This creates a dependency on Allegro constants in the abstraction layer.
+    // For full library independence, this should use integer key codes that are
+    // backend-agnostic, with each backend doing its own translation.
+    // However, for backward compatibility with existing HAMOOPI code that uses
+    // Allegro's key[] array directly, we maintain this mapping for now.
     int mapKeyCode(KeyCode keycode) {
         switch (keycode) {
             case KEY_A: return KEY_A;

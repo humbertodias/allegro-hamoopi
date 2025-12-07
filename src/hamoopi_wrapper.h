@@ -74,13 +74,20 @@ inline FONT* wrapper_load_font(const char* filename) {
 // intentionally ignored. The backend implementation always uses -1 (transparent background)
 // which is the most common use case. If you need a specific background color,
 // use rectfill to draw a background rectangle before drawing text.
+//
+// WARNING: If you pass a non-default background color (not -1), it will be silently
+// ignored. This is a known limitation of the current backend abstraction.
 inline void wrapper_textout_ex(BITMAP* bmp, FONT* font, const char* text, int x, int y, int color, int bg) {
     // Note: 'bg' parameter is ignored - backend uses transparent background (-1)
+    // If a specific background is needed, draw a rectangle first using rectfill()
+    (void)bg;  // Explicitly mark as unused to avoid compiler warnings
     g_backend->getGraphics()->textout(bmp, font, text, x, y, color);
 }
 
 inline void wrapper_textout_centre_ex(BITMAP* bmp, FONT* font, const char* text, int x, int y, int color, int bg) {
     // Note: 'bg' parameter is ignored - backend uses transparent background (-1)
+    // If a specific background is needed, draw a rectangle first using rectfill()
+    (void)bg;  // Explicitly mark as unused to avoid compiler warnings
     g_backend->getGraphics()->textout_centre(bmp, font, text, x, y, color);
 }
 

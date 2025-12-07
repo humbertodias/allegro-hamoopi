@@ -37,10 +37,24 @@ public:
     SystemBackend* getSystem() { return system; }
     
     bool initAll() {
-        if (system && !system->init()) return false;
-        if (graphics && !graphics->init()) return false;
-        if (input && !input->init()) return false;
-        if (audio && !audio->init()) return false;
+        if (system && !system->init()) {
+            return false;
+        }
+        if (graphics && !graphics->init()) {
+            if (system) system->shutdown();
+            return false;
+        }
+        if (input && !input->init()) {
+            if (graphics) graphics->shutdown();
+            if (system) system->shutdown();
+            return false;
+        }
+        if (audio && !audio->init()) {
+            if (input) input->shutdown();
+            if (graphics) graphics->shutdown();
+            if (system) system->shutdown();
+            return false;
+        }
         return true;
     }
     

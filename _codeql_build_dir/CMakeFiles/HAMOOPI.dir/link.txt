@@ -1,0 +1,1 @@
+/home/runner/work/allegro-hamoopi/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/HAMOOPI.dir/link.d CMakeFiles/HAMOOPI.dir/src/HAMOOPI.cpp.o CMakeFiles/HAMOOPI.dir/src/backend_init.cpp.o CMakeFiles/HAMOOPI.dir/src/backend_manager.cpp.o -o HAMOOPI  -lalleg
