@@ -89,8 +89,8 @@ int main()
 	
 	/* < INICIO > */
 	
-	if (ModoFullscreen==0 and key[KEY_ALT] and key[KEY_ENTER]) {ModoFullscreen=1; set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0);};
-	if (ModoFullscreen==1 and key[KEY_ALT] and key[KEY_ENTER]) {ModoFullscreen=0; set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480, 0, 0);};
+	if (ModoFullscreen==0 && key[KEY_ALT] && key[KEY_ENTER]) {ModoFullscreen=1; set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0);};
+	if (ModoFullscreen==1 && key[KEY_ALT] && key[KEY_ENTER]) {ModoFullscreen=0; set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480, 0, 0);};
 	
 	if(key[KEY_F1]){
 	ATUALIZA_S0=1;
@@ -330,7 +330,7 @@ int main()
 	textprintf_centre_ex(buffer, font, 64+128*2+0+64+1, 76+128*2+0+120+1, makecol(000,000,000), -1, "data/pal7.pcx");
 	textprintf_centre_ex(buffer, font, 64+128*2+0+64+0, 76+128*2+0+120+0, makecol(255,255,255), -1, "data/pal7.pcx");
 	textprintf_centre_ex(buffer, font, 64+128*3+0+64+1, 76+128*2+0+120+1, makecol(000,000,000), -1, "data/pal8.pcx");
-	textprintf_centre_ex(buffer, font, 64+128*3+0+64+0, 76+128*2+0+120+0, makecol(255,255,255), -1, "pal8.pcx");
+	textprintf_centre_ex(buffer, font, 64+128*3+0+64+0, 76+128*2+0+120+0, makecol(255,255,255), -1, "data/pal8.pcx");
 	
 	textprintf_centre_ex(buffer, font, 64+128*2+0+64+1, 76+128*0+0+102+1, makecol(000,000,000), -1, "data/pallete.pcx");
 	textprintf_centre_ex(buffer, font, 64+128*2+0+64+0, 76+128*0+0+102+0, makecol(255,255,255), -1, "data/pallete.pcx");

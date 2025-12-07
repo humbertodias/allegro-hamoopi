@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 project(PALLETEGEN)
-add_executable(PALLETEGEN PalleteGenerator.cpp)
+add_executable(PALLETEGEN PalleteGenerator.c)
 
 # Find Allegro
 find_package(Alleg4 4)
