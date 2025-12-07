@@ -118,5 +118,5 @@ By Shawn Hargreaves
 shawn@talula.demon.co.uk  
 http://www.talula.demon.co.uk/
 
-**Qt conversion**: December 2025  
+**Qt conversion**: December 2024  
 Platform-agnostic rewrite using Qt6 and CMake

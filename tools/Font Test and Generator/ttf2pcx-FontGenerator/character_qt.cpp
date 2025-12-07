@@ -76,7 +76,7 @@ void Character::get(const QFont &font, int charCode, bool antialias)
         while (width > 1) {
             bool hasPixel = false;
             for (int y = 0; y < height; ++y) {
-                if (getPixel(width - 2, y)) {
+                if (getPixel(width - 1, y)) {  // Check rightmost column
                     hasPixel = true;
                     break;
                 }

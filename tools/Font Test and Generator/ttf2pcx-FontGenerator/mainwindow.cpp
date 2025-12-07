@@ -8,12 +8,12 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QApplication>
+#include <vector>
 #include <cstdio>
 #include <cstring>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , chars(nullptr)
     , minChar(0x20)
     , maxChar(0x7F)
 {
@@ -320,8 +320,10 @@ void MainWindow::saveChars(FILE *f, bool antialias)
     
     int bw = 1 + w * 16;
     int bh = 1 + h * ((fontSizeCount + 15) / 16);
-    unsigned char *b = (unsigned char *)malloc(bw * bh);
-    memset(b, 255, bw * bh);
+    
+    // Use vector for RAII memory management
+    std::vector<unsigned char> buffer(bw * bh, 255);
+    unsigned char *b = buffer.data();
     
     int scale = antialias ? 8 : 1;
     
@@ -358,7 +360,6 @@ void MainWindow::saveChars(FILE *f, bool antialias)
     }
     
     save_pcx(b, bw, bh, f, antialias, minColorSpin->value(), maxColorSpin->value());
-    free(b);
 }
 
 void MainWindow::onExport()

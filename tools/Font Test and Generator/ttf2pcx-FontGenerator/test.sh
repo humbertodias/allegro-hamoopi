@@ -20,10 +20,10 @@ fi
 
 echo "✓ Executable found"
 
-# Test that the application can start (it will run the event loop but we'll kill it)
-timeout 2 ./ttf2pcx-qt &
+# Test that the application can start (runs in background briefly)
+timeout 3 ./ttf2pcx-qt &
 APP_PID=$!
-sleep 1
+sleep 2
 
 if ps -p $APP_PID > /dev/null; then
     echo "✓ Application starts successfully"
