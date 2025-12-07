@@ -3,6 +3,7 @@
 #include "allegro_input_backend.h"
 #include "allegro_audio_backend.h"
 #include "allegro_system_backend.h"
+#include <allegro.h>
 
 // Global backend manager instance
 BackendManager* g_backend = nullptr;
@@ -23,8 +24,12 @@ bool init_backends() {
     g_backend->setInputBackend(inputBackend);
     g_backend->setAudioBackend(audioBackend);
     
-    // Note: Allegro initialization is done directly in HAMOOPI.cpp
-    // This just sets up the backend abstraction
+    // Initialize all backends - this initializes Allegro library internally
+    allegro_init();  // Core Allegro initialization
+    install_timer(); // Timer system
+    install_keyboard(); // Keyboard input
+    install_mouse(); // Mouse input
+    install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL); // Audio system
     
     return true;
 }

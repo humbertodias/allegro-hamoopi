@@ -32,9 +32,20 @@
 	8- Revisar / otimizar todo o código
 *******************************************************************************/
 
-#include <allegro.h>
+// Backend abstraction layer - no direct Allegro access
+#include "backend_manager.h"
+#include "allegro_graphics_backend.h"
+#include "allegro_input_backend.h"
+#include "allegro_audio_backend.h"
+#include "allegro_system_backend.h"
+#include <allegro.h>  // Still needed for types (BITMAP, FONT, etc.) but not for direct calls
 #include <stdio.h>
 #include <math.h>
+
+// External backend manager
+extern BackendManager* g_backend;
+extern bool init_backends();
+extern void shutdown_backends();
 
 #define P1_UP     ( key[ p1_up     ] )
 #define P1_DOWN   ( key[ p1_down   ] )
@@ -61,6 +72,14 @@
 #define P2_SELECT ( key[ p2_select ] )
 #define P2_START  ( key[ p2_start  ] )
 #define MAX_CHARS 8
+
+///////////////////////////////////////////////////////////////////////////////
+// BACKEND ABSTRACTION - Global pointers for easy access throughout the code
+///////////////////////////////////////////////////////////////////////////////
+SystemBackend* sys = nullptr;
+GraphicsBackend* gfx = nullptr;
+InputBackend* input = nullptr;
+AudioBackend* audio = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////
 // DECLARACOES INICIAIS -------------------------------------------------[**01]
@@ -580,43 +599,51 @@ char ED_Name_Display[50]="char1";
 
 int main()
 {
-set_uformat(U_UTF8); //permite usar acentuação no jogo (diacríticos)
-allegro_init(); install_timer(); install_keyboard(); install_mouse(); set_color_depth(32);
+// Initialize backend abstraction layer - all Allegro initialization through backends
+init_backends();
+
+// Get backend pointers and assign to global variables for easy access
+sys = g_backend->getSystem();
+gfx = g_backend->getGraphics();
+input = g_backend->getInput();
+audio = g_backend->getAudio();
+
+sys->set_utf8_format(); //permite usar acentuação no jogo (diacríticos)
+sys->install_timer(tempo, 60); //60fps
+gfx->set_color_depth(32);
 //set_gfx_mode() é declarado logo abaixo, apos carregar dados do SETUP.INI
-install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
 int ModoFullscreen=0;
-FONT *font_debug = load_font("data/system/font_debug.pcx", NULL, NULL);
-FONT *font_10    = load_font("data/system/font_10.pcx"   , NULL, NULL);
-FONT *font_19    = load_font("data/system/font_19.pcx"   , NULL, NULL);
-FONT *font_20    = load_font("data/system/font_20.pcx"   , NULL, NULL);
-FONT *font_30    = load_font("data/system/font_30.pcx"   , NULL, NULL);
-install_int_ex(tempo, BPS_TO_TIMER(60)); //60fps
-set_window_title("HAMOOPI is Loading... Please wait :) ");
-set_close_button_callback( sair_allegro );
+FONT *font_debug = (FONT*)gfx->load_font("data/system/font_debug.pcx");
+FONT *font_10    = (FONT*)gfx->load_font("data/system/font_10.pcx");
+FONT *font_19    = (FONT*)gfx->load_font("data/system/font_19.pcx");
+FONT *font_20    = (FONT*)gfx->load_font("data/system/font_20.pcx");
+FONT *font_30    = (FONT*)gfx->load_font("data/system/font_30.pcx");
+gfx->set_window_title("HAMOOPI is Loading... Please wait :) ");
+sys->set_close_button_callback( sair_allegro );
 
 //Valores de Referencia:
 //Genesis [320x224]
 //Snes [256x224]
 //CapcomCPS1 [384x224]
 //NeoGeo [320x224]
-BITMAP *bg_test = create_bitmap(1280,960); //tamanho max do cenario
+BITMAP *bg_test = (BITMAP*)gfx->create_bitmap(1280,960); //tamanho max do cenario
 BITMAP *bg_hamoopi[9];
 
 //carrega os dados do setup.ini
-set_config_file("SETUP.ini");
+sys->set_config_file("SETUP.ini");
 
 //opcao de desenhar sombras
-op_desenhar_sombras = get_config_int ( "CONFIG" , "draw_shadows",  1 ) ;
+op_desenhar_sombras = sys->get_config_int ( "CONFIG" , "draw_shadows",  1 ) ;
 //opcao que ativa o zoom
-op_Zoom = get_config_int ( "CONFIG" , "zoom",  1 ) ;
+op_Zoom = sys->get_config_int ( "CONFIG" , "zoom",  1 ) ;
 //opcao que mostra os inputs ingame
-Draw_Input = get_config_int ( "CONFIG" , "show_inputs",  0 ) ;
+Draw_Input = sys->get_config_int ( "CONFIG" , "show_inputs",  0 ) ;
 //sound e soundfx volumes
-op_sound_volume = get_config_int ( "CONFIG" , "sound_volume",  255 ) ;
-op_sfx_volume = get_config_int ( "CONFIG" , "sfx_volume",  255 ) ;
+op_sound_volume = sys->get_config_int ( "CONFIG" , "sound_volume",  255 ) ;
+op_sfx_volume = sys->get_config_int ( "CONFIG" , "sfx_volume",  255 ) ;
 //resolucao de tela no modo windowed
-WindowResX = get_config_int ( "CONFIG" , "window_res_x",  640 ) ;
-WindowResY = get_config_int ( "CONFIG" , "window_res_y",  480 ) ;
+WindowResX = sys->get_config_int ( "CONFIG" , "window_res_x",  640 ) ;
+WindowResY = sys->get_config_int ( "CONFIG" , "window_res_y",  480 ) ;
 //define o ResWindowNumber
 if(WindowResX== 320 && WindowResY==240) WindowResNumber=1;
 if(WindowResX== 640 && WindowResY==480) WindowResNumber=2;
@@ -627,25 +654,25 @@ if(WindowResX== 960 && WindowResY==720) WindowResNumber=6;
 if(WindowResX==1024 && WindowResY==600) WindowResNumber=7;
 if(WindowResX==1280 && WindowResY==720) WindowResNumber=8; //HD
 //define se resolucao é fullscreen
-ModoFullscreen = get_config_int ( "CONFIG" , "FullScreen",  0 ) ;
+ModoFullscreen = sys->get_config_int ( "CONFIG" , "FullScreen",  0 ) ;
 //ajusta a tela com as novas configuracoes
-if(ModoFullscreen==1) { set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, WindowResX, WindowResY, 0, 0); }
-if(ModoFullscreen==0) { set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); }
+if(ModoFullscreen==1) { gfx->set_graphics_mode(true, WindowResX, WindowResY); }
+if(ModoFullscreen==0) { gfx->set_graphics_mode(false, WindowResX, WindowResY); }
 //opcao de framedata
-op_ShowFrameData = get_config_int ( "CONFIG" , "frame_data",  0 ) ;
+op_ShowFrameData = sys->get_config_int ( "CONFIG" , "frame_data",  0 ) ;
 
 //carrega a lista de Cenarios instalados
 for(int ind=1;ind<=MAX_CHARS;ind++){
 char strtemp[9]="";
 sprintf(strtemp, "bg%i", ind);
-strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
+strcpy(Lista_de_Cenarios_Instalados[ind], (char *)sys->get_config_string("BACKGROUNDS", strtemp, ""));
 }
 //abastece Atlas de cenario
 char bg_choice[25]="";
 for(int ind=1;ind<=8;ind++)
 {
 sprintf(bg_choice, "data/backgrounds/%s/000_00.pcx", Lista_de_Cenarios_Instalados[ind]);
-bg_hamoopi[ind]= load_bitmap(bg_choice, NULL);
+bg_hamoopi[ind]= (BITMAP*)gfx->load_bitmap(bg_choice);
 }
 
 BITMAP *bufferx = create_bitmap(2560,1920); //layer do cenario e personagens escalonados
@@ -916,21 +943,21 @@ BITMAP *P2BIGDisplay = create_bitmap(128,128);
 BITMAP *P2BIGDisplayInv = create_bitmap(128,128);
 
 //idioma do jogo
-strcpy(IDIOMA, (char *)get_config_string("CONFIG", "language", "BR"));
-if (strcmp (IDIOMA,"BR")==0){ if (HamoopiError==1) allegro_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS."); };
-if (strcmp (IDIOMA,"US")==0){ if (HamoopiError==1) allegro_message("FILES OR DIRECTORIES NOT FOUND."); };
+strcpy(IDIOMA, (char *)sys->get_config_string("CONFIG", "language", "BR"));
+if (strcmp (IDIOMA,"BR")==0){ if (HamoopiError==1) sys->show_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS."); };
+if (strcmp (IDIOMA,"US")==0){ if (HamoopiError==1) sys->show_message("FILES OR DIRECTORIES NOT FOUND."); };
 
 //define centro do mapa
-MapCenterX=get_config_int ( "TEMPLATE", "MapCenterX", 320 );
-MapCenterY=get_config_int ( "TEMPLATE", "MapCenterY", 118 );
-difficulty=get_config_int ( "CONFIG", "difficulty", 3 );
+MapCenterX=sys->get_config_int ( "TEMPLATE", "MapCenterX", 320 );
+MapCenterY=sys->get_config_int ( "TEMPLATE", "MapCenterY", 118 );
+difficulty=sys->get_config_int ( "CONFIG", "difficulty", 3 );
 
 //modo historia
 //carrega a lista de personagens instalados
 for(int ind=1;ind<=MAX_CHARS;ind++){
 char strtemp[9]="";
 sprintf(strtemp, "char%i", ind);
-strcpy(Lista_de_Personagens_Instalados[ind], (char *)get_config_string("CHARS", strtemp, ""));
+strcpy(Lista_de_Personagens_Instalados[ind], (char *)sys->get_config_string("CHARS", strtemp, ""));
 }
 
 //atualiza a qtde de personagens instalados
@@ -947,7 +974,7 @@ strcpy(Lista_de_Personagens_ArcadeMode[ind],Lista_de_Personagens_Instalados[ind]
 for(int ind=1;ind<=MAX_CHARS;ind++){
 char strtemp[9]="";
 sprintf(strtemp, "bg%i", ind);
-strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
+strcpy(Lista_de_Cenarios_Instalados[ind], (char *)sys->get_config_string("BACKGROUNDS", strtemp, ""));
 }
 //atualiza a qtde de Cenarios instalados
 for(int ind=1;ind<=MAX_CHARS;ind++){
@@ -983,13 +1010,13 @@ destroy_bitmap(MINIspr[ind]);
 }
 
 //P1 miniatura da foto ingame
-strcpy(P[1].Name, (char *)get_config_string("CHARS", "char1", ""));
+strcpy(P[1].Name, (char *)sys->get_config_string("CHARS", "char1", ""));
 char P1_1s[25]="";
 sprintf(P1_1s, "data/data/chars/%s/000_01.pcx", P[1].Name);
 BITMAP *P1_1 = load_bitmap(P1_1s, NULL);
 if (!P1_1) { P1_1=load_bitmap("data/system/000_01.pcx", NULL); }
 //P2 miniatura da foto ingame
-strcpy(P[2].Name, (char *)get_config_string("CHARS", "char2", ""));
+strcpy(P[2].Name, (char *)sys->get_config_string("CHARS", "char2", ""));
 char P2_1s[25]="";
 sprintf(P2_1s, "data/chars/%s/000_01.pcx", P[2].Name);
 BITMAP *P2_1 = load_bitmap(P2_1s, NULL);
@@ -1072,8 +1099,8 @@ if (P[1].State==300 || P[1].State==310 || P[1].State==320) { P[1].TempoPulo=P[1]
 if (P[2].State==300 || P[2].State==310 || P[2].State==320) { P[2].TempoPulo=P[2].TempoPulo+1; }
 P[1].ticks_4slot=P[1].ticks_4slot+1;
 P[2].ticks_4slot=P[2].ticks_4slot+1;
-if (ModoFullscreen==0 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=1; set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0); }
-if (ModoFullscreen==1 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=0; set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); }
+if (ModoFullscreen==0 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=1; gfx->set_graphics_mode(true, 640, 480); }
+if (ModoFullscreen==1 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=0; gfx->set_graphics_mode(false, WindowResX, WindowResY); }
 set_volume(op_sfx_volume, op_sound_volume); //volume //set_volume(int digi_volume, int midi_volume);
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1230,7 +1257,7 @@ if (P[1].key_DOWN_pressed==1) { options_op++; play_sample(cursor, 255, 128, 1000
 if(salvardados==1){
 salvardados=0;
 //salva dados
-set_config_file("SETUP.ini");
+sys->set_config_file("SETUP.ini");
 set_config_string ( "CONFIG", "language", IDIOMA );
 set_config_int ( "CONFIG", "rounds", RoundTotal );
 set_config_int ( "CONFIG", "time", RoundTime/60 );
@@ -1250,7 +1277,7 @@ set_volume(op_sfx_volume, op_sound_volume);
 }
 
 if(timermenus==0){
-set_config_file("SETUP.ini");
+sys->set_config_file("SETUP.ini");
 RoundTotal = get_config_int ("CONFIG", "rounds", 3 );
 RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
 P[1].Energy=get_config_int ( "CONFIG", "P1_Energy", 1000 );
@@ -1454,8 +1481,8 @@ if (P[1].key_RIGHT_pressed ==1 && options_op==6 && P[2].Energy<1000) { P[2].Ener
 if (P[1].key_LEFT_pressed  ==1 && options_op==6 && P[2].Energy> 100) { P[2].Energy =P[2].Energy-100; }
 if (P[1].key_RIGHT_pressed ==1 && options_op==7 && P[2].Special<1000) { P[2].Special =P[2].Special+100; }
 if (P[1].key_LEFT_pressed  ==1 && options_op==7 && P[2].Special>   0) { P[2].Special =P[2].Special-100; }
-if (P[1].key_RIGHT_pressed ==1 && options_op==8 && ModoFullscreen==0 ) { ModoFullscreen=1; set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0); }
-if (P[1].key_LEFT_pressed  ==1 && options_op==8 && ModoFullscreen==1 ) { ModoFullscreen=0; set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); }
+if (P[1].key_RIGHT_pressed ==1 && options_op==8 && ModoFullscreen==0 ) { ModoFullscreen=1; gfx->set_graphics_mode(true, 640, 480); }
+if (P[1].key_LEFT_pressed  ==1 && options_op==8 && ModoFullscreen==1 ) { ModoFullscreen=0; gfx->set_graphics_mode(false, WindowResX, WindowResY); }
 if (P[1].key_RIGHT_pressed ==1 && options_op==9 && WindowResNumber<=7) { WindowResNumber++; }
 if (P[1].key_LEFT_pressed  ==1 && options_op==9 && WindowResNumber>=2) { WindowResNumber--; }
 if (P[1].key_START_pressed ==1 && options_op==9 && ModoFullscreen==0) {
@@ -1467,7 +1494,7 @@ if(WindowResNumber==5) { WindowResX= 960; WindowResY=640; }
 if(WindowResNumber==6) { WindowResX= 960; WindowResY=720; }
 if(WindowResNumber==7) { WindowResX=1024; WindowResY=600; }
 if(WindowResNumber==8) { WindowResX=1280; WindowResY=720; }
-set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0);
+gfx->set_graphics_mode(false, WindowResX, WindowResY);
 }
 if (P[1].key_LEFT_pressed  ==1 && options_op==10) op_desenhar_sombras=0;
 if (P[1].key_RIGHT_pressed ==1 && options_op==10) op_desenhar_sombras=1;
@@ -1599,7 +1626,7 @@ if (SelectCharP1ID==5){ sprintf(SelectCharP1Caminho, "data/chars/%s/char.ini", L
 if (SelectCharP1ID==6){ sprintf(SelectCharP1Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[6]); }
 if (SelectCharP1ID==7){ sprintf(SelectCharP1Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[7]); }
 if (SelectCharP1ID==8){ sprintf(SelectCharP1Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[8]); }
-set_config_file(SelectCharP1Caminho); strcpy(P[1].Name_Display, (char *)get_config_string("Info", "Name", "-"));
+sys->set_config_file(SelectCharP1Caminho); strcpy(P[1].Name_Display, (char *)sys->get_config_string("Info", "Name", "-"));
 //P2 name
 char SelectCharP2Caminho[99];
 if (SelectCharP2ID==1){ sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[1]); }
@@ -1610,7 +1637,7 @@ if (SelectCharP2ID==5){ sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", L
 if (SelectCharP2ID==6){ sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[6]); }
 if (SelectCharP2ID==7){ sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[7]); }
 if (SelectCharP2ID==8){ sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", Lista_de_Personagens_Instalados[8]); }
-set_config_file(SelectCharP2Caminho); strcpy(P[2].Name_Display, (char *)get_config_string("Info", "Name", "-"));
+sys->set_config_file(SelectCharP2Caminho); strcpy(P[2].Name_Display, (char *)sys->get_config_string("Info", "Name", "-"));
 
 SelectCharTimerAnim++; if (SelectCharTimerAnim>5) { SelectCharTimerAnim=0; } //usado para animar o cursor e elementos da tela
 draw_sprite(bufferx, SELECT_CHARS, 0, 0); //bg
@@ -1664,16 +1691,16 @@ textprintf_centre_ex(bufferx, font_20, 320, 407, makecol(255,255,255), -1, "Esco
 }
 
 //desenha nome do cenario na tela
-set_config_file("SETUP.ini");
+sys->set_config_file("SETUP.ini");
 char bg_read[25]="";
-if (SelectBGID==1) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg1", "")); }
-if (SelectBGID==2) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg2", "")); }
-if (SelectBGID==3) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg3", "")); }
-if (SelectBGID==4) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg4", "")); }
-if (SelectBGID==5) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg5", "")); }
-if (SelectBGID==6) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg6", "")); }
-if (SelectBGID==7) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg7", "")); }
-if (SelectBGID==8) { strcpy(bg_read, (char *)get_config_string("BACKGROUNDS", "bg8", "")); }
+if (SelectBGID==1) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg1", "")); }
+if (SelectBGID==2) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg2", "")); }
+if (SelectBGID==3) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg3", "")); }
+if (SelectBGID==4) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg4", "")); }
+if (SelectBGID==5) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg5", "")); }
+if (SelectBGID==6) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg6", "")); }
+if (SelectBGID==7) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg7", "")); }
+if (SelectBGID==8) { strcpy(bg_read, (char *)sys->get_config_string("BACKGROUNDS", "bg8", "")); }
 textprintf_centre_ex(bufferx, font_20, 322, 439, makecol(000,000,000), -1, "%s", bg_read);
 textprintf_centre_ex(bufferx, font_20, 320, 437, makecol(255,255,000), -1, "%s", bg_read);
 }
@@ -1696,7 +1723,7 @@ if (SelectCharP1ID==8) { strcpy(ChoiceP1, Lista_de_Personagens_Instalados[8]); }
 //carrega o tipo grafico do personagem
 char SelectCharP1Caminho[99];
 sprintf(SelectCharP1Caminho, "data/chars/%s/char.ini", ChoiceP1);
-set_config_file(SelectCharP1Caminho); P[1].Type=get_config_int("Info", "Type", 1);
+sys->set_config_file(SelectCharP1Caminho); P[1].Type=sys->get_config_int("Info", "Type", 1);
 //verifica se o personagem possui paleta de cores
 sprintf(P1_Pallete_string, "data/chars/%s/pallete.pcx", ChoiceP1);
 P1_Pallete = load_bitmap(P1_Pallete_string, NULL);
@@ -1728,7 +1755,7 @@ P[1].Special_Inputs[indx][ind]=0;
 
 char StrSpecialInput[99];
 sprintf(StrSpecialInput, "data/chars/%s/special.ini", ChoiceP1);
-set_config_file(StrSpecialInput);
+sys->set_config_file(StrSpecialInput);
 char str[3];
 //carrega os inputs dos especiais
 for(int ind=0; ind<=9; ind++){
@@ -1742,38 +1769,38 @@ if(ind==6) { sprintf(str, "760"); }
 if(ind==7) { sprintf(str, "770"); }
 if(ind==8) { sprintf(str, "780"); }
 if(ind==9) { sprintf(str, "790"); }
-P[1].Special_Inputs_c[ind][1]  = get_config_int(str, "c1" , 0); //0 é neutro
-P[1].Special_Inputs_c[ind][2]  = get_config_int(str, "c2" , 0);
-P[1].Special_Inputs_c[ind][3]  = get_config_int(str, "c3" , 0);
-P[1].Special_Inputs_c[ind][4]  = get_config_int(str, "c4" , 0);
-P[1].Special_Inputs_c[ind][5]  = get_config_int(str, "c5" , 0);
-P[1].Special_Inputs_c[ind][6]  = get_config_int(str, "c6" , 0);
-P[1].Special_Inputs_c[ind][7]  = get_config_int(str, "c7" , 0);
-P[1].Special_Inputs_c[ind][8]  = get_config_int(str, "c8" , 0);
-P[1].Special_Inputs_c[ind][9]  = get_config_int(str, "c9" , 0);
-P[1].Special_Inputs_c[ind][10] = get_config_int(str, "c10", 0);
-P[1].Special_Inputs_c[ind][11] = get_config_int(str, "c11", 0);
-P[1].Special_Inputs_c[ind][12] = get_config_int(str, "c12", 0);
-P[1].Special_Inputs_c[ind][13] = get_config_int(str, "c13", 0);
-P[1].Special_Inputs_c[ind][14] = get_config_int(str, "c14", 0);
-P[1].Special_Inputs_c[ind][15] = get_config_int(str, "c15", 0);
-P[1].Special_Inputs_c[ind][16] = get_config_int(str, "c16", 0);
-P[1].Special_Inputs_b[ind][1]  = get_config_int(str, "b1" , 0)*-1; //0 é neutro
-P[1].Special_Inputs_b[ind][2]  = get_config_int(str, "b2" , 0)*-1;
-P[1].Special_Inputs_b[ind][3]  = get_config_int(str, "b3" , 0)*-1;
-P[1].Special_Inputs_b[ind][4]  = get_config_int(str, "b4" , 0)*-1;
-P[1].Special_Inputs_b[ind][5]  = get_config_int(str, "b5" , 0)*-1;
-P[1].Special_Inputs_b[ind][6]  = get_config_int(str, "b6" , 0)*-1;
-P[1].Special_Inputs_b[ind][7]  = get_config_int(str, "b7" , 0)*-1;
-P[1].Special_Inputs_b[ind][8]  = get_config_int(str, "b8" , 0)*-1;
-P[1].Special_Inputs_b[ind][9]  = get_config_int(str, "b9" , 0)*-1;
-P[1].Special_Inputs_b[ind][10] = get_config_int(str, "b10", 0)*-1;
-P[1].Special_Inputs_b[ind][11] = get_config_int(str, "b11", 0)*-1;
-P[1].Special_Inputs_b[ind][12] = get_config_int(str, "b12", 0)*-1;
-P[1].Special_Inputs_b[ind][13] = get_config_int(str, "b13", 0)*-1;
-P[1].Special_Inputs_b[ind][14] = get_config_int(str, "b14", 0)*-1;
-P[1].Special_Inputs_b[ind][15] = get_config_int(str, "b15", 0)*-1;
-P[1].Special_Inputs_b[ind][16] = get_config_int(str, "b16", 0)*-1;
+P[1].Special_Inputs_c[ind][1]  = sys->get_config_int(str, "c1" , 0); //0 é neutro
+P[1].Special_Inputs_c[ind][2]  = sys->get_config_int(str, "c2" , 0);
+P[1].Special_Inputs_c[ind][3]  = sys->get_config_int(str, "c3" , 0);
+P[1].Special_Inputs_c[ind][4]  = sys->get_config_int(str, "c4" , 0);
+P[1].Special_Inputs_c[ind][5]  = sys->get_config_int(str, "c5" , 0);
+P[1].Special_Inputs_c[ind][6]  = sys->get_config_int(str, "c6" , 0);
+P[1].Special_Inputs_c[ind][7]  = sys->get_config_int(str, "c7" , 0);
+P[1].Special_Inputs_c[ind][8]  = sys->get_config_int(str, "c8" , 0);
+P[1].Special_Inputs_c[ind][9]  = sys->get_config_int(str, "c9" , 0);
+P[1].Special_Inputs_c[ind][10] = sys->get_config_int(str, "c10", 0);
+P[1].Special_Inputs_c[ind][11] = sys->get_config_int(str, "c11", 0);
+P[1].Special_Inputs_c[ind][12] = sys->get_config_int(str, "c12", 0);
+P[1].Special_Inputs_c[ind][13] = sys->get_config_int(str, "c13", 0);
+P[1].Special_Inputs_c[ind][14] = sys->get_config_int(str, "c14", 0);
+P[1].Special_Inputs_c[ind][15] = sys->get_config_int(str, "c15", 0);
+P[1].Special_Inputs_c[ind][16] = sys->get_config_int(str, "c16", 0);
+P[1].Special_Inputs_b[ind][1]  = sys->get_config_int(str, "b1" , 0)*-1; //0 é neutro
+P[1].Special_Inputs_b[ind][2]  = sys->get_config_int(str, "b2" , 0)*-1;
+P[1].Special_Inputs_b[ind][3]  = sys->get_config_int(str, "b3" , 0)*-1;
+P[1].Special_Inputs_b[ind][4]  = sys->get_config_int(str, "b4" , 0)*-1;
+P[1].Special_Inputs_b[ind][5]  = sys->get_config_int(str, "b5" , 0)*-1;
+P[1].Special_Inputs_b[ind][6]  = sys->get_config_int(str, "b6" , 0)*-1;
+P[1].Special_Inputs_b[ind][7]  = sys->get_config_int(str, "b7" , 0)*-1;
+P[1].Special_Inputs_b[ind][8]  = sys->get_config_int(str, "b8" , 0)*-1;
+P[1].Special_Inputs_b[ind][9]  = sys->get_config_int(str, "b9" , 0)*-1;
+P[1].Special_Inputs_b[ind][10] = sys->get_config_int(str, "b10", 0)*-1;
+P[1].Special_Inputs_b[ind][11] = sys->get_config_int(str, "b11", 0)*-1;
+P[1].Special_Inputs_b[ind][12] = sys->get_config_int(str, "b12", 0)*-1;
+P[1].Special_Inputs_b[ind][13] = sys->get_config_int(str, "b13", 0)*-1;
+P[1].Special_Inputs_b[ind][14] = sys->get_config_int(str, "b14", 0)*-1;
+P[1].Special_Inputs_b[ind][15] = sys->get_config_int(str, "b15", 0)*-1;
+P[1].Special_Inputs_b[ind][16] = sys->get_config_int(str, "b16", 0)*-1;
 }
 
 //contagem da qtde de comandos e botoes
@@ -1831,7 +1858,7 @@ if (SelectCharP2ID==8) { strcpy(ChoiceP2, Lista_de_Personagens_Instalados[8]); }
 //carrega o tipo grafico do personagem
 char SelectCharP2Caminho[99];
 sprintf(SelectCharP2Caminho, "data/chars/%s/char.ini", ChoiceP2);
-set_config_file(SelectCharP2Caminho); P[2].Type=get_config_int("Info", "Type", 1);
+sys->set_config_file(SelectCharP2Caminho); P[2].Type=sys->get_config_int("Info", "Type", 1);
 //verifica se o personagem possui paleta de cores
 sprintf(P2_Pallete_string, "data/chars/%s/pallete.pcx", ChoiceP2);
 P2_Pallete = load_bitmap(P2_Pallete_string, NULL);
@@ -1863,7 +1890,7 @@ P[2].Special_Inputs[indx][ind]=0;
 
 char StrSpecialInput[99];
 sprintf(StrSpecialInput, "data/chars/%s/special.ini", ChoiceP2);
-set_config_file(StrSpecialInput);
+sys->set_config_file(StrSpecialInput);
 char str[3];
 //carrega os inputs dos especiais
 for(int ind=0; ind<=9; ind++){
@@ -1877,38 +1904,38 @@ if(ind==6) { sprintf(str, "760"); }
 if(ind==7) { sprintf(str, "770"); }
 if(ind==8) { sprintf(str, "780"); }
 if(ind==9) { sprintf(str, "790"); }
-P[2].Special_Inputs_c[ind][1]  = get_config_int(str, "c1" , 0); //0 é neutro
-P[2].Special_Inputs_c[ind][2]  = get_config_int(str, "c2" , 0);
-P[2].Special_Inputs_c[ind][3]  = get_config_int(str, "c3" , 0);
-P[2].Special_Inputs_c[ind][4]  = get_config_int(str, "c4" , 0);
-P[2].Special_Inputs_c[ind][5]  = get_config_int(str, "c5" , 0);
-P[2].Special_Inputs_c[ind][6]  = get_config_int(str, "c6" , 0);
-P[2].Special_Inputs_c[ind][7]  = get_config_int(str, "c7" , 0);
-P[2].Special_Inputs_c[ind][8]  = get_config_int(str, "c8" , 0);
-P[2].Special_Inputs_c[ind][9]  = get_config_int(str, "c9" , 0);
-P[2].Special_Inputs_c[ind][10] = get_config_int(str, "c10", 0);
-P[2].Special_Inputs_c[ind][11] = get_config_int(str, "c11", 0);
-P[2].Special_Inputs_c[ind][12] = get_config_int(str, "c12", 0);
-P[2].Special_Inputs_c[ind][13] = get_config_int(str, "c13", 0);
-P[2].Special_Inputs_c[ind][14] = get_config_int(str, "c14", 0);
-P[2].Special_Inputs_c[ind][15] = get_config_int(str, "c15", 0);
-P[2].Special_Inputs_c[ind][16] = get_config_int(str, "c16", 0);
-P[2].Special_Inputs_b[ind][1]  = get_config_int(str, "b1" , 0)*-1; //0 é neutro
-P[2].Special_Inputs_b[ind][2]  = get_config_int(str, "b2" , 0)*-1;
-P[2].Special_Inputs_b[ind][3]  = get_config_int(str, "b3" , 0)*-1;
-P[2].Special_Inputs_b[ind][4]  = get_config_int(str, "b4" , 0)*-1;
-P[2].Special_Inputs_b[ind][5]  = get_config_int(str, "b5" , 0)*-1;
-P[2].Special_Inputs_b[ind][6]  = get_config_int(str, "b6" , 0)*-1;
-P[2].Special_Inputs_b[ind][7]  = get_config_int(str, "b7" , 0)*-1;
-P[2].Special_Inputs_b[ind][8]  = get_config_int(str, "b8" , 0)*-1;
-P[2].Special_Inputs_b[ind][9]  = get_config_int(str, "b9" , 0)*-1;
-P[2].Special_Inputs_b[ind][10] = get_config_int(str, "b10", 0)*-1;
-P[2].Special_Inputs_b[ind][11] = get_config_int(str, "b11", 0)*-1;
-P[2].Special_Inputs_b[ind][12] = get_config_int(str, "b12", 0)*-1;
-P[2].Special_Inputs_b[ind][13] = get_config_int(str, "b13", 0)*-1;
-P[2].Special_Inputs_b[ind][14] = get_config_int(str, "b14", 0)*-1;
-P[2].Special_Inputs_b[ind][15] = get_config_int(str, "b15", 0)*-1;
-P[2].Special_Inputs_b[ind][16] = get_config_int(str, "b16", 0)*-1;
+P[2].Special_Inputs_c[ind][1]  = sys->get_config_int(str, "c1" , 0); //0 é neutro
+P[2].Special_Inputs_c[ind][2]  = sys->get_config_int(str, "c2" , 0);
+P[2].Special_Inputs_c[ind][3]  = sys->get_config_int(str, "c3" , 0);
+P[2].Special_Inputs_c[ind][4]  = sys->get_config_int(str, "c4" , 0);
+P[2].Special_Inputs_c[ind][5]  = sys->get_config_int(str, "c5" , 0);
+P[2].Special_Inputs_c[ind][6]  = sys->get_config_int(str, "c6" , 0);
+P[2].Special_Inputs_c[ind][7]  = sys->get_config_int(str, "c7" , 0);
+P[2].Special_Inputs_c[ind][8]  = sys->get_config_int(str, "c8" , 0);
+P[2].Special_Inputs_c[ind][9]  = sys->get_config_int(str, "c9" , 0);
+P[2].Special_Inputs_c[ind][10] = sys->get_config_int(str, "c10", 0);
+P[2].Special_Inputs_c[ind][11] = sys->get_config_int(str, "c11", 0);
+P[2].Special_Inputs_c[ind][12] = sys->get_config_int(str, "c12", 0);
+P[2].Special_Inputs_c[ind][13] = sys->get_config_int(str, "c13", 0);
+P[2].Special_Inputs_c[ind][14] = sys->get_config_int(str, "c14", 0);
+P[2].Special_Inputs_c[ind][15] = sys->get_config_int(str, "c15", 0);
+P[2].Special_Inputs_c[ind][16] = sys->get_config_int(str, "c16", 0);
+P[2].Special_Inputs_b[ind][1]  = sys->get_config_int(str, "b1" , 0)*-1; //0 é neutro
+P[2].Special_Inputs_b[ind][2]  = sys->get_config_int(str, "b2" , 0)*-1;
+P[2].Special_Inputs_b[ind][3]  = sys->get_config_int(str, "b3" , 0)*-1;
+P[2].Special_Inputs_b[ind][4]  = sys->get_config_int(str, "b4" , 0)*-1;
+P[2].Special_Inputs_b[ind][5]  = sys->get_config_int(str, "b5" , 0)*-1;
+P[2].Special_Inputs_b[ind][6]  = sys->get_config_int(str, "b6" , 0)*-1;
+P[2].Special_Inputs_b[ind][7]  = sys->get_config_int(str, "b7" , 0)*-1;
+P[2].Special_Inputs_b[ind][8]  = sys->get_config_int(str, "b8" , 0)*-1;
+P[2].Special_Inputs_b[ind][9]  = sys->get_config_int(str, "b9" , 0)*-1;
+P[2].Special_Inputs_b[ind][10] = sys->get_config_int(str, "b10", 0)*-1;
+P[2].Special_Inputs_b[ind][11] = sys->get_config_int(str, "b11", 0)*-1;
+P[2].Special_Inputs_b[ind][12] = sys->get_config_int(str, "b12", 0)*-1;
+P[2].Special_Inputs_b[ind][13] = sys->get_config_int(str, "b13", 0)*-1;
+P[2].Special_Inputs_b[ind][14] = sys->get_config_int(str, "b14", 0)*-1;
+P[2].Special_Inputs_b[ind][15] = sys->get_config_int(str, "b15", 0)*-1;
+P[2].Special_Inputs_b[ind][16] = sys->get_config_int(str, "b16", 0)*-1;
 }
 
 //contagem da qtde de comandos e botoes
@@ -1961,7 +1988,7 @@ if (SelectBGID==5) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", List
 if (SelectBGID==6) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[6]); }
 if (SelectBGID==7) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[7]); }
 if (SelectBGID==8) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[8]); }
-set_config_file(bg_choice_string);
+sys->set_config_file(bg_choice_string);
 MapPosX=get_config_int ( "DATA", "MapPosX", 0 );
 MapPosY=get_config_int ( "DATA", "MapPosY", 0 );
 }
@@ -2029,7 +2056,7 @@ if (SelectBGID==5) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", List
 if (SelectBGID==6) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[6]); }
 if (SelectBGID==7) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[7]); }
 if (SelectBGID==8) { sprintf(bg_choice_string, "backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[8]); }
-set_config_file(bg_choice_string);
+sys->set_config_file(bg_choice_string);
 MapPosX=get_config_int ( "DATA", "MapPosX", 0 );
 MapPosY=get_config_int ( "DATA", "MapPosY", 0 );
 }
@@ -2163,7 +2190,7 @@ if (Estagio_Atual==8){ draw_sprite(bufferx, spr_cursor_historia, 64+(64*7), 400)
 if (timermenus==0){
 char bg_choice_string[25];
 sprintf(bg_choice_string, "backgrounds/%s/config.ini", ChoiceBG);
-set_config_file(bg_choice_string);
+sys->set_config_file(bg_choice_string);
 MapPosX=get_config_int ( "DATA", "MapPosX", 0 );
 MapPosY=get_config_int ( "DATA", "MapPosY", 0 );
 }
@@ -2212,7 +2239,7 @@ if(iniciaRound==1){
 iniciaRound=0;
 timermenus=0; TelaDeVersus=0; GamePlayMode=1; RoundAtual=1; zeraListaDeInputs(); LOAD_PLAYERS();
 //carrega dados
-set_config_file("SETUP.ini");
+sys->set_config_file("SETUP.ini");
 RoundTotal = get_config_int ( "CONFIG", "rounds", 3 );
 RoundTime  = get_config_int ( "CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
 P[1].Energy=get_config_int ( "CONFIG", "P1_Energy", 1000 );
@@ -2325,7 +2352,7 @@ P[1].Round_Wins=0; P[2].Round_Wins=0;
 play_midi(bgm_select_screen, 1); //bgm
 timer_rounds=0;
 timer_final_de_rounds=0;
-set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
+sys->set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
 //desliga as fireballs
 Fireball[1].Ativa = 0;
 Fireball[2].Ativa = 0;
@@ -2352,7 +2379,7 @@ P[2].StartFrame=timer; PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]); Draw
 /*reinicia a luta*/
 timer_rounds=0;
 timer_final_de_rounds=0;
-set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
+sys->set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
 //desliga as fireballs
 Fireball[1].Ativa = 0;
 Fireball[2].Ativa = 0;
@@ -2386,7 +2413,7 @@ if( ModoHistoria==0 ){ strcpy( ChoiceBG,""); }
 play_midi(bgm_select_screen, 1); //bgm
 timer_rounds=0;
 timer_final_de_rounds=0;
-set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
+sys->set_config_file("SETUP.ini"); RoundTime  = get_config_int ("CONFIG", "time", 99 ); RoundTime=RoundTime*60+59;
 //desliga as fireballs
 Fireball[1].Ativa = 0;
 Fireball[2].Ativa = 0;
@@ -4990,7 +5017,7 @@ FD_P1_Active_OUT=-1;
 FD_P1_HitBox01x1;
 //chbox.ini
 sprintf(P[1].Caminho_CHBOX, "data/chars/%s/chbox.ini", P[1].Name);
-set_config_file(P[1].Caminho_CHBOX);
+sys->set_config_file(P[1].Caminho_CHBOX);
 //encontra o inicio de Active (active_in)
 for(int ind=0; ind<=P[1].TotalFrames; ind++){
 if (P[1].IndexAnim<10)  { sprintf(P[1].State_chs, "%i_0%i", P[1].State, ind); }
@@ -5007,7 +5034,7 @@ if (FD_P1_HitBox01x1!=-5555) { FD_P1_Active_OUT=ind; break; }
 }
 //char.ini
 sprintf(P[1].Caminho_CHBOX, "data/chars/%s/char.ini", P[1].Name);
-set_config_file(P[1].Caminho_CHBOX);
+sys->set_config_file(P[1].Caminho_CHBOX);
 //soma todos os frames de Startup usando active_in-1
 for(int ind=0; ind<=FD_P1_Active_IN-1; ind++){
 sprintf(P[1].State_chs, "%i", P[1].State);
@@ -5104,7 +5131,7 @@ FD_P2_Active_OUT=-1;
 FD_P2_HitBox01x1;
 //chbox.ini
 sprintf(P[2].Caminho_CHBOX, "data/chars/%s/chbox.ini", P[2].Name);
-set_config_file(P[2].Caminho_CHBOX);
+sys->set_config_file(P[2].Caminho_CHBOX);
 //encontra o inicio de Active (active_in)
 for(int ind=0; ind<=P[2].TotalFrames; ind++){
 if (P[2].IndexAnim<10)  { sprintf(P[2].State_chs, "%i_0%i", P[2].State, ind); }
@@ -5121,7 +5148,7 @@ if (FD_P2_HitBox01x1!=-5555) { FD_P2_Active_OUT=ind; break; }
 }
 //char.ini
 sprintf(P[2].Caminho_CHBOX, "data/chars/%s/char.ini", P[2].Name);
-set_config_file(P[2].Caminho_CHBOX);
+sys->set_config_file(P[2].Caminho_CHBOX);
 //soma todos os frames de Startup usando active_in-1
 for(int ind=0; ind<=FD_P2_Active_IN-1; ind++){
 sprintf(P[2].State_chs, "%i", P[2].State);
@@ -5983,10 +6010,10 @@ ED_alertsave=0;
 
 if (ED_alertsave2==1) //salva o eixo, apos movimentacao do mesmo
 {
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
-set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
-set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
+sys->set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
+sys->set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
 ED_alertsave2=0;
 }
 
@@ -6026,108 +6053,108 @@ if (key_Mouse_R_status==1 && mouse_x>170 && mouse_y>40) {
 
 if (ED_DrawRedMode==1)
 {
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3];
 if (ED_IndexAnim <10) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
 if (ED_IndexAnim>=10) { sprintf(ED_State_s, "%i_%i" , ED_State, ED_IndexAnim); }
 if ( ED_HitBox_tot==9 ) { ED_HitBox09x1=-5555; ED_HitBox09y1=-5555; ED_HitBox09x2=-5555; ED_HitBox09y2=-5555;
-set_config_int(ED_State_s, "HitBox09x1", ED_HitBox09x1);
-set_config_int(ED_State_s, "HitBox09y1", ED_HitBox09y1);
-set_config_int(ED_State_s, "HitBox09x2", ED_HitBox09x2);
-set_config_int(ED_State_s, "HitBox09y2", ED_HitBox09y2); }
+sys->set_config_int(ED_State_s, "HitBox09x1", ED_HitBox09x1);
+sys->set_config_int(ED_State_s, "HitBox09y1", ED_HitBox09y1);
+sys->set_config_int(ED_State_s, "HitBox09x2", ED_HitBox09x2);
+sys->set_config_int(ED_State_s, "HitBox09y2", ED_HitBox09y2); }
 else if ( ED_HitBox_tot==8 ) { ED_HitBox08x1=-5555; ED_HitBox08y1=-5555; ED_HitBox08x2=-5555; ED_HitBox08y2=-5555;
-set_config_int(ED_State_s, "HitBox08x1", ED_HitBox08x1);
-set_config_int(ED_State_s, "HitBox08y1", ED_HitBox08y1);
-set_config_int(ED_State_s, "HitBox08x2", ED_HitBox08x2);
-set_config_int(ED_State_s, "HitBox08y2", ED_HitBox08y2); }
+sys->set_config_int(ED_State_s, "HitBox08x1", ED_HitBox08x1);
+sys->set_config_int(ED_State_s, "HitBox08y1", ED_HitBox08y1);
+sys->set_config_int(ED_State_s, "HitBox08x2", ED_HitBox08x2);
+sys->set_config_int(ED_State_s, "HitBox08y2", ED_HitBox08y2); }
 else if ( ED_HitBox_tot==7 ) { ED_HitBox07x1=-5555; ED_HitBox07y1=-5555; ED_HitBox07x2=-5555; ED_HitBox07y2=-5555;
-set_config_int(ED_State_s, "HitBox07x1", ED_HitBox07x1);
-set_config_int(ED_State_s, "HitBox07y1", ED_HitBox07y1);
-set_config_int(ED_State_s, "HitBox07x2", ED_HitBox07x2);
-set_config_int(ED_State_s, "HitBox07y2", ED_HitBox07y2); }
+sys->set_config_int(ED_State_s, "HitBox07x1", ED_HitBox07x1);
+sys->set_config_int(ED_State_s, "HitBox07y1", ED_HitBox07y1);
+sys->set_config_int(ED_State_s, "HitBox07x2", ED_HitBox07x2);
+sys->set_config_int(ED_State_s, "HitBox07y2", ED_HitBox07y2); }
 else if ( ED_HitBox_tot==6 ) { ED_HitBox06x1=-5555; ED_HitBox06y1=-5555; ED_HitBox06x2=-5555; ED_HitBox06y2=-5555;
-set_config_int(ED_State_s, "HitBox06x1", ED_HitBox06x1);
-set_config_int(ED_State_s, "HitBox06y1", ED_HitBox06y1);
-set_config_int(ED_State_s, "HitBox06x2", ED_HitBox06x2);
-set_config_int(ED_State_s, "HitBox06y2", ED_HitBox06y2); }
+sys->set_config_int(ED_State_s, "HitBox06x1", ED_HitBox06x1);
+sys->set_config_int(ED_State_s, "HitBox06y1", ED_HitBox06y1);
+sys->set_config_int(ED_State_s, "HitBox06x2", ED_HitBox06x2);
+sys->set_config_int(ED_State_s, "HitBox06y2", ED_HitBox06y2); }
 else if ( ED_HitBox_tot==5 ) { ED_HitBox05x1=-5555; ED_HitBox05y1=-5555; ED_HitBox05x2=-5555; ED_HitBox05y2=-5555;
-set_config_int(ED_State_s, "HitBox05x1", ED_HitBox05x1);
-set_config_int(ED_State_s, "HitBox05y1", ED_HitBox05y1);
-set_config_int(ED_State_s, "HitBox05x2", ED_HitBox05x2);
-set_config_int(ED_State_s, "HitBox05y2", ED_HitBox05y2); }
+sys->set_config_int(ED_State_s, "HitBox05x1", ED_HitBox05x1);
+sys->set_config_int(ED_State_s, "HitBox05y1", ED_HitBox05y1);
+sys->set_config_int(ED_State_s, "HitBox05x2", ED_HitBox05x2);
+sys->set_config_int(ED_State_s, "HitBox05y2", ED_HitBox05y2); }
 else if ( ED_HitBox_tot==4 ) { ED_HitBox04x1=-5555; ED_HitBox04y1=-5555; ED_HitBox04x2=-5555; ED_HitBox04y2=-5555;
-set_config_int(ED_State_s, "HitBox04x1", ED_HitBox04x1);
-set_config_int(ED_State_s, "HitBox04y1", ED_HitBox04y1);
-set_config_int(ED_State_s, "HitBox04x2", ED_HitBox04x2);
-set_config_int(ED_State_s, "HitBox04y2", ED_HitBox04y2); }
+sys->set_config_int(ED_State_s, "HitBox04x1", ED_HitBox04x1);
+sys->set_config_int(ED_State_s, "HitBox04y1", ED_HitBox04y1);
+sys->set_config_int(ED_State_s, "HitBox04x2", ED_HitBox04x2);
+sys->set_config_int(ED_State_s, "HitBox04y2", ED_HitBox04y2); }
 else if ( ED_HitBox_tot==3 ) { ED_HitBox03x1=-5555; ED_HitBox03y1=-5555; ED_HitBox03x2=-5555; ED_HitBox03y2=-5555;
-set_config_int(ED_State_s, "HitBox03x1", ED_HitBox03x1);
-set_config_int(ED_State_s, "HitBox03y1", ED_HitBox03y1);
-set_config_int(ED_State_s, "HitBox03x2", ED_HitBox03x2);
-set_config_int(ED_State_s, "HitBox03y2", ED_HitBox03y2); }
+sys->set_config_int(ED_State_s, "HitBox03x1", ED_HitBox03x1);
+sys->set_config_int(ED_State_s, "HitBox03y1", ED_HitBox03y1);
+sys->set_config_int(ED_State_s, "HitBox03x2", ED_HitBox03x2);
+sys->set_config_int(ED_State_s, "HitBox03y2", ED_HitBox03y2); }
 else if ( ED_HitBox_tot==2 ) { ED_HitBox02x1=-5555; ED_HitBox02y1=-5555; ED_HitBox02x2=-5555; ED_HitBox02y2=-5555;
-set_config_int(ED_State_s, "HitBox02x1", ED_HitBox02x1);
-set_config_int(ED_State_s, "HitBox02y1", ED_HitBox02y1);
-set_config_int(ED_State_s, "HitBox02x2", ED_HitBox02x2);
-set_config_int(ED_State_s, "HitBox02y2", ED_HitBox02y2); }
+sys->set_config_int(ED_State_s, "HitBox02x1", ED_HitBox02x1);
+sys->set_config_int(ED_State_s, "HitBox02y1", ED_HitBox02y1);
+sys->set_config_int(ED_State_s, "HitBox02x2", ED_HitBox02x2);
+sys->set_config_int(ED_State_s, "HitBox02y2", ED_HitBox02y2); }
 else if ( ED_HitBox_tot==1 ) { ED_HitBox01x1=-5555; ED_HitBox01y1=-5555; ED_HitBox01x2=-5555; ED_HitBox01y2=-5555;
-set_config_int(ED_State_s, "HitBox01x1", ED_HitBox01x1);
-set_config_int(ED_State_s, "HitBox01y1", ED_HitBox01y1);
-set_config_int(ED_State_s, "HitBox01x2", ED_HitBox01x2);
-set_config_int(ED_State_s, "HitBox01y2", ED_HitBox01y2); }
+sys->set_config_int(ED_State_s, "HitBox01x1", ED_HitBox01x1);
+sys->set_config_int(ED_State_s, "HitBox01y1", ED_HitBox01y1);
+sys->set_config_int(ED_State_s, "HitBox01x2", ED_HitBox01x2);
+sys->set_config_int(ED_State_s, "HitBox01y2", ED_HitBox01y2); }
 ED_HitBox_tot--;  } if (ED_HitBox_tot<0 ) { ED_HitBox_tot=0;
 }
 if (ED_DrawBlueMode==1)
 {
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3];
 if (ED_IndexAnim<10 ) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
 if (ED_IndexAnim>=10) { sprintf(ED_State_s, "%i_%i" , ED_State, ED_IndexAnim); }
 if ( ED_HurtBox_tot==9 ) { ED_HurtBox09x1=-5555; ED_HurtBox09y1=-5555; ED_HurtBox09x2=-5555; ED_HurtBox09y2=-5555;
-set_config_int(ED_State_s, "HurtBox09x1", ED_HurtBox09x1);
-set_config_int(ED_State_s, "HurtBox09y1", ED_HurtBox09y1);
-set_config_int(ED_State_s, "HurtBox09x2", ED_HurtBox09x2);
-set_config_int(ED_State_s, "HurtBox09y2", ED_HurtBox09y2); }
+sys->set_config_int(ED_State_s, "HurtBox09x1", ED_HurtBox09x1);
+sys->set_config_int(ED_State_s, "HurtBox09y1", ED_HurtBox09y1);
+sys->set_config_int(ED_State_s, "HurtBox09x2", ED_HurtBox09x2);
+sys->set_config_int(ED_State_s, "HurtBox09y2", ED_HurtBox09y2); }
 else if ( ED_HurtBox_tot==8 ) { ED_HurtBox08x1=-5555; ED_HurtBox08y1=-5555; ED_HurtBox08x2=-5555; ED_HurtBox08y2=-5555;
-set_config_int(ED_State_s, "HurtBox08x1", ED_HurtBox08x1);
-set_config_int(ED_State_s, "HurtBox08y1", ED_HurtBox08y1);
-set_config_int(ED_State_s, "HurtBox08x2", ED_HurtBox08x2);
-set_config_int(ED_State_s, "HurtBox08y2", ED_HurtBox08y2); }
+sys->set_config_int(ED_State_s, "HurtBox08x1", ED_HurtBox08x1);
+sys->set_config_int(ED_State_s, "HurtBox08y1", ED_HurtBox08y1);
+sys->set_config_int(ED_State_s, "HurtBox08x2", ED_HurtBox08x2);
+sys->set_config_int(ED_State_s, "HurtBox08y2", ED_HurtBox08y2); }
 else if ( ED_HurtBox_tot==7 ) { ED_HurtBox07x1=-5555; ED_HurtBox07y1=-5555; ED_HurtBox07x2=-5555; ED_HurtBox07y2=-5555;
-set_config_int(ED_State_s, "HurtBox07x1", ED_HurtBox07x1);
-set_config_int(ED_State_s, "HurtBox07y1", ED_HurtBox07y1);
-set_config_int(ED_State_s, "HurtBox07x2", ED_HurtBox07x2);
-set_config_int(ED_State_s, "HurtBox07y2", ED_HurtBox07y2); }
+sys->set_config_int(ED_State_s, "HurtBox07x1", ED_HurtBox07x1);
+sys->set_config_int(ED_State_s, "HurtBox07y1", ED_HurtBox07y1);
+sys->set_config_int(ED_State_s, "HurtBox07x2", ED_HurtBox07x2);
+sys->set_config_int(ED_State_s, "HurtBox07y2", ED_HurtBox07y2); }
 else if ( ED_HurtBox_tot==6 ) { ED_HurtBox06x1=-5555; ED_HurtBox06y1=-5555; ED_HurtBox06x2=-5555; ED_HurtBox06y2=-5555;
-set_config_int(ED_State_s, "HurtBox06x1", ED_HurtBox06x1);
-set_config_int(ED_State_s, "HurtBox06y1", ED_HurtBox06y1);
-set_config_int(ED_State_s, "HurtBox06x2", ED_HurtBox06x2);
-set_config_int(ED_State_s, "HurtBox06y2", ED_HurtBox06y2); }
+sys->set_config_int(ED_State_s, "HurtBox06x1", ED_HurtBox06x1);
+sys->set_config_int(ED_State_s, "HurtBox06y1", ED_HurtBox06y1);
+sys->set_config_int(ED_State_s, "HurtBox06x2", ED_HurtBox06x2);
+sys->set_config_int(ED_State_s, "HurtBox06y2", ED_HurtBox06y2); }
 else if ( ED_HurtBox_tot==5 ) { ED_HurtBox05x1=-5555; ED_HurtBox05y1=-5555; ED_HurtBox05x2=-5555; ED_HurtBox05y2=-5555;
-set_config_int(ED_State_s, "HurtBox05x1", ED_HurtBox05x1);
-set_config_int(ED_State_s, "HurtBox05y1", ED_HurtBox05y1);
-set_config_int(ED_State_s, "HurtBox05x2", ED_HurtBox05x2);
-set_config_int(ED_State_s, "HurtBox05y2", ED_HurtBox05y2); }
+sys->set_config_int(ED_State_s, "HurtBox05x1", ED_HurtBox05x1);
+sys->set_config_int(ED_State_s, "HurtBox05y1", ED_HurtBox05y1);
+sys->set_config_int(ED_State_s, "HurtBox05x2", ED_HurtBox05x2);
+sys->set_config_int(ED_State_s, "HurtBox05y2", ED_HurtBox05y2); }
 else if ( ED_HurtBox_tot==4 ) { ED_HurtBox04x1=-5555; ED_HurtBox04y1=-5555; ED_HurtBox04x2=-5555; ED_HurtBox04y2=-5555;
-set_config_int(ED_State_s, "HurtBox04x1", ED_HurtBox04x1);
-set_config_int(ED_State_s, "HurtBox04y1", ED_HurtBox04y1);
-set_config_int(ED_State_s, "HurtBox04x2", ED_HurtBox04x2);
-set_config_int(ED_State_s, "HurtBox04y2", ED_HurtBox04y2); }
+sys->set_config_int(ED_State_s, "HurtBox04x1", ED_HurtBox04x1);
+sys->set_config_int(ED_State_s, "HurtBox04y1", ED_HurtBox04y1);
+sys->set_config_int(ED_State_s, "HurtBox04x2", ED_HurtBox04x2);
+sys->set_config_int(ED_State_s, "HurtBox04y2", ED_HurtBox04y2); }
 else if ( ED_HurtBox_tot==3 ) { ED_HurtBox03x1=-5555; ED_HurtBox03y1=-5555; ED_HurtBox03x2=-5555; ED_HurtBox03y2=-5555;
-set_config_int(ED_State_s, "HurtBox03x1", ED_HurtBox03x1);
-set_config_int(ED_State_s, "HurtBox03y1", ED_HurtBox03y1);
-set_config_int(ED_State_s, "HurtBox03x2", ED_HurtBox03x2);
-set_config_int(ED_State_s, "HurtBox03y2", ED_HurtBox03y2); }
+sys->set_config_int(ED_State_s, "HurtBox03x1", ED_HurtBox03x1);
+sys->set_config_int(ED_State_s, "HurtBox03y1", ED_HurtBox03y1);
+sys->set_config_int(ED_State_s, "HurtBox03x2", ED_HurtBox03x2);
+sys->set_config_int(ED_State_s, "HurtBox03y2", ED_HurtBox03y2); }
 else if ( ED_HurtBox_tot==2 ) { ED_HurtBox02x1=-5555; ED_HurtBox02y1=-5555; ED_HurtBox02x2=-5555; ED_HurtBox02y2=-5555;
-set_config_int(ED_State_s, "HurtBox02x1", ED_HurtBox02x1);
-set_config_int(ED_State_s, "HurtBox02y1", ED_HurtBox02y1);
-set_config_int(ED_State_s, "HurtBox02x2", ED_HurtBox02x2);
-set_config_int(ED_State_s, "HurtBox02y2", ED_HurtBox02y2); }
+sys->set_config_int(ED_State_s, "HurtBox02x1", ED_HurtBox02x1);
+sys->set_config_int(ED_State_s, "HurtBox02y1", ED_HurtBox02y1);
+sys->set_config_int(ED_State_s, "HurtBox02x2", ED_HurtBox02x2);
+sys->set_config_int(ED_State_s, "HurtBox02y2", ED_HurtBox02y2); }
 else if ( ED_HurtBox_tot==1 ) { ED_HurtBox01x1=-5555; ED_HurtBox01y1=-5555; ED_HurtBox01x2=-5555; ED_HurtBox01y2=-5555;
-set_config_int(ED_State_s, "HurtBox01x1", ED_HurtBox01x1);
-set_config_int(ED_State_s, "HurtBox01y1", ED_HurtBox01y1);
-set_config_int(ED_State_s, "HurtBox01x2", ED_HurtBox01x2);
-set_config_int(ED_State_s, "HurtBox01y2", ED_HurtBox01y2); }
+sys->set_config_int(ED_State_s, "HurtBox01x1", ED_HurtBox01x1);
+sys->set_config_int(ED_State_s, "HurtBox01y1", ED_HurtBox01y1);
+sys->set_config_int(ED_State_s, "HurtBox01x2", ED_HurtBox01x2);
+sys->set_config_int(ED_State_s, "HurtBox01y2", ED_HurtBox01y2); }
 ED_HurtBox_tot--; } if (ED_HurtBox_tot<0) { ED_HurtBox_tot=0;
 }
 }
@@ -6891,86 +6918,86 @@ else if ( ED_HitBox_tot==8 ) { ED_HitBox08x1 =((ED_Mx1/2)-(ED_x-ED_XAlign))-ED_X
 else if ( ED_HitBox_tot==9 ) { ED_HitBox09x1 =((ED_Mx1/2)-(ED_x-ED_XAlign))-ED_XAlign; ED_HitBox09y1 =((ED_My1/2)-(ED_y-ED_YAlign))-ED_YAlign; ED_HitBox09x2 =((ED_Mx2/2)-(ED_x-ED_XAlign))-ED_XAlign;  ED_HitBox09y2 =((ED_My2/2)-(ED_y-ED_YAlign))-ED_YAlign; } }
 
 //4-salva novo HBox
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3];
 if (ED_IndexAnim<10 ) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
 if (ED_IndexAnim>=10) { sprintf(ED_State_s, "%i_%i" , ED_State, ED_IndexAnim); }
 if (ED_DrawBlueMode==1) {
-if ( ED_HurtBox_tot==1 ) { set_config_int(ED_State_s, "HurtBox01x1", ED_HurtBox01x1); }
-if ( ED_HurtBox_tot==1 ) { set_config_int(ED_State_s, "HurtBox01y1", ED_HurtBox01y1); }
-if ( ED_HurtBox_tot==1 ) { set_config_int(ED_State_s, "HurtBox01x2", ED_HurtBox01x2); }
-if ( ED_HurtBox_tot==1 ) { set_config_int(ED_State_s, "HurtBox01y2", ED_HurtBox01y2); }
-if ( ED_HurtBox_tot==2 ) { set_config_int(ED_State_s, "HurtBox02x1", ED_HurtBox02x1); }
-if ( ED_HurtBox_tot==2 ) { set_config_int(ED_State_s, "HurtBox02y1", ED_HurtBox02y1); }
-if ( ED_HurtBox_tot==2 ) { set_config_int(ED_State_s, "HurtBox02x2", ED_HurtBox02x2); }
-if ( ED_HurtBox_tot==2 ) { set_config_int(ED_State_s, "HurtBox02y2", ED_HurtBox02y2); }
-if ( ED_HurtBox_tot==3 ) { set_config_int(ED_State_s, "HurtBox03x1", ED_HurtBox03x1); }
-if ( ED_HurtBox_tot==3 ) { set_config_int(ED_State_s, "HurtBox03y1", ED_HurtBox03y1); }
-if ( ED_HurtBox_tot==3 ) { set_config_int(ED_State_s, "HurtBox03x2", ED_HurtBox03x2); }
-if ( ED_HurtBox_tot==3 ) { set_config_int(ED_State_s, "HurtBox03y2", ED_HurtBox03y2); }
-if ( ED_HurtBox_tot==4 ) { set_config_int(ED_State_s, "HurtBox04x1", ED_HurtBox04x1); }
-if ( ED_HurtBox_tot==4 ) { set_config_int(ED_State_s, "HurtBox04y1", ED_HurtBox04y1); }
-if ( ED_HurtBox_tot==4 ) { set_config_int(ED_State_s, "HurtBox04x2", ED_HurtBox04x2); }
-if ( ED_HurtBox_tot==4 ) { set_config_int(ED_State_s, "HurtBox04y2", ED_HurtBox04y2); }
-if ( ED_HurtBox_tot==5 ) { set_config_int(ED_State_s, "HurtBox05x1", ED_HurtBox05x1); }
-if ( ED_HurtBox_tot==5 ) { set_config_int(ED_State_s, "HurtBox05y1", ED_HurtBox05y1); }
-if ( ED_HurtBox_tot==5 ) { set_config_int(ED_State_s, "HurtBox05x2", ED_HurtBox05x2); }
-if ( ED_HurtBox_tot==5 ) { set_config_int(ED_State_s, "HurtBox05y2", ED_HurtBox05y2); }
-if ( ED_HurtBox_tot==6 ) { set_config_int(ED_State_s, "HurtBox06x1", ED_HurtBox06x1); }
-if ( ED_HurtBox_tot==6 ) { set_config_int(ED_State_s, "HurtBox06y1", ED_HurtBox06y1); }
-if ( ED_HurtBox_tot==6 ) { set_config_int(ED_State_s, "HurtBox06x2", ED_HurtBox06x2); }
-if ( ED_HurtBox_tot==6 ) { set_config_int(ED_State_s, "HurtBox06y2", ED_HurtBox06y2); }
-if ( ED_HurtBox_tot==7 ) { set_config_int(ED_State_s, "HurtBox07x1", ED_HurtBox07x1); }
-if ( ED_HurtBox_tot==7 ) { set_config_int(ED_State_s, "HurtBox07y1", ED_HurtBox07y1); }
-if ( ED_HurtBox_tot==7 ) { set_config_int(ED_State_s, "HurtBox07x2", ED_HurtBox07x2); }
-if ( ED_HurtBox_tot==7 ) { set_config_int(ED_State_s, "HurtBox07y2", ED_HurtBox07y2); }
-if ( ED_HurtBox_tot==8 ) { set_config_int(ED_State_s, "HurtBox08x1", ED_HurtBox08x1); }
-if ( ED_HurtBox_tot==8 ) { set_config_int(ED_State_s, "HurtBox08y1", ED_HurtBox08y1); }
-if ( ED_HurtBox_tot==8 ) { set_config_int(ED_State_s, "HurtBox08x2", ED_HurtBox08x2); }
-if ( ED_HurtBox_tot==8 ) { set_config_int(ED_State_s, "HurtBox08y2", ED_HurtBox08y2); }
-if ( ED_HurtBox_tot==9 ) { set_config_int(ED_State_s, "HurtBox09x1", ED_HurtBox09x1); }
-if ( ED_HurtBox_tot==9 ) { set_config_int(ED_State_s, "HurtBox09y1", ED_HurtBox09y1); }
-if ( ED_HurtBox_tot==9 ) { set_config_int(ED_State_s, "HurtBox09x2", ED_HurtBox09x2); }
-if ( ED_HurtBox_tot==9 ) { set_config_int(ED_State_s, "HurtBox09y2", ED_HurtBox09y2); }
+if ( ED_HurtBox_tot==1 ) { sys->set_config_int(ED_State_s, "HurtBox01x1", ED_HurtBox01x1); }
+if ( ED_HurtBox_tot==1 ) { sys->set_config_int(ED_State_s, "HurtBox01y1", ED_HurtBox01y1); }
+if ( ED_HurtBox_tot==1 ) { sys->set_config_int(ED_State_s, "HurtBox01x2", ED_HurtBox01x2); }
+if ( ED_HurtBox_tot==1 ) { sys->set_config_int(ED_State_s, "HurtBox01y2", ED_HurtBox01y2); }
+if ( ED_HurtBox_tot==2 ) { sys->set_config_int(ED_State_s, "HurtBox02x1", ED_HurtBox02x1); }
+if ( ED_HurtBox_tot==2 ) { sys->set_config_int(ED_State_s, "HurtBox02y1", ED_HurtBox02y1); }
+if ( ED_HurtBox_tot==2 ) { sys->set_config_int(ED_State_s, "HurtBox02x2", ED_HurtBox02x2); }
+if ( ED_HurtBox_tot==2 ) { sys->set_config_int(ED_State_s, "HurtBox02y2", ED_HurtBox02y2); }
+if ( ED_HurtBox_tot==3 ) { sys->set_config_int(ED_State_s, "HurtBox03x1", ED_HurtBox03x1); }
+if ( ED_HurtBox_tot==3 ) { sys->set_config_int(ED_State_s, "HurtBox03y1", ED_HurtBox03y1); }
+if ( ED_HurtBox_tot==3 ) { sys->set_config_int(ED_State_s, "HurtBox03x2", ED_HurtBox03x2); }
+if ( ED_HurtBox_tot==3 ) { sys->set_config_int(ED_State_s, "HurtBox03y2", ED_HurtBox03y2); }
+if ( ED_HurtBox_tot==4 ) { sys->set_config_int(ED_State_s, "HurtBox04x1", ED_HurtBox04x1); }
+if ( ED_HurtBox_tot==4 ) { sys->set_config_int(ED_State_s, "HurtBox04y1", ED_HurtBox04y1); }
+if ( ED_HurtBox_tot==4 ) { sys->set_config_int(ED_State_s, "HurtBox04x2", ED_HurtBox04x2); }
+if ( ED_HurtBox_tot==4 ) { sys->set_config_int(ED_State_s, "HurtBox04y2", ED_HurtBox04y2); }
+if ( ED_HurtBox_tot==5 ) { sys->set_config_int(ED_State_s, "HurtBox05x1", ED_HurtBox05x1); }
+if ( ED_HurtBox_tot==5 ) { sys->set_config_int(ED_State_s, "HurtBox05y1", ED_HurtBox05y1); }
+if ( ED_HurtBox_tot==5 ) { sys->set_config_int(ED_State_s, "HurtBox05x2", ED_HurtBox05x2); }
+if ( ED_HurtBox_tot==5 ) { sys->set_config_int(ED_State_s, "HurtBox05y2", ED_HurtBox05y2); }
+if ( ED_HurtBox_tot==6 ) { sys->set_config_int(ED_State_s, "HurtBox06x1", ED_HurtBox06x1); }
+if ( ED_HurtBox_tot==6 ) { sys->set_config_int(ED_State_s, "HurtBox06y1", ED_HurtBox06y1); }
+if ( ED_HurtBox_tot==6 ) { sys->set_config_int(ED_State_s, "HurtBox06x2", ED_HurtBox06x2); }
+if ( ED_HurtBox_tot==6 ) { sys->set_config_int(ED_State_s, "HurtBox06y2", ED_HurtBox06y2); }
+if ( ED_HurtBox_tot==7 ) { sys->set_config_int(ED_State_s, "HurtBox07x1", ED_HurtBox07x1); }
+if ( ED_HurtBox_tot==7 ) { sys->set_config_int(ED_State_s, "HurtBox07y1", ED_HurtBox07y1); }
+if ( ED_HurtBox_tot==7 ) { sys->set_config_int(ED_State_s, "HurtBox07x2", ED_HurtBox07x2); }
+if ( ED_HurtBox_tot==7 ) { sys->set_config_int(ED_State_s, "HurtBox07y2", ED_HurtBox07y2); }
+if ( ED_HurtBox_tot==8 ) { sys->set_config_int(ED_State_s, "HurtBox08x1", ED_HurtBox08x1); }
+if ( ED_HurtBox_tot==8 ) { sys->set_config_int(ED_State_s, "HurtBox08y1", ED_HurtBox08y1); }
+if ( ED_HurtBox_tot==8 ) { sys->set_config_int(ED_State_s, "HurtBox08x2", ED_HurtBox08x2); }
+if ( ED_HurtBox_tot==8 ) { sys->set_config_int(ED_State_s, "HurtBox08y2", ED_HurtBox08y2); }
+if ( ED_HurtBox_tot==9 ) { sys->set_config_int(ED_State_s, "HurtBox09x1", ED_HurtBox09x1); }
+if ( ED_HurtBox_tot==9 ) { sys->set_config_int(ED_State_s, "HurtBox09y1", ED_HurtBox09y1); }
+if ( ED_HurtBox_tot==9 ) { sys->set_config_int(ED_State_s, "HurtBox09x2", ED_HurtBox09x2); }
+if ( ED_HurtBox_tot==9 ) { sys->set_config_int(ED_State_s, "HurtBox09y2", ED_HurtBox09y2); }
 }
 if (ED_DrawRedMode==1)
 {
-if ( ED_HitBox_tot==1 ) { set_config_int(ED_State_s, "HitBox01x1", ED_HitBox01x1); }
-if ( ED_HitBox_tot==1 ) { set_config_int(ED_State_s, "HitBox01y1", ED_HitBox01y1); }
-if ( ED_HitBox_tot==1 ) { set_config_int(ED_State_s, "HitBox01x2", ED_HitBox01x2); }
-if ( ED_HitBox_tot==1 ) { set_config_int(ED_State_s, "HitBox01y2", ED_HitBox01y2); }
-if ( ED_HitBox_tot==2 ) { set_config_int(ED_State_s, "HitBox02x1", ED_HitBox02x1); }
-if ( ED_HitBox_tot==2 ) { set_config_int(ED_State_s, "HitBox02y1", ED_HitBox02y1); }
-if ( ED_HitBox_tot==2 ) { set_config_int(ED_State_s, "HitBox02x2", ED_HitBox02x2); }
-if ( ED_HitBox_tot==2 ) { set_config_int(ED_State_s, "HitBox02y2", ED_HitBox02y2); }
-if ( ED_HitBox_tot==3 ) { set_config_int(ED_State_s, "HitBox03x1", ED_HitBox03x1); }
-if ( ED_HitBox_tot==3 ) { set_config_int(ED_State_s, "HitBox03y1", ED_HitBox03y1); }
-if ( ED_HitBox_tot==3 ) { set_config_int(ED_State_s, "HitBox03x2", ED_HitBox03x2); }
-if ( ED_HitBox_tot==3 ) { set_config_int(ED_State_s, "HitBox03y2", ED_HitBox03y2); }
-if ( ED_HitBox_tot==4 ) { set_config_int(ED_State_s, "HitBox04x1", ED_HitBox04x1); }
-if ( ED_HitBox_tot==4 ) { set_config_int(ED_State_s, "HitBox04y1", ED_HitBox04y1); }
-if ( ED_HitBox_tot==4 ) { set_config_int(ED_State_s, "HitBox04x2", ED_HitBox04x2); }
-if ( ED_HitBox_tot==4 ) { set_config_int(ED_State_s, "HitBox04y2", ED_HitBox04y2); }
-if ( ED_HitBox_tot==5 ) { set_config_int(ED_State_s, "HitBox05x1", ED_HitBox05x1); }
-if ( ED_HitBox_tot==5 ) { set_config_int(ED_State_s, "HitBox05y1", ED_HitBox05y1); }
-if ( ED_HitBox_tot==5 ) { set_config_int(ED_State_s, "HitBox05x2", ED_HitBox05x2); }
-if ( ED_HitBox_tot==5 ) { set_config_int(ED_State_s, "HitBox05y2", ED_HitBox05y2); }
-if ( ED_HitBox_tot==6 ) { set_config_int(ED_State_s, "HitBox06x1", ED_HitBox06x1); }
-if ( ED_HitBox_tot==6 ) { set_config_int(ED_State_s, "HitBox06y1", ED_HitBox06y1); }
-if ( ED_HitBox_tot==6 ) { set_config_int(ED_State_s, "HitBox06x2", ED_HitBox06x2); }
-if ( ED_HitBox_tot==6 ) { set_config_int(ED_State_s, "HitBox06y2", ED_HitBox06y2); }
-if ( ED_HitBox_tot==7 ) { set_config_int(ED_State_s, "HitBox07x1", ED_HitBox07x1); }
-if ( ED_HitBox_tot==7 ) { set_config_int(ED_State_s, "HitBox07y1", ED_HitBox07y1); }
-if ( ED_HitBox_tot==7 ) { set_config_int(ED_State_s, "HitBox07x2", ED_HitBox07x2); }
-if ( ED_HitBox_tot==7 ) { set_config_int(ED_State_s, "HitBox07y2", ED_HitBox07y2); }
-if ( ED_HitBox_tot==8 ) { set_config_int(ED_State_s, "HitBox08x1", ED_HitBox08x1); }
-if ( ED_HitBox_tot==8 ) { set_config_int(ED_State_s, "HitBox08y1", ED_HitBox08y1); }
-if ( ED_HitBox_tot==8 ) { set_config_int(ED_State_s, "HitBox08x2", ED_HitBox08x2); }
-if ( ED_HitBox_tot==8 ) { set_config_int(ED_State_s, "HitBox08y2", ED_HitBox08y2); }
-if ( ED_HitBox_tot==9 ) { set_config_int(ED_State_s, "HitBox09x1", ED_HitBox09x1); }
-if ( ED_HitBox_tot==9 ) { set_config_int(ED_State_s, "HitBox09y1", ED_HitBox09y1); }
-if ( ED_HitBox_tot==9 ) { set_config_int(ED_State_s, "HitBox09x2", ED_HitBox09x2); }
-if ( ED_HitBox_tot==9 ) { set_config_int(ED_State_s, "HitBox09y2", ED_HitBox09y2); }
+if ( ED_HitBox_tot==1 ) { sys->set_config_int(ED_State_s, "HitBox01x1", ED_HitBox01x1); }
+if ( ED_HitBox_tot==1 ) { sys->set_config_int(ED_State_s, "HitBox01y1", ED_HitBox01y1); }
+if ( ED_HitBox_tot==1 ) { sys->set_config_int(ED_State_s, "HitBox01x2", ED_HitBox01x2); }
+if ( ED_HitBox_tot==1 ) { sys->set_config_int(ED_State_s, "HitBox01y2", ED_HitBox01y2); }
+if ( ED_HitBox_tot==2 ) { sys->set_config_int(ED_State_s, "HitBox02x1", ED_HitBox02x1); }
+if ( ED_HitBox_tot==2 ) { sys->set_config_int(ED_State_s, "HitBox02y1", ED_HitBox02y1); }
+if ( ED_HitBox_tot==2 ) { sys->set_config_int(ED_State_s, "HitBox02x2", ED_HitBox02x2); }
+if ( ED_HitBox_tot==2 ) { sys->set_config_int(ED_State_s, "HitBox02y2", ED_HitBox02y2); }
+if ( ED_HitBox_tot==3 ) { sys->set_config_int(ED_State_s, "HitBox03x1", ED_HitBox03x1); }
+if ( ED_HitBox_tot==3 ) { sys->set_config_int(ED_State_s, "HitBox03y1", ED_HitBox03y1); }
+if ( ED_HitBox_tot==3 ) { sys->set_config_int(ED_State_s, "HitBox03x2", ED_HitBox03x2); }
+if ( ED_HitBox_tot==3 ) { sys->set_config_int(ED_State_s, "HitBox03y2", ED_HitBox03y2); }
+if ( ED_HitBox_tot==4 ) { sys->set_config_int(ED_State_s, "HitBox04x1", ED_HitBox04x1); }
+if ( ED_HitBox_tot==4 ) { sys->set_config_int(ED_State_s, "HitBox04y1", ED_HitBox04y1); }
+if ( ED_HitBox_tot==4 ) { sys->set_config_int(ED_State_s, "HitBox04x2", ED_HitBox04x2); }
+if ( ED_HitBox_tot==4 ) { sys->set_config_int(ED_State_s, "HitBox04y2", ED_HitBox04y2); }
+if ( ED_HitBox_tot==5 ) { sys->set_config_int(ED_State_s, "HitBox05x1", ED_HitBox05x1); }
+if ( ED_HitBox_tot==5 ) { sys->set_config_int(ED_State_s, "HitBox05y1", ED_HitBox05y1); }
+if ( ED_HitBox_tot==5 ) { sys->set_config_int(ED_State_s, "HitBox05x2", ED_HitBox05x2); }
+if ( ED_HitBox_tot==5 ) { sys->set_config_int(ED_State_s, "HitBox05y2", ED_HitBox05y2); }
+if ( ED_HitBox_tot==6 ) { sys->set_config_int(ED_State_s, "HitBox06x1", ED_HitBox06x1); }
+if ( ED_HitBox_tot==6 ) { sys->set_config_int(ED_State_s, "HitBox06y1", ED_HitBox06y1); }
+if ( ED_HitBox_tot==6 ) { sys->set_config_int(ED_State_s, "HitBox06x2", ED_HitBox06x2); }
+if ( ED_HitBox_tot==6 ) { sys->set_config_int(ED_State_s, "HitBox06y2", ED_HitBox06y2); }
+if ( ED_HitBox_tot==7 ) { sys->set_config_int(ED_State_s, "HitBox07x1", ED_HitBox07x1); }
+if ( ED_HitBox_tot==7 ) { sys->set_config_int(ED_State_s, "HitBox07y1", ED_HitBox07y1); }
+if ( ED_HitBox_tot==7 ) { sys->set_config_int(ED_State_s, "HitBox07x2", ED_HitBox07x2); }
+if ( ED_HitBox_tot==7 ) { sys->set_config_int(ED_State_s, "HitBox07y2", ED_HitBox07y2); }
+if ( ED_HitBox_tot==8 ) { sys->set_config_int(ED_State_s, "HitBox08x1", ED_HitBox08x1); }
+if ( ED_HitBox_tot==8 ) { sys->set_config_int(ED_State_s, "HitBox08y1", ED_HitBox08y1); }
+if ( ED_HitBox_tot==8 ) { sys->set_config_int(ED_State_s, "HitBox08x2", ED_HitBox08x2); }
+if ( ED_HitBox_tot==8 ) { sys->set_config_int(ED_State_s, "HitBox08y2", ED_HitBox08y2); }
+if ( ED_HitBox_tot==9 ) { sys->set_config_int(ED_State_s, "HitBox09x1", ED_HitBox09x1); }
+if ( ED_HitBox_tot==9 ) { sys->set_config_int(ED_State_s, "HitBox09y1", ED_HitBox09y1); }
+if ( ED_HitBox_tot==9 ) { sys->set_config_int(ED_State_s, "HitBox09x2", ED_HitBox09x2); }
+if ( ED_HitBox_tot==9 ) { sys->set_config_int(ED_State_s, "HitBox09y2", ED_HitBox09y2); }
 }
 
 //5-Zera os controles de posicao do cursor MXs
@@ -7106,9 +7133,9 @@ if(key_Mouse_L_status==1 && mouse_x>260 && mouse_x<275 && mouse_y>5 && mouse_y<2
 //	if(ED_Tipo==1 && a==1) { ED_Tipo=2; a=0; deveinicializar=1; }
 //	char ED_Caminho[99];
 //	sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name);
-//	set_config_file(ED_Caminho);
-//	if(ED_Tipo==1) set_config_int("Info", "Type", 1);
-//	if(ED_Tipo==2) set_config_int("Info", "Type", 2);
+//	sys->set_config_file(ED_Caminho);
+//	if(ED_Tipo==1) sys->set_config_int("Info", "Type", 1);
+//	if(ED_Tipo==2) sys->set_config_int("Info", "Type", 2);
 }
 
 rect(bufferx, 260, 21, 260+15, 36, 0xffffff);
@@ -8120,13 +8147,13 @@ Draw_CHBoxes_P2();
 char P1_Caminho[99];
 if(ind==1){
 sprintf(P1_Caminho, "data/chars/%s/char.ini", P[ind].Name);
-set_config_file(P1_Caminho);
+sys->set_config_file(P1_Caminho);
 }
 
 char P2_Caminho[99];
 if(ind==2){
 sprintf(P2_Caminho, "data/chars/%s/char.ini", P[ind].Name);
-set_config_file(P2_Caminho);
+sys->set_config_file(P2_Caminho);
 }
 
 P[ind].Vspeed_temp=P[ind].Vspeed;
@@ -8136,7 +8163,7 @@ P[ind].Gravity_temp=P[ind].Gravity;
 if (P[ind].State>=100) { sprintf(P[ind].State_s, "%i" , P[ind].State);	}
 if (P[ind].State <100) { sprintf(P[ind].State_s, "0%i", P[ind].State);	}
 
-strcpy(P[ind].Name_Display, (char *)get_config_string("Info", "Name", "-"));
+strcpy(P[ind].Name_Display, (char *)sys->get_config_string("Info", "Name", "-"));
 
 P[ind].XAlign        = get_config_int   (P[ind].State_s, "XAlign" , P[ind].Largura/2 ); //P[ind].Largura_100
 P[ind].YAlign        = get_config_int   (P[ind].State_s, "YAlign"       , P[ind].Altura );
@@ -8151,8 +8178,8 @@ P[ind].EnergyChange  = get_config_int   (P[ind].State_s, "EnergyChange" ,       
 P[ind].SpecialChange = get_config_int   (P[ind].State_s, "SpecialChange",          0 );
 P[ind].Visible       = get_config_int   (P[ind].State_s, "Visible"      ,          1 );
 P[ind].RoomLimit     = get_config_int   (P[ind].State_s, "RoomLimit"    ,          1 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","Normal"));
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","Multi"));
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","Normal"));
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","Multi"));
 P[ind].HitPause      = get_config_int   (P[ind].State_s, "HitPause"     ,          0 );
 P[ind].ChangeState   = get_config_int   (P[ind].State_s, "ChangeState"  ,          0 );
 P[ind].Freeze        = get_config_int   (P[ind].State_s, "Freeze"       ,          0 );
@@ -8170,273 +8197,273 @@ if (P[ind].Special>1000) { P[ind].Special=1000; }
 if (P[ind].Special<0) { P[ind].Special=0; }
 
 if(ind==1){
-if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = get_config_int(P[1].State_s, "FrameTime_00", 6)-1; }
-if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = get_config_int(P[1].State_s, "FrameTime_01", 6)-1; }
-if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = get_config_int(P[1].State_s, "FrameTime_02", 6)-1; }
-if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = get_config_int(P[1].State_s, "FrameTime_03", 6)-1; }
-if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = get_config_int(P[1].State_s, "FrameTime_04", 6)-1; }
-if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = get_config_int(P[1].State_s, "FrameTime_05", 6)-1; }
-if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = get_config_int(P[1].State_s, "FrameTime_06", 6)-1; }
-if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = get_config_int(P[1].State_s, "FrameTime_07", 6)-1; }
-if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = get_config_int(P[1].State_s, "FrameTime_08", 6)-1; }
-if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = get_config_int(P[1].State_s, "FrameTime_09", 6)-1; }
-if (P[1].TotalFrames>=10) {P1_FrameTime_10 = get_config_int(P[1].State_s, "FrameTime_10", 6)-1; }
-if (P[1].TotalFrames>=11) {P1_FrameTime_11 = get_config_int(P[1].State_s, "FrameTime_11", 6)-1; }
-if (P[1].TotalFrames>=12) {P1_FrameTime_12 = get_config_int(P[1].State_s, "FrameTime_12", 6)-1; }
-if (P[1].TotalFrames>=13) {P1_FrameTime_13 = get_config_int(P[1].State_s, "FrameTime_13", 6)-1; }
-if (P[1].TotalFrames>=14) {P1_FrameTime_14 = get_config_int(P[1].State_s, "FrameTime_14", 6)-1; }
-if (P[1].TotalFrames>=15) {P1_FrameTime_15 = get_config_int(P[1].State_s, "FrameTime_15", 6)-1; }
-if (P[1].TotalFrames>=16) {P1_FrameTime_16 = get_config_int(P[1].State_s, "FrameTime_16", 6)-1; }
-if (P[1].TotalFrames>=17) {P1_FrameTime_17 = get_config_int(P[1].State_s, "FrameTime_17", 6)-1; }
-if (P[1].TotalFrames>=18) {P1_FrameTime_18 = get_config_int(P[1].State_s, "FrameTime_18", 6)-1; }
-if (P[1].TotalFrames>=19) {P1_FrameTime_19 = get_config_int(P[1].State_s, "FrameTime_19", 6)-1; }
-if (P[1].TotalFrames>=20) {P1_FrameTime_20 = get_config_int(P[1].State_s, "FrameTime_20", 6)-1; }
-if (P[1].TotalFrames>=21) {P1_FrameTime_21 = get_config_int(P[1].State_s, "FrameTime_21", 6)-1; }
-if (P[1].TotalFrames>=22) {P1_FrameTime_22 = get_config_int(P[1].State_s, "FrameTime_22", 6)-1; }
-if (P[1].TotalFrames>=23) {P1_FrameTime_23 = get_config_int(P[1].State_s, "FrameTime_23", 6)-1; }
-if (P[1].TotalFrames>=24) {P1_FrameTime_24 = get_config_int(P[1].State_s, "FrameTime_24", 6)-1; }
-if (P[1].TotalFrames>=25) {P1_FrameTime_25 = get_config_int(P[1].State_s, "FrameTime_25", 6)-1; }
-if (P[1].TotalFrames>=26) {P1_FrameTime_26 = get_config_int(P[1].State_s, "FrameTime_26", 6)-1; }
-if (P[1].TotalFrames>=27) {P1_FrameTime_27 = get_config_int(P[1].State_s, "FrameTime_27", 6)-1; }
-if (P[1].TotalFrames>=28) {P1_FrameTime_28 = get_config_int(P[1].State_s, "FrameTime_28", 6)-1; }
-if (P[1].TotalFrames>=29) {P1_FrameTime_29 = get_config_int(P[1].State_s, "FrameTime_29", 6)-1; }
+if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = sys->get_config_int(P[1].State_s, "FrameTime_00", 6)-1; }
+if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = sys->get_config_int(P[1].State_s, "FrameTime_01", 6)-1; }
+if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = sys->get_config_int(P[1].State_s, "FrameTime_02", 6)-1; }
+if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = sys->get_config_int(P[1].State_s, "FrameTime_03", 6)-1; }
+if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = sys->get_config_int(P[1].State_s, "FrameTime_04", 6)-1; }
+if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = sys->get_config_int(P[1].State_s, "FrameTime_05", 6)-1; }
+if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = sys->get_config_int(P[1].State_s, "FrameTime_06", 6)-1; }
+if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = sys->get_config_int(P[1].State_s, "FrameTime_07", 6)-1; }
+if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = sys->get_config_int(P[1].State_s, "FrameTime_08", 6)-1; }
+if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = sys->get_config_int(P[1].State_s, "FrameTime_09", 6)-1; }
+if (P[1].TotalFrames>=10) {P1_FrameTime_10 = sys->get_config_int(P[1].State_s, "FrameTime_10", 6)-1; }
+if (P[1].TotalFrames>=11) {P1_FrameTime_11 = sys->get_config_int(P[1].State_s, "FrameTime_11", 6)-1; }
+if (P[1].TotalFrames>=12) {P1_FrameTime_12 = sys->get_config_int(P[1].State_s, "FrameTime_12", 6)-1; }
+if (P[1].TotalFrames>=13) {P1_FrameTime_13 = sys->get_config_int(P[1].State_s, "FrameTime_13", 6)-1; }
+if (P[1].TotalFrames>=14) {P1_FrameTime_14 = sys->get_config_int(P[1].State_s, "FrameTime_14", 6)-1; }
+if (P[1].TotalFrames>=15) {P1_FrameTime_15 = sys->get_config_int(P[1].State_s, "FrameTime_15", 6)-1; }
+if (P[1].TotalFrames>=16) {P1_FrameTime_16 = sys->get_config_int(P[1].State_s, "FrameTime_16", 6)-1; }
+if (P[1].TotalFrames>=17) {P1_FrameTime_17 = sys->get_config_int(P[1].State_s, "FrameTime_17", 6)-1; }
+if (P[1].TotalFrames>=18) {P1_FrameTime_18 = sys->get_config_int(P[1].State_s, "FrameTime_18", 6)-1; }
+if (P[1].TotalFrames>=19) {P1_FrameTime_19 = sys->get_config_int(P[1].State_s, "FrameTime_19", 6)-1; }
+if (P[1].TotalFrames>=20) {P1_FrameTime_20 = sys->get_config_int(P[1].State_s, "FrameTime_20", 6)-1; }
+if (P[1].TotalFrames>=21) {P1_FrameTime_21 = sys->get_config_int(P[1].State_s, "FrameTime_21", 6)-1; }
+if (P[1].TotalFrames>=22) {P1_FrameTime_22 = sys->get_config_int(P[1].State_s, "FrameTime_22", 6)-1; }
+if (P[1].TotalFrames>=23) {P1_FrameTime_23 = sys->get_config_int(P[1].State_s, "FrameTime_23", 6)-1; }
+if (P[1].TotalFrames>=24) {P1_FrameTime_24 = sys->get_config_int(P[1].State_s, "FrameTime_24", 6)-1; }
+if (P[1].TotalFrames>=25) {P1_FrameTime_25 = sys->get_config_int(P[1].State_s, "FrameTime_25", 6)-1; }
+if (P[1].TotalFrames>=26) {P1_FrameTime_26 = sys->get_config_int(P[1].State_s, "FrameTime_26", 6)-1; }
+if (P[1].TotalFrames>=27) {P1_FrameTime_27 = sys->get_config_int(P[1].State_s, "FrameTime_27", 6)-1; }
+if (P[1].TotalFrames>=28) {P1_FrameTime_28 = sys->get_config_int(P[1].State_s, "FrameTime_28", 6)-1; }
+if (P[1].TotalFrames>=29) {P1_FrameTime_29 = sys->get_config_int(P[1].State_s, "FrameTime_29", 6)-1; }
 P1_FrameTime = P1_FrameTime_00;
 }
 
 if(ind==2){
-if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = get_config_int(P[2].State_s, "FrameTime_00", 6)-1; }
-if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = get_config_int(P[2].State_s, "FrameTime_01", 6)-1; }
-if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = get_config_int(P[2].State_s, "FrameTime_02", 6)-1; }
-if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = get_config_int(P[2].State_s, "FrameTime_03", 6)-1; }
-if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = get_config_int(P[2].State_s, "FrameTime_04", 6)-1; }
-if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = get_config_int(P[2].State_s, "FrameTime_05", 6)-1; }
-if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = get_config_int(P[2].State_s, "FrameTime_06", 6)-1; }
-if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = get_config_int(P[2].State_s, "FrameTime_07", 6)-1; }
-if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = get_config_int(P[2].State_s, "FrameTime_08", 6)-1; }
-if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = get_config_int(P[2].State_s, "FrameTime_09", 6)-1; }
-if (P[2].TotalFrames>=10) {P2_FrameTime_10 = get_config_int(P[2].State_s, "FrameTime_10", 6)-1; }
-if (P[2].TotalFrames>=11) {P2_FrameTime_11 = get_config_int(P[2].State_s, "FrameTime_11", 6)-1; }
-if (P[2].TotalFrames>=12) {P2_FrameTime_12 = get_config_int(P[2].State_s, "FrameTime_12", 6)-1; }
-if (P[2].TotalFrames>=13) {P2_FrameTime_13 = get_config_int(P[2].State_s, "FrameTime_13", 6)-1; }
-if (P[2].TotalFrames>=14) {P2_FrameTime_14 = get_config_int(P[2].State_s, "FrameTime_14", 6)-1; }
-if (P[2].TotalFrames>=15) {P2_FrameTime_15 = get_config_int(P[2].State_s, "FrameTime_15", 6)-1; }
-if (P[2].TotalFrames>=16) {P2_FrameTime_16 = get_config_int(P[2].State_s, "FrameTime_16", 6)-1; }
-if (P[2].TotalFrames>=17) {P2_FrameTime_17 = get_config_int(P[2].State_s, "FrameTime_17", 6)-1; }
-if (P[2].TotalFrames>=18) {P2_FrameTime_18 = get_config_int(P[2].State_s, "FrameTime_18", 6)-1; }
-if (P[2].TotalFrames>=19) {P2_FrameTime_19 = get_config_int(P[2].State_s, "FrameTime_19", 6)-1; }
-if (P[2].TotalFrames>=20) {P2_FrameTime_20 = get_config_int(P[2].State_s, "FrameTime_20", 6)-1; }
-if (P[2].TotalFrames>=21) {P2_FrameTime_21 = get_config_int(P[2].State_s, "FrameTime_21", 6)-1; }
-if (P[2].TotalFrames>=22) {P2_FrameTime_22 = get_config_int(P[2].State_s, "FrameTime_22", 6)-1; }
-if (P[2].TotalFrames>=23) {P2_FrameTime_23 = get_config_int(P[2].State_s, "FrameTime_23", 6)-1; }
-if (P[2].TotalFrames>=24) {P2_FrameTime_24 = get_config_int(P[2].State_s, "FrameTime_24", 6)-1; }
-if (P[2].TotalFrames>=25) {P2_FrameTime_25 = get_config_int(P[2].State_s, "FrameTime_25", 6)-1; }
-if (P[2].TotalFrames>=26) {P2_FrameTime_26 = get_config_int(P[2].State_s, "FrameTime_26", 6)-1; }
-if (P[2].TotalFrames>=27) {P2_FrameTime_27 = get_config_int(P[2].State_s, "FrameTime_27", 6)-1; }
-if (P[2].TotalFrames>=28) {P2_FrameTime_28 = get_config_int(P[2].State_s, "FrameTime_28", 6)-1; }
-if (P[2].TotalFrames>=29) {P2_FrameTime_29 = get_config_int(P[2].State_s, "FrameTime_29", 6)-1; }
+if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = sys->get_config_int(P[2].State_s, "FrameTime_00", 6)-1; }
+if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = sys->get_config_int(P[2].State_s, "FrameTime_01", 6)-1; }
+if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = sys->get_config_int(P[2].State_s, "FrameTime_02", 6)-1; }
+if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = sys->get_config_int(P[2].State_s, "FrameTime_03", 6)-1; }
+if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = sys->get_config_int(P[2].State_s, "FrameTime_04", 6)-1; }
+if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = sys->get_config_int(P[2].State_s, "FrameTime_05", 6)-1; }
+if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = sys->get_config_int(P[2].State_s, "FrameTime_06", 6)-1; }
+if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = sys->get_config_int(P[2].State_s, "FrameTime_07", 6)-1; }
+if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = sys->get_config_int(P[2].State_s, "FrameTime_08", 6)-1; }
+if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = sys->get_config_int(P[2].State_s, "FrameTime_09", 6)-1; }
+if (P[2].TotalFrames>=10) {P2_FrameTime_10 = sys->get_config_int(P[2].State_s, "FrameTime_10", 6)-1; }
+if (P[2].TotalFrames>=11) {P2_FrameTime_11 = sys->get_config_int(P[2].State_s, "FrameTime_11", 6)-1; }
+if (P[2].TotalFrames>=12) {P2_FrameTime_12 = sys->get_config_int(P[2].State_s, "FrameTime_12", 6)-1; }
+if (P[2].TotalFrames>=13) {P2_FrameTime_13 = sys->get_config_int(P[2].State_s, "FrameTime_13", 6)-1; }
+if (P[2].TotalFrames>=14) {P2_FrameTime_14 = sys->get_config_int(P[2].State_s, "FrameTime_14", 6)-1; }
+if (P[2].TotalFrames>=15) {P2_FrameTime_15 = sys->get_config_int(P[2].State_s, "FrameTime_15", 6)-1; }
+if (P[2].TotalFrames>=16) {P2_FrameTime_16 = sys->get_config_int(P[2].State_s, "FrameTime_16", 6)-1; }
+if (P[2].TotalFrames>=17) {P2_FrameTime_17 = sys->get_config_int(P[2].State_s, "FrameTime_17", 6)-1; }
+if (P[2].TotalFrames>=18) {P2_FrameTime_18 = sys->get_config_int(P[2].State_s, "FrameTime_18", 6)-1; }
+if (P[2].TotalFrames>=19) {P2_FrameTime_19 = sys->get_config_int(P[2].State_s, "FrameTime_19", 6)-1; }
+if (P[2].TotalFrames>=20) {P2_FrameTime_20 = sys->get_config_int(P[2].State_s, "FrameTime_20", 6)-1; }
+if (P[2].TotalFrames>=21) {P2_FrameTime_21 = sys->get_config_int(P[2].State_s, "FrameTime_21", 6)-1; }
+if (P[2].TotalFrames>=22) {P2_FrameTime_22 = sys->get_config_int(P[2].State_s, "FrameTime_22", 6)-1; }
+if (P[2].TotalFrames>=23) {P2_FrameTime_23 = sys->get_config_int(P[2].State_s, "FrameTime_23", 6)-1; }
+if (P[2].TotalFrames>=24) {P2_FrameTime_24 = sys->get_config_int(P[2].State_s, "FrameTime_24", 6)-1; }
+if (P[2].TotalFrames>=25) {P2_FrameTime_25 = sys->get_config_int(P[2].State_s, "FrameTime_25", 6)-1; }
+if (P[2].TotalFrames>=26) {P2_FrameTime_26 = sys->get_config_int(P[2].State_s, "FrameTime_26", 6)-1; }
+if (P[2].TotalFrames>=27) {P2_FrameTime_27 = sys->get_config_int(P[2].State_s, "FrameTime_27", 6)-1; }
+if (P[2].TotalFrames>=28) {P2_FrameTime_28 = sys->get_config_int(P[2].State_s, "FrameTime_28", 6)-1; }
+if (P[2].TotalFrames>=29) {P2_FrameTime_29 = sys->get_config_int(P[2].State_s, "FrameTime_29", 6)-1; }
 P2_FrameTime = P2_FrameTime_00;
 }
 
 if(ind==1){
 if(ForcaDoGolpeP1==1){
-if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = get_config_int(P[1].State_s, "V1_FrameTime_00", 6)-1; }
-if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = get_config_int(P[1].State_s, "V1_FrameTime_01", 6)-1; }
-if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = get_config_int(P[1].State_s, "V1_FrameTime_02", 6)-1; }
-if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = get_config_int(P[1].State_s, "V1_FrameTime_03", 6)-1; }
-if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = get_config_int(P[1].State_s, "V1_FrameTime_04", 6)-1; }
-if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = get_config_int(P[1].State_s, "V1_FrameTime_05", 6)-1; }
-if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = get_config_int(P[1].State_s, "V1_FrameTime_06", 6)-1; }
-if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = get_config_int(P[1].State_s, "V1_FrameTime_07", 6)-1; }
-if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = get_config_int(P[1].State_s, "V1_FrameTime_08", 6)-1; }
-if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = get_config_int(P[1].State_s, "V1_FrameTime_09", 6)-1; }
-if (P[1].TotalFrames>=10) {P1_FrameTime_10 = get_config_int(P[1].State_s, "V1_FrameTime_10", 6)-1; }
-if (P[1].TotalFrames>=11) {P1_FrameTime_11 = get_config_int(P[1].State_s, "V1_FrameTime_11", 6)-1; }
-if (P[1].TotalFrames>=12) {P1_FrameTime_12 = get_config_int(P[1].State_s, "V1_FrameTime_12", 6)-1; }
-if (P[1].TotalFrames>=13) {P1_FrameTime_13 = get_config_int(P[1].State_s, "V1_FrameTime_13", 6)-1; }
-if (P[1].TotalFrames>=14) {P1_FrameTime_14 = get_config_int(P[1].State_s, "V1_FrameTime_14", 6)-1; }
-if (P[1].TotalFrames>=15) {P1_FrameTime_15 = get_config_int(P[1].State_s, "V1_FrameTime_15", 6)-1; }
-if (P[1].TotalFrames>=16) {P1_FrameTime_16 = get_config_int(P[1].State_s, "V1_FrameTime_16", 6)-1; }
-if (P[1].TotalFrames>=17) {P1_FrameTime_17 = get_config_int(P[1].State_s, "V1_FrameTime_17", 6)-1; }
-if (P[1].TotalFrames>=18) {P1_FrameTime_18 = get_config_int(P[1].State_s, "V1_FrameTime_18", 6)-1; }
-if (P[1].TotalFrames>=19) {P1_FrameTime_19 = get_config_int(P[1].State_s, "V1_FrameTime_19", 6)-1; }
-if (P[1].TotalFrames>=20) {P1_FrameTime_20 = get_config_int(P[1].State_s, "V1_FrameTime_20", 6)-1; }
-if (P[1].TotalFrames>=21) {P1_FrameTime_21 = get_config_int(P[1].State_s, "V1_FrameTime_21", 6)-1; }
-if (P[1].TotalFrames>=22) {P1_FrameTime_22 = get_config_int(P[1].State_s, "V1_FrameTime_22", 6)-1; }
-if (P[1].TotalFrames>=23) {P1_FrameTime_23 = get_config_int(P[1].State_s, "V1_FrameTime_23", 6)-1; }
-if (P[1].TotalFrames>=24) {P1_FrameTime_24 = get_config_int(P[1].State_s, "V1_FrameTime_24", 6)-1; }
-if (P[1].TotalFrames>=25) {P1_FrameTime_25 = get_config_int(P[1].State_s, "V1_FrameTime_25", 6)-1; }
-if (P[1].TotalFrames>=26) {P1_FrameTime_26 = get_config_int(P[1].State_s, "V1_FrameTime_26", 6)-1; }
-if (P[1].TotalFrames>=27) {P1_FrameTime_27 = get_config_int(P[1].State_s, "V1_FrameTime_27", 6)-1; }
-if (P[1].TotalFrames>=28) {P1_FrameTime_28 = get_config_int(P[1].State_s, "V1_FrameTime_28", 6)-1; }
-if (P[1].TotalFrames>=29) {P1_FrameTime_29 = get_config_int(P[1].State_s, "V1_FrameTime_29", 6)-1; }
+if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = sys->get_config_int(P[1].State_s, "V1_FrameTime_00", 6)-1; }
+if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = sys->get_config_int(P[1].State_s, "V1_FrameTime_01", 6)-1; }
+if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = sys->get_config_int(P[1].State_s, "V1_FrameTime_02", 6)-1; }
+if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = sys->get_config_int(P[1].State_s, "V1_FrameTime_03", 6)-1; }
+if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = sys->get_config_int(P[1].State_s, "V1_FrameTime_04", 6)-1; }
+if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = sys->get_config_int(P[1].State_s, "V1_FrameTime_05", 6)-1; }
+if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = sys->get_config_int(P[1].State_s, "V1_FrameTime_06", 6)-1; }
+if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = sys->get_config_int(P[1].State_s, "V1_FrameTime_07", 6)-1; }
+if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = sys->get_config_int(P[1].State_s, "V1_FrameTime_08", 6)-1; }
+if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = sys->get_config_int(P[1].State_s, "V1_FrameTime_09", 6)-1; }
+if (P[1].TotalFrames>=10) {P1_FrameTime_10 = sys->get_config_int(P[1].State_s, "V1_FrameTime_10", 6)-1; }
+if (P[1].TotalFrames>=11) {P1_FrameTime_11 = sys->get_config_int(P[1].State_s, "V1_FrameTime_11", 6)-1; }
+if (P[1].TotalFrames>=12) {P1_FrameTime_12 = sys->get_config_int(P[1].State_s, "V1_FrameTime_12", 6)-1; }
+if (P[1].TotalFrames>=13) {P1_FrameTime_13 = sys->get_config_int(P[1].State_s, "V1_FrameTime_13", 6)-1; }
+if (P[1].TotalFrames>=14) {P1_FrameTime_14 = sys->get_config_int(P[1].State_s, "V1_FrameTime_14", 6)-1; }
+if (P[1].TotalFrames>=15) {P1_FrameTime_15 = sys->get_config_int(P[1].State_s, "V1_FrameTime_15", 6)-1; }
+if (P[1].TotalFrames>=16) {P1_FrameTime_16 = sys->get_config_int(P[1].State_s, "V1_FrameTime_16", 6)-1; }
+if (P[1].TotalFrames>=17) {P1_FrameTime_17 = sys->get_config_int(P[1].State_s, "V1_FrameTime_17", 6)-1; }
+if (P[1].TotalFrames>=18) {P1_FrameTime_18 = sys->get_config_int(P[1].State_s, "V1_FrameTime_18", 6)-1; }
+if (P[1].TotalFrames>=19) {P1_FrameTime_19 = sys->get_config_int(P[1].State_s, "V1_FrameTime_19", 6)-1; }
+if (P[1].TotalFrames>=20) {P1_FrameTime_20 = sys->get_config_int(P[1].State_s, "V1_FrameTime_20", 6)-1; }
+if (P[1].TotalFrames>=21) {P1_FrameTime_21 = sys->get_config_int(P[1].State_s, "V1_FrameTime_21", 6)-1; }
+if (P[1].TotalFrames>=22) {P1_FrameTime_22 = sys->get_config_int(P[1].State_s, "V1_FrameTime_22", 6)-1; }
+if (P[1].TotalFrames>=23) {P1_FrameTime_23 = sys->get_config_int(P[1].State_s, "V1_FrameTime_23", 6)-1; }
+if (P[1].TotalFrames>=24) {P1_FrameTime_24 = sys->get_config_int(P[1].State_s, "V1_FrameTime_24", 6)-1; }
+if (P[1].TotalFrames>=25) {P1_FrameTime_25 = sys->get_config_int(P[1].State_s, "V1_FrameTime_25", 6)-1; }
+if (P[1].TotalFrames>=26) {P1_FrameTime_26 = sys->get_config_int(P[1].State_s, "V1_FrameTime_26", 6)-1; }
+if (P[1].TotalFrames>=27) {P1_FrameTime_27 = sys->get_config_int(P[1].State_s, "V1_FrameTime_27", 6)-1; }
+if (P[1].TotalFrames>=28) {P1_FrameTime_28 = sys->get_config_int(P[1].State_s, "V1_FrameTime_28", 6)-1; }
+if (P[1].TotalFrames>=29) {P1_FrameTime_29 = sys->get_config_int(P[1].State_s, "V1_FrameTime_29", 6)-1; }
 P1_FrameTime = P1_FrameTime_00;
 }
 if(ForcaDoGolpeP1==2){
-if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = get_config_int(P[1].State_s, "V2_FrameTime_00", 6)-1; }
-if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = get_config_int(P[1].State_s, "V2_FrameTime_01", 6)-1; }
-if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = get_config_int(P[1].State_s, "V2_FrameTime_02", 6)-1; }
-if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = get_config_int(P[1].State_s, "V2_FrameTime_03", 6)-1; }
-if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = get_config_int(P[1].State_s, "V2_FrameTime_04", 6)-1; }
-if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = get_config_int(P[1].State_s, "V2_FrameTime_05", 6)-1; }
-if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = get_config_int(P[1].State_s, "V2_FrameTime_06", 6)-1; }
-if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = get_config_int(P[1].State_s, "V2_FrameTime_07", 6)-1; }
-if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = get_config_int(P[1].State_s, "V2_FrameTime_08", 6)-1; }
-if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = get_config_int(P[1].State_s, "V2_FrameTime_09", 6)-1; }
-if (P[1].TotalFrames>=10) {P1_FrameTime_10 = get_config_int(P[1].State_s, "V2_FrameTime_10", 6)-1; }
-if (P[1].TotalFrames>=11) {P1_FrameTime_11 = get_config_int(P[1].State_s, "V2_FrameTime_11", 6)-1; }
-if (P[1].TotalFrames>=12) {P1_FrameTime_12 = get_config_int(P[1].State_s, "V2_FrameTime_12", 6)-1; }
-if (P[1].TotalFrames>=13) {P1_FrameTime_13 = get_config_int(P[1].State_s, "V2_FrameTime_13", 6)-1; }
-if (P[1].TotalFrames>=14) {P1_FrameTime_14 = get_config_int(P[1].State_s, "V2_FrameTime_14", 6)-1; }
-if (P[1].TotalFrames>=15) {P1_FrameTime_15 = get_config_int(P[1].State_s, "V2_FrameTime_15", 6)-1; }
-if (P[1].TotalFrames>=16) {P1_FrameTime_16 = get_config_int(P[1].State_s, "V2_FrameTime_16", 6)-1; }
-if (P[1].TotalFrames>=17) {P1_FrameTime_17 = get_config_int(P[1].State_s, "V2_FrameTime_17", 6)-1; }
-if (P[1].TotalFrames>=18) {P1_FrameTime_18 = get_config_int(P[1].State_s, "V2_FrameTime_18", 6)-1; }
-if (P[1].TotalFrames>=19) {P1_FrameTime_19 = get_config_int(P[1].State_s, "V2_FrameTime_19", 6)-1; }
-if (P[1].TotalFrames>=20) {P1_FrameTime_20 = get_config_int(P[1].State_s, "V2_FrameTime_20", 6)-1; }
-if (P[1].TotalFrames>=21) {P1_FrameTime_21 = get_config_int(P[1].State_s, "V2_FrameTime_21", 6)-1; }
-if (P[1].TotalFrames>=22) {P1_FrameTime_22 = get_config_int(P[1].State_s, "V2_FrameTime_22", 6)-1; }
-if (P[1].TotalFrames>=23) {P1_FrameTime_23 = get_config_int(P[1].State_s, "V2_FrameTime_23", 6)-1; }
-if (P[1].TotalFrames>=24) {P1_FrameTime_24 = get_config_int(P[1].State_s, "V2_FrameTime_24", 6)-1; }
-if (P[1].TotalFrames>=25) {P1_FrameTime_25 = get_config_int(P[1].State_s, "V2_FrameTime_25", 6)-1; }
-if (P[1].TotalFrames>=26) {P1_FrameTime_26 = get_config_int(P[1].State_s, "V2_FrameTime_26", 6)-1; }
-if (P[1].TotalFrames>=27) {P1_FrameTime_27 = get_config_int(P[1].State_s, "V2_FrameTime_27", 6)-1; }
-if (P[1].TotalFrames>=28) {P1_FrameTime_28 = get_config_int(P[1].State_s, "V2_FrameTime_28", 6)-1; }
-if (P[1].TotalFrames>=29) {P1_FrameTime_29 = get_config_int(P[1].State_s, "V2_FrameTime_29", 6)-1; }
+if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = sys->get_config_int(P[1].State_s, "V2_FrameTime_00", 6)-1; }
+if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = sys->get_config_int(P[1].State_s, "V2_FrameTime_01", 6)-1; }
+if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = sys->get_config_int(P[1].State_s, "V2_FrameTime_02", 6)-1; }
+if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = sys->get_config_int(P[1].State_s, "V2_FrameTime_03", 6)-1; }
+if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = sys->get_config_int(P[1].State_s, "V2_FrameTime_04", 6)-1; }
+if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = sys->get_config_int(P[1].State_s, "V2_FrameTime_05", 6)-1; }
+if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = sys->get_config_int(P[1].State_s, "V2_FrameTime_06", 6)-1; }
+if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = sys->get_config_int(P[1].State_s, "V2_FrameTime_07", 6)-1; }
+if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = sys->get_config_int(P[1].State_s, "V2_FrameTime_08", 6)-1; }
+if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = sys->get_config_int(P[1].State_s, "V2_FrameTime_09", 6)-1; }
+if (P[1].TotalFrames>=10) {P1_FrameTime_10 = sys->get_config_int(P[1].State_s, "V2_FrameTime_10", 6)-1; }
+if (P[1].TotalFrames>=11) {P1_FrameTime_11 = sys->get_config_int(P[1].State_s, "V2_FrameTime_11", 6)-1; }
+if (P[1].TotalFrames>=12) {P1_FrameTime_12 = sys->get_config_int(P[1].State_s, "V2_FrameTime_12", 6)-1; }
+if (P[1].TotalFrames>=13) {P1_FrameTime_13 = sys->get_config_int(P[1].State_s, "V2_FrameTime_13", 6)-1; }
+if (P[1].TotalFrames>=14) {P1_FrameTime_14 = sys->get_config_int(P[1].State_s, "V2_FrameTime_14", 6)-1; }
+if (P[1].TotalFrames>=15) {P1_FrameTime_15 = sys->get_config_int(P[1].State_s, "V2_FrameTime_15", 6)-1; }
+if (P[1].TotalFrames>=16) {P1_FrameTime_16 = sys->get_config_int(P[1].State_s, "V2_FrameTime_16", 6)-1; }
+if (P[1].TotalFrames>=17) {P1_FrameTime_17 = sys->get_config_int(P[1].State_s, "V2_FrameTime_17", 6)-1; }
+if (P[1].TotalFrames>=18) {P1_FrameTime_18 = sys->get_config_int(P[1].State_s, "V2_FrameTime_18", 6)-1; }
+if (P[1].TotalFrames>=19) {P1_FrameTime_19 = sys->get_config_int(P[1].State_s, "V2_FrameTime_19", 6)-1; }
+if (P[1].TotalFrames>=20) {P1_FrameTime_20 = sys->get_config_int(P[1].State_s, "V2_FrameTime_20", 6)-1; }
+if (P[1].TotalFrames>=21) {P1_FrameTime_21 = sys->get_config_int(P[1].State_s, "V2_FrameTime_21", 6)-1; }
+if (P[1].TotalFrames>=22) {P1_FrameTime_22 = sys->get_config_int(P[1].State_s, "V2_FrameTime_22", 6)-1; }
+if (P[1].TotalFrames>=23) {P1_FrameTime_23 = sys->get_config_int(P[1].State_s, "V2_FrameTime_23", 6)-1; }
+if (P[1].TotalFrames>=24) {P1_FrameTime_24 = sys->get_config_int(P[1].State_s, "V2_FrameTime_24", 6)-1; }
+if (P[1].TotalFrames>=25) {P1_FrameTime_25 = sys->get_config_int(P[1].State_s, "V2_FrameTime_25", 6)-1; }
+if (P[1].TotalFrames>=26) {P1_FrameTime_26 = sys->get_config_int(P[1].State_s, "V2_FrameTime_26", 6)-1; }
+if (P[1].TotalFrames>=27) {P1_FrameTime_27 = sys->get_config_int(P[1].State_s, "V2_FrameTime_27", 6)-1; }
+if (P[1].TotalFrames>=28) {P1_FrameTime_28 = sys->get_config_int(P[1].State_s, "V2_FrameTime_28", 6)-1; }
+if (P[1].TotalFrames>=29) {P1_FrameTime_29 = sys->get_config_int(P[1].State_s, "V2_FrameTime_29", 6)-1; }
 P1_FrameTime = P1_FrameTime_00;
 }
 if(ForcaDoGolpeP1==3){
-if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = get_config_int(P[1].State_s, "V3_FrameTime_00", 6)-1; }
-if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = get_config_int(P[1].State_s, "V3_FrameTime_01", 6)-1; }
-if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = get_config_int(P[1].State_s, "V3_FrameTime_02", 6)-1; }
-if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = get_config_int(P[1].State_s, "V3_FrameTime_03", 6)-1; }
-if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = get_config_int(P[1].State_s, "V3_FrameTime_04", 6)-1; }
-if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = get_config_int(P[1].State_s, "V3_FrameTime_05", 6)-1; }
-if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = get_config_int(P[1].State_s, "V3_FrameTime_06", 6)-1; }
-if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = get_config_int(P[1].State_s, "V3_FrameTime_07", 6)-1; }
-if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = get_config_int(P[1].State_s, "V3_FrameTime_08", 6)-1; }
-if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = get_config_int(P[1].State_s, "V3_FrameTime_09", 6)-1; }
-if (P[1].TotalFrames>=10) {P1_FrameTime_10 = get_config_int(P[1].State_s, "V3_FrameTime_10", 6)-1; }
-if (P[1].TotalFrames>=11) {P1_FrameTime_11 = get_config_int(P[1].State_s, "V3_FrameTime_11", 6)-1; }
-if (P[1].TotalFrames>=12) {P1_FrameTime_12 = get_config_int(P[1].State_s, "V3_FrameTime_12", 6)-1; }
-if (P[1].TotalFrames>=13) {P1_FrameTime_13 = get_config_int(P[1].State_s, "V3_FrameTime_13", 6)-1; }
-if (P[1].TotalFrames>=14) {P1_FrameTime_14 = get_config_int(P[1].State_s, "V3_FrameTime_14", 6)-1; }
-if (P[1].TotalFrames>=15) {P1_FrameTime_15 = get_config_int(P[1].State_s, "V3_FrameTime_15", 6)-1; }
-if (P[1].TotalFrames>=16) {P1_FrameTime_16 = get_config_int(P[1].State_s, "V3_FrameTime_16", 6)-1; }
-if (P[1].TotalFrames>=17) {P1_FrameTime_17 = get_config_int(P[1].State_s, "V3_FrameTime_17", 6)-1; }
-if (P[1].TotalFrames>=18) {P1_FrameTime_18 = get_config_int(P[1].State_s, "V3_FrameTime_18", 6)-1; }
-if (P[1].TotalFrames>=19) {P1_FrameTime_19 = get_config_int(P[1].State_s, "V3_FrameTime_19", 6)-1; }
-if (P[1].TotalFrames>=20) {P1_FrameTime_20 = get_config_int(P[1].State_s, "V3_FrameTime_20", 6)-1; }
-if (P[1].TotalFrames>=21) {P1_FrameTime_21 = get_config_int(P[1].State_s, "V3_FrameTime_21", 6)-1; }
-if (P[1].TotalFrames>=22) {P1_FrameTime_22 = get_config_int(P[1].State_s, "V3_FrameTime_22", 6)-1; }
-if (P[1].TotalFrames>=23) {P1_FrameTime_23 = get_config_int(P[1].State_s, "V3_FrameTime_23", 6)-1; }
-if (P[1].TotalFrames>=24) {P1_FrameTime_24 = get_config_int(P[1].State_s, "V3_FrameTime_24", 6)-1; }
-if (P[1].TotalFrames>=25) {P1_FrameTime_25 = get_config_int(P[1].State_s, "V3_FrameTime_25", 6)-1; }
-if (P[1].TotalFrames>=26) {P1_FrameTime_26 = get_config_int(P[1].State_s, "V3_FrameTime_26", 6)-1; }
-if (P[1].TotalFrames>=27) {P1_FrameTime_27 = get_config_int(P[1].State_s, "V3_FrameTime_27", 6)-1; }
-if (P[1].TotalFrames>=28) {P1_FrameTime_28 = get_config_int(P[1].State_s, "V3_FrameTime_28", 6)-1; }
-if (P[1].TotalFrames>=29) {P1_FrameTime_29 = get_config_int(P[1].State_s, "V3_FrameTime_29", 6)-1; }
+if (P[1].TotalFrames>= 0) {P1_FrameTime_00 = sys->get_config_int(P[1].State_s, "V3_FrameTime_00", 6)-1; }
+if (P[1].TotalFrames>= 1) {P1_FrameTime_01 = sys->get_config_int(P[1].State_s, "V3_FrameTime_01", 6)-1; }
+if (P[1].TotalFrames>= 2) {P1_FrameTime_02 = sys->get_config_int(P[1].State_s, "V3_FrameTime_02", 6)-1; }
+if (P[1].TotalFrames>= 3) {P1_FrameTime_03 = sys->get_config_int(P[1].State_s, "V3_FrameTime_03", 6)-1; }
+if (P[1].TotalFrames>= 4) {P1_FrameTime_04 = sys->get_config_int(P[1].State_s, "V3_FrameTime_04", 6)-1; }
+if (P[1].TotalFrames>= 5) {P1_FrameTime_05 = sys->get_config_int(P[1].State_s, "V3_FrameTime_05", 6)-1; }
+if (P[1].TotalFrames>= 6) {P1_FrameTime_06 = sys->get_config_int(P[1].State_s, "V3_FrameTime_06", 6)-1; }
+if (P[1].TotalFrames>= 7) {P1_FrameTime_07 = sys->get_config_int(P[1].State_s, "V3_FrameTime_07", 6)-1; }
+if (P[1].TotalFrames>= 8) {P1_FrameTime_08 = sys->get_config_int(P[1].State_s, "V3_FrameTime_08", 6)-1; }
+if (P[1].TotalFrames>= 9) {P1_FrameTime_09 = sys->get_config_int(P[1].State_s, "V3_FrameTime_09", 6)-1; }
+if (P[1].TotalFrames>=10) {P1_FrameTime_10 = sys->get_config_int(P[1].State_s, "V3_FrameTime_10", 6)-1; }
+if (P[1].TotalFrames>=11) {P1_FrameTime_11 = sys->get_config_int(P[1].State_s, "V3_FrameTime_11", 6)-1; }
+if (P[1].TotalFrames>=12) {P1_FrameTime_12 = sys->get_config_int(P[1].State_s, "V3_FrameTime_12", 6)-1; }
+if (P[1].TotalFrames>=13) {P1_FrameTime_13 = sys->get_config_int(P[1].State_s, "V3_FrameTime_13", 6)-1; }
+if (P[1].TotalFrames>=14) {P1_FrameTime_14 = sys->get_config_int(P[1].State_s, "V3_FrameTime_14", 6)-1; }
+if (P[1].TotalFrames>=15) {P1_FrameTime_15 = sys->get_config_int(P[1].State_s, "V3_FrameTime_15", 6)-1; }
+if (P[1].TotalFrames>=16) {P1_FrameTime_16 = sys->get_config_int(P[1].State_s, "V3_FrameTime_16", 6)-1; }
+if (P[1].TotalFrames>=17) {P1_FrameTime_17 = sys->get_config_int(P[1].State_s, "V3_FrameTime_17", 6)-1; }
+if (P[1].TotalFrames>=18) {P1_FrameTime_18 = sys->get_config_int(P[1].State_s, "V3_FrameTime_18", 6)-1; }
+if (P[1].TotalFrames>=19) {P1_FrameTime_19 = sys->get_config_int(P[1].State_s, "V3_FrameTime_19", 6)-1; }
+if (P[1].TotalFrames>=20) {P1_FrameTime_20 = sys->get_config_int(P[1].State_s, "V3_FrameTime_20", 6)-1; }
+if (P[1].TotalFrames>=21) {P1_FrameTime_21 = sys->get_config_int(P[1].State_s, "V3_FrameTime_21", 6)-1; }
+if (P[1].TotalFrames>=22) {P1_FrameTime_22 = sys->get_config_int(P[1].State_s, "V3_FrameTime_22", 6)-1; }
+if (P[1].TotalFrames>=23) {P1_FrameTime_23 = sys->get_config_int(P[1].State_s, "V3_FrameTime_23", 6)-1; }
+if (P[1].TotalFrames>=24) {P1_FrameTime_24 = sys->get_config_int(P[1].State_s, "V3_FrameTime_24", 6)-1; }
+if (P[1].TotalFrames>=25) {P1_FrameTime_25 = sys->get_config_int(P[1].State_s, "V3_FrameTime_25", 6)-1; }
+if (P[1].TotalFrames>=26) {P1_FrameTime_26 = sys->get_config_int(P[1].State_s, "V3_FrameTime_26", 6)-1; }
+if (P[1].TotalFrames>=27) {P1_FrameTime_27 = sys->get_config_int(P[1].State_s, "V3_FrameTime_27", 6)-1; }
+if (P[1].TotalFrames>=28) {P1_FrameTime_28 = sys->get_config_int(P[1].State_s, "V3_FrameTime_28", 6)-1; }
+if (P[1].TotalFrames>=29) {P1_FrameTime_29 = sys->get_config_int(P[1].State_s, "V3_FrameTime_29", 6)-1; }
 P1_FrameTime = P1_FrameTime_00;
 }
 }
 
 if(ind==2){
 if(ForcaDoGolpeP2==1){
-if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = get_config_int(P[2].State_s, "V1_FrameTime_00", 6)-1; }
-if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = get_config_int(P[2].State_s, "V1_FrameTime_01", 6)-1; }
-if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = get_config_int(P[2].State_s, "V1_FrameTime_02", 6)-1; }
-if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = get_config_int(P[2].State_s, "V1_FrameTime_03", 6)-1; }
-if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = get_config_int(P[2].State_s, "V1_FrameTime_04", 6)-1; }
-if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = get_config_int(P[2].State_s, "V1_FrameTime_05", 6)-1; }
-if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = get_config_int(P[2].State_s, "V1_FrameTime_06", 6)-1; }
-if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = get_config_int(P[2].State_s, "V1_FrameTime_07", 6)-1; }
-if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = get_config_int(P[2].State_s, "V1_FrameTime_08", 6)-1; }
-if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = get_config_int(P[2].State_s, "V1_FrameTime_09", 6)-1; }
-if (P[2].TotalFrames>=10) {P2_FrameTime_10 = get_config_int(P[2].State_s, "V1_FrameTime_10", 6)-1; }
-if (P[2].TotalFrames>=11) {P2_FrameTime_11 = get_config_int(P[2].State_s, "V1_FrameTime_11", 6)-1; }
-if (P[2].TotalFrames>=12) {P2_FrameTime_12 = get_config_int(P[2].State_s, "V1_FrameTime_12", 6)-1; }
-if (P[2].TotalFrames>=13) {P2_FrameTime_13 = get_config_int(P[2].State_s, "V1_FrameTime_13", 6)-1; }
-if (P[2].TotalFrames>=14) {P2_FrameTime_14 = get_config_int(P[2].State_s, "V1_FrameTime_14", 6)-1; }
-if (P[2].TotalFrames>=15) {P2_FrameTime_15 = get_config_int(P[2].State_s, "V1_FrameTime_15", 6)-1; }
-if (P[2].TotalFrames>=16) {P2_FrameTime_16 = get_config_int(P[2].State_s, "V1_FrameTime_16", 6)-1; }
-if (P[2].TotalFrames>=17) {P2_FrameTime_17 = get_config_int(P[2].State_s, "V1_FrameTime_17", 6)-1; }
-if (P[2].TotalFrames>=18) {P2_FrameTime_18 = get_config_int(P[2].State_s, "V1_FrameTime_18", 6)-1; }
-if (P[2].TotalFrames>=19) {P2_FrameTime_19 = get_config_int(P[2].State_s, "V1_FrameTime_19", 6)-1; }
-if (P[2].TotalFrames>=20) {P2_FrameTime_20 = get_config_int(P[2].State_s, "V1_FrameTime_20", 6)-1; }
-if (P[2].TotalFrames>=21) {P2_FrameTime_21 = get_config_int(P[2].State_s, "V1_FrameTime_21", 6)-1; }
-if (P[2].TotalFrames>=22) {P2_FrameTime_22 = get_config_int(P[2].State_s, "V1_FrameTime_22", 6)-1; }
-if (P[2].TotalFrames>=23) {P2_FrameTime_23 = get_config_int(P[2].State_s, "V1_FrameTime_23", 6)-1; }
-if (P[2].TotalFrames>=24) {P2_FrameTime_24 = get_config_int(P[2].State_s, "V1_FrameTime_24", 6)-1; }
-if (P[2].TotalFrames>=25) {P2_FrameTime_25 = get_config_int(P[2].State_s, "V1_FrameTime_25", 6)-1; }
-if (P[2].TotalFrames>=26) {P2_FrameTime_26 = get_config_int(P[2].State_s, "V1_FrameTime_26", 6)-1; }
-if (P[2].TotalFrames>=27) {P2_FrameTime_27 = get_config_int(P[2].State_s, "V1_FrameTime_27", 6)-1; }
-if (P[2].TotalFrames>=28) {P2_FrameTime_28 = get_config_int(P[2].State_s, "V1_FrameTime_28", 6)-1; }
-if (P[2].TotalFrames>=29) {P2_FrameTime_29 = get_config_int(P[2].State_s, "V1_FrameTime_29", 6)-1; }
+if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = sys->get_config_int(P[2].State_s, "V1_FrameTime_00", 6)-1; }
+if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = sys->get_config_int(P[2].State_s, "V1_FrameTime_01", 6)-1; }
+if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = sys->get_config_int(P[2].State_s, "V1_FrameTime_02", 6)-1; }
+if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = sys->get_config_int(P[2].State_s, "V1_FrameTime_03", 6)-1; }
+if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = sys->get_config_int(P[2].State_s, "V1_FrameTime_04", 6)-1; }
+if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = sys->get_config_int(P[2].State_s, "V1_FrameTime_05", 6)-1; }
+if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = sys->get_config_int(P[2].State_s, "V1_FrameTime_06", 6)-1; }
+if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = sys->get_config_int(P[2].State_s, "V1_FrameTime_07", 6)-1; }
+if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = sys->get_config_int(P[2].State_s, "V1_FrameTime_08", 6)-1; }
+if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = sys->get_config_int(P[2].State_s, "V1_FrameTime_09", 6)-1; }
+if (P[2].TotalFrames>=10) {P2_FrameTime_10 = sys->get_config_int(P[2].State_s, "V1_FrameTime_10", 6)-1; }
+if (P[2].TotalFrames>=11) {P2_FrameTime_11 = sys->get_config_int(P[2].State_s, "V1_FrameTime_11", 6)-1; }
+if (P[2].TotalFrames>=12) {P2_FrameTime_12 = sys->get_config_int(P[2].State_s, "V1_FrameTime_12", 6)-1; }
+if (P[2].TotalFrames>=13) {P2_FrameTime_13 = sys->get_config_int(P[2].State_s, "V1_FrameTime_13", 6)-1; }
+if (P[2].TotalFrames>=14) {P2_FrameTime_14 = sys->get_config_int(P[2].State_s, "V1_FrameTime_14", 6)-1; }
+if (P[2].TotalFrames>=15) {P2_FrameTime_15 = sys->get_config_int(P[2].State_s, "V1_FrameTime_15", 6)-1; }
+if (P[2].TotalFrames>=16) {P2_FrameTime_16 = sys->get_config_int(P[2].State_s, "V1_FrameTime_16", 6)-1; }
+if (P[2].TotalFrames>=17) {P2_FrameTime_17 = sys->get_config_int(P[2].State_s, "V1_FrameTime_17", 6)-1; }
+if (P[2].TotalFrames>=18) {P2_FrameTime_18 = sys->get_config_int(P[2].State_s, "V1_FrameTime_18", 6)-1; }
+if (P[2].TotalFrames>=19) {P2_FrameTime_19 = sys->get_config_int(P[2].State_s, "V1_FrameTime_19", 6)-1; }
+if (P[2].TotalFrames>=20) {P2_FrameTime_20 = sys->get_config_int(P[2].State_s, "V1_FrameTime_20", 6)-1; }
+if (P[2].TotalFrames>=21) {P2_FrameTime_21 = sys->get_config_int(P[2].State_s, "V1_FrameTime_21", 6)-1; }
+if (P[2].TotalFrames>=22) {P2_FrameTime_22 = sys->get_config_int(P[2].State_s, "V1_FrameTime_22", 6)-1; }
+if (P[2].TotalFrames>=23) {P2_FrameTime_23 = sys->get_config_int(P[2].State_s, "V1_FrameTime_23", 6)-1; }
+if (P[2].TotalFrames>=24) {P2_FrameTime_24 = sys->get_config_int(P[2].State_s, "V1_FrameTime_24", 6)-1; }
+if (P[2].TotalFrames>=25) {P2_FrameTime_25 = sys->get_config_int(P[2].State_s, "V1_FrameTime_25", 6)-1; }
+if (P[2].TotalFrames>=26) {P2_FrameTime_26 = sys->get_config_int(P[2].State_s, "V1_FrameTime_26", 6)-1; }
+if (P[2].TotalFrames>=27) {P2_FrameTime_27 = sys->get_config_int(P[2].State_s, "V1_FrameTime_27", 6)-1; }
+if (P[2].TotalFrames>=28) {P2_FrameTime_28 = sys->get_config_int(P[2].State_s, "V1_FrameTime_28", 6)-1; }
+if (P[2].TotalFrames>=29) {P2_FrameTime_29 = sys->get_config_int(P[2].State_s, "V1_FrameTime_29", 6)-1; }
 P2_FrameTime = P2_FrameTime_00;
 }
 if(ForcaDoGolpeP2==2){
-if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = get_config_int(P[2].State_s, "V2_FrameTime_00", 6)-1; }
-if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = get_config_int(P[2].State_s, "V2_FrameTime_01", 6)-1; }
-if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = get_config_int(P[2].State_s, "V2_FrameTime_02", 6)-1; }
-if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = get_config_int(P[2].State_s, "V2_FrameTime_03", 6)-1; }
-if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = get_config_int(P[2].State_s, "V2_FrameTime_04", 6)-1; }
-if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = get_config_int(P[2].State_s, "V2_FrameTime_05", 6)-1; }
-if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = get_config_int(P[2].State_s, "V2_FrameTime_06", 6)-1; }
-if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = get_config_int(P[2].State_s, "V2_FrameTime_07", 6)-1; }
-if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = get_config_int(P[2].State_s, "V2_FrameTime_08", 6)-1; }
-if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = get_config_int(P[2].State_s, "V2_FrameTime_09", 6)-1; }
-if (P[2].TotalFrames>=10) {P2_FrameTime_10 = get_config_int(P[2].State_s, "V2_FrameTime_10", 6)-1; }
-if (P[2].TotalFrames>=11) {P2_FrameTime_11 = get_config_int(P[2].State_s, "V2_FrameTime_11", 6)-1; }
-if (P[2].TotalFrames>=12) {P2_FrameTime_12 = get_config_int(P[2].State_s, "V2_FrameTime_12", 6)-1; }
-if (P[2].TotalFrames>=13) {P2_FrameTime_13 = get_config_int(P[2].State_s, "V2_FrameTime_13", 6)-1; }
-if (P[2].TotalFrames>=14) {P2_FrameTime_14 = get_config_int(P[2].State_s, "V2_FrameTime_14", 6)-1; }
-if (P[2].TotalFrames>=15) {P2_FrameTime_15 = get_config_int(P[2].State_s, "V2_FrameTime_15", 6)-1; }
-if (P[2].TotalFrames>=16) {P2_FrameTime_16 = get_config_int(P[2].State_s, "V2_FrameTime_16", 6)-1; }
-if (P[2].TotalFrames>=17) {P2_FrameTime_17 = get_config_int(P[2].State_s, "V2_FrameTime_17", 6)-1; }
-if (P[2].TotalFrames>=18) {P2_FrameTime_18 = get_config_int(P[2].State_s, "V2_FrameTime_18", 6)-1; }
-if (P[2].TotalFrames>=19) {P2_FrameTime_19 = get_config_int(P[2].State_s, "V2_FrameTime_19", 6)-1; }
-if (P[2].TotalFrames>=20) {P2_FrameTime_20 = get_config_int(P[2].State_s, "V2_FrameTime_20", 6)-1; }
-if (P[2].TotalFrames>=21) {P2_FrameTime_21 = get_config_int(P[2].State_s, "V2_FrameTime_21", 6)-1; }
-if (P[2].TotalFrames>=22) {P2_FrameTime_22 = get_config_int(P[2].State_s, "V2_FrameTime_22", 6)-1; }
-if (P[2].TotalFrames>=23) {P2_FrameTime_23 = get_config_int(P[2].State_s, "V2_FrameTime_23", 6)-1; }
-if (P[2].TotalFrames>=24) {P2_FrameTime_24 = get_config_int(P[2].State_s, "V2_FrameTime_24", 6)-1; }
-if (P[2].TotalFrames>=25) {P2_FrameTime_25 = get_config_int(P[2].State_s, "V2_FrameTime_25", 6)-1; }
-if (P[2].TotalFrames>=26) {P2_FrameTime_26 = get_config_int(P[2].State_s, "V2_FrameTime_26", 6)-1; }
-if (P[2].TotalFrames>=27) {P2_FrameTime_27 = get_config_int(P[2].State_s, "V2_FrameTime_27", 6)-1; }
-if (P[2].TotalFrames>=28) {P2_FrameTime_28 = get_config_int(P[2].State_s, "V2_FrameTime_28", 6)-1; }
-if (P[2].TotalFrames>=29) {P2_FrameTime_29 = get_config_int(P[2].State_s, "V2_FrameTime_29", 6)-1; }
+if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = sys->get_config_int(P[2].State_s, "V2_FrameTime_00", 6)-1; }
+if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = sys->get_config_int(P[2].State_s, "V2_FrameTime_01", 6)-1; }
+if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = sys->get_config_int(P[2].State_s, "V2_FrameTime_02", 6)-1; }
+if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = sys->get_config_int(P[2].State_s, "V2_FrameTime_03", 6)-1; }
+if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = sys->get_config_int(P[2].State_s, "V2_FrameTime_04", 6)-1; }
+if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = sys->get_config_int(P[2].State_s, "V2_FrameTime_05", 6)-1; }
+if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = sys->get_config_int(P[2].State_s, "V2_FrameTime_06", 6)-1; }
+if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = sys->get_config_int(P[2].State_s, "V2_FrameTime_07", 6)-1; }
+if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = sys->get_config_int(P[2].State_s, "V2_FrameTime_08", 6)-1; }
+if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = sys->get_config_int(P[2].State_s, "V2_FrameTime_09", 6)-1; }
+if (P[2].TotalFrames>=10) {P2_FrameTime_10 = sys->get_config_int(P[2].State_s, "V2_FrameTime_10", 6)-1; }
+if (P[2].TotalFrames>=11) {P2_FrameTime_11 = sys->get_config_int(P[2].State_s, "V2_FrameTime_11", 6)-1; }
+if (P[2].TotalFrames>=12) {P2_FrameTime_12 = sys->get_config_int(P[2].State_s, "V2_FrameTime_12", 6)-1; }
+if (P[2].TotalFrames>=13) {P2_FrameTime_13 = sys->get_config_int(P[2].State_s, "V2_FrameTime_13", 6)-1; }
+if (P[2].TotalFrames>=14) {P2_FrameTime_14 = sys->get_config_int(P[2].State_s, "V2_FrameTime_14", 6)-1; }
+if (P[2].TotalFrames>=15) {P2_FrameTime_15 = sys->get_config_int(P[2].State_s, "V2_FrameTime_15", 6)-1; }
+if (P[2].TotalFrames>=16) {P2_FrameTime_16 = sys->get_config_int(P[2].State_s, "V2_FrameTime_16", 6)-1; }
+if (P[2].TotalFrames>=17) {P2_FrameTime_17 = sys->get_config_int(P[2].State_s, "V2_FrameTime_17", 6)-1; }
+if (P[2].TotalFrames>=18) {P2_FrameTime_18 = sys->get_config_int(P[2].State_s, "V2_FrameTime_18", 6)-1; }
+if (P[2].TotalFrames>=19) {P2_FrameTime_19 = sys->get_config_int(P[2].State_s, "V2_FrameTime_19", 6)-1; }
+if (P[2].TotalFrames>=20) {P2_FrameTime_20 = sys->get_config_int(P[2].State_s, "V2_FrameTime_20", 6)-1; }
+if (P[2].TotalFrames>=21) {P2_FrameTime_21 = sys->get_config_int(P[2].State_s, "V2_FrameTime_21", 6)-1; }
+if (P[2].TotalFrames>=22) {P2_FrameTime_22 = sys->get_config_int(P[2].State_s, "V2_FrameTime_22", 6)-1; }
+if (P[2].TotalFrames>=23) {P2_FrameTime_23 = sys->get_config_int(P[2].State_s, "V2_FrameTime_23", 6)-1; }
+if (P[2].TotalFrames>=24) {P2_FrameTime_24 = sys->get_config_int(P[2].State_s, "V2_FrameTime_24", 6)-1; }
+if (P[2].TotalFrames>=25) {P2_FrameTime_25 = sys->get_config_int(P[2].State_s, "V2_FrameTime_25", 6)-1; }
+if (P[2].TotalFrames>=26) {P2_FrameTime_26 = sys->get_config_int(P[2].State_s, "V2_FrameTime_26", 6)-1; }
+if (P[2].TotalFrames>=27) {P2_FrameTime_27 = sys->get_config_int(P[2].State_s, "V2_FrameTime_27", 6)-1; }
+if (P[2].TotalFrames>=28) {P2_FrameTime_28 = sys->get_config_int(P[2].State_s, "V2_FrameTime_28", 6)-1; }
+if (P[2].TotalFrames>=29) {P2_FrameTime_29 = sys->get_config_int(P[2].State_s, "V2_FrameTime_29", 6)-1; }
 P2_FrameTime = P2_FrameTime_00;
 }
 if(ForcaDoGolpeP2==3){
-if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = get_config_int(P[2].State_s, "V3_FrameTime_00", 6)-1; }
-if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = get_config_int(P[2].State_s, "V3_FrameTime_01", 6)-1; }
-if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = get_config_int(P[2].State_s, "V3_FrameTime_02", 6)-1; }
-if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = get_config_int(P[2].State_s, "V3_FrameTime_03", 6)-1; }
-if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = get_config_int(P[2].State_s, "V3_FrameTime_04", 6)-1; }
-if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = get_config_int(P[2].State_s, "V3_FrameTime_05", 6)-1; }
-if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = get_config_int(P[2].State_s, "V3_FrameTime_06", 6)-1; }
-if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = get_config_int(P[2].State_s, "V3_FrameTime_07", 6)-1; }
-if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = get_config_int(P[2].State_s, "V3_FrameTime_08", 6)-1; }
-if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = get_config_int(P[2].State_s, "V3_FrameTime_09", 6)-1; }
-if (P[2].TotalFrames>=10) {P2_FrameTime_10 = get_config_int(P[2].State_s, "V3_FrameTime_10", 6)-1; }
-if (P[2].TotalFrames>=11) {P2_FrameTime_11 = get_config_int(P[2].State_s, "V3_FrameTime_11", 6)-1; }
-if (P[2].TotalFrames>=12) {P2_FrameTime_12 = get_config_int(P[2].State_s, "V3_FrameTime_12", 6)-1; }
-if (P[2].TotalFrames>=13) {P2_FrameTime_13 = get_config_int(P[2].State_s, "V3_FrameTime_13", 6)-1; }
-if (P[2].TotalFrames>=14) {P2_FrameTime_14 = get_config_int(P[2].State_s, "V3_FrameTime_14", 6)-1; }
-if (P[2].TotalFrames>=15) {P2_FrameTime_15 = get_config_int(P[2].State_s, "V3_FrameTime_15", 6)-1; }
-if (P[2].TotalFrames>=16) {P2_FrameTime_16 = get_config_int(P[2].State_s, "V3_FrameTime_16", 6)-1; }
-if (P[2].TotalFrames>=17) {P2_FrameTime_17 = get_config_int(P[2].State_s, "V3_FrameTime_17", 6)-1; }
-if (P[2].TotalFrames>=18) {P2_FrameTime_18 = get_config_int(P[2].State_s, "V3_FrameTime_18", 6)-1; }
-if (P[2].TotalFrames>=19) {P2_FrameTime_19 = get_config_int(P[2].State_s, "V3_FrameTime_19", 6)-1; }
-if (P[2].TotalFrames>=20) {P2_FrameTime_20 = get_config_int(P[2].State_s, "V3_FrameTime_20", 6)-1; }
-if (P[2].TotalFrames>=21) {P2_FrameTime_21 = get_config_int(P[2].State_s, "V3_FrameTime_21", 6)-1; }
-if (P[2].TotalFrames>=22) {P2_FrameTime_22 = get_config_int(P[2].State_s, "V3_FrameTime_22", 6)-1; }
-if (P[2].TotalFrames>=23) {P2_FrameTime_23 = get_config_int(P[2].State_s, "V3_FrameTime_23", 6)-1; }
-if (P[2].TotalFrames>=24) {P2_FrameTime_24 = get_config_int(P[2].State_s, "V3_FrameTime_24", 6)-1; }
-if (P[2].TotalFrames>=25) {P2_FrameTime_25 = get_config_int(P[2].State_s, "V3_FrameTime_25", 6)-1; }
-if (P[2].TotalFrames>=26) {P2_FrameTime_26 = get_config_int(P[2].State_s, "V3_FrameTime_26", 6)-1; }
-if (P[2].TotalFrames>=27) {P2_FrameTime_27 = get_config_int(P[2].State_s, "V3_FrameTime_27", 6)-1; }
-if (P[2].TotalFrames>=28) {P2_FrameTime_28 = get_config_int(P[2].State_s, "V3_FrameTime_28", 6)-1; }
-if (P[2].TotalFrames>=29) {P2_FrameTime_29 = get_config_int(P[2].State_s, "V3_FrameTime_29", 6)-1; }
+if (P[2].TotalFrames>= 0) {P2_FrameTime_00 = sys->get_config_int(P[2].State_s, "V3_FrameTime_00", 6)-1; }
+if (P[2].TotalFrames>= 1) {P2_FrameTime_01 = sys->get_config_int(P[2].State_s, "V3_FrameTime_01", 6)-1; }
+if (P[2].TotalFrames>= 2) {P2_FrameTime_02 = sys->get_config_int(P[2].State_s, "V3_FrameTime_02", 6)-1; }
+if (P[2].TotalFrames>= 3) {P2_FrameTime_03 = sys->get_config_int(P[2].State_s, "V3_FrameTime_03", 6)-1; }
+if (P[2].TotalFrames>= 4) {P2_FrameTime_04 = sys->get_config_int(P[2].State_s, "V3_FrameTime_04", 6)-1; }
+if (P[2].TotalFrames>= 5) {P2_FrameTime_05 = sys->get_config_int(P[2].State_s, "V3_FrameTime_05", 6)-1; }
+if (P[2].TotalFrames>= 6) {P2_FrameTime_06 = sys->get_config_int(P[2].State_s, "V3_FrameTime_06", 6)-1; }
+if (P[2].TotalFrames>= 7) {P2_FrameTime_07 = sys->get_config_int(P[2].State_s, "V3_FrameTime_07", 6)-1; }
+if (P[2].TotalFrames>= 8) {P2_FrameTime_08 = sys->get_config_int(P[2].State_s, "V3_FrameTime_08", 6)-1; }
+if (P[2].TotalFrames>= 9) {P2_FrameTime_09 = sys->get_config_int(P[2].State_s, "V3_FrameTime_09", 6)-1; }
+if (P[2].TotalFrames>=10) {P2_FrameTime_10 = sys->get_config_int(P[2].State_s, "V3_FrameTime_10", 6)-1; }
+if (P[2].TotalFrames>=11) {P2_FrameTime_11 = sys->get_config_int(P[2].State_s, "V3_FrameTime_11", 6)-1; }
+if (P[2].TotalFrames>=12) {P2_FrameTime_12 = sys->get_config_int(P[2].State_s, "V3_FrameTime_12", 6)-1; }
+if (P[2].TotalFrames>=13) {P2_FrameTime_13 = sys->get_config_int(P[2].State_s, "V3_FrameTime_13", 6)-1; }
+if (P[2].TotalFrames>=14) {P2_FrameTime_14 = sys->get_config_int(P[2].State_s, "V3_FrameTime_14", 6)-1; }
+if (P[2].TotalFrames>=15) {P2_FrameTime_15 = sys->get_config_int(P[2].State_s, "V3_FrameTime_15", 6)-1; }
+if (P[2].TotalFrames>=16) {P2_FrameTime_16 = sys->get_config_int(P[2].State_s, "V3_FrameTime_16", 6)-1; }
+if (P[2].TotalFrames>=17) {P2_FrameTime_17 = sys->get_config_int(P[2].State_s, "V3_FrameTime_17", 6)-1; }
+if (P[2].TotalFrames>=18) {P2_FrameTime_18 = sys->get_config_int(P[2].State_s, "V3_FrameTime_18", 6)-1; }
+if (P[2].TotalFrames>=19) {P2_FrameTime_19 = sys->get_config_int(P[2].State_s, "V3_FrameTime_19", 6)-1; }
+if (P[2].TotalFrames>=20) {P2_FrameTime_20 = sys->get_config_int(P[2].State_s, "V3_FrameTime_20", 6)-1; }
+if (P[2].TotalFrames>=21) {P2_FrameTime_21 = sys->get_config_int(P[2].State_s, "V3_FrameTime_21", 6)-1; }
+if (P[2].TotalFrames>=22) {P2_FrameTime_22 = sys->get_config_int(P[2].State_s, "V3_FrameTime_22", 6)-1; }
+if (P[2].TotalFrames>=23) {P2_FrameTime_23 = sys->get_config_int(P[2].State_s, "V3_FrameTime_23", 6)-1; }
+if (P[2].TotalFrames>=24) {P2_FrameTime_24 = sys->get_config_int(P[2].State_s, "V3_FrameTime_24", 6)-1; }
+if (P[2].TotalFrames>=25) {P2_FrameTime_25 = sys->get_config_int(P[2].State_s, "V3_FrameTime_25", 6)-1; }
+if (P[2].TotalFrames>=26) {P2_FrameTime_26 = sys->get_config_int(P[2].State_s, "V3_FrameTime_26", 6)-1; }
+if (P[2].TotalFrames>=27) {P2_FrameTime_27 = sys->get_config_int(P[2].State_s, "V3_FrameTime_27", 6)-1; }
+if (P[2].TotalFrames>=28) {P2_FrameTime_28 = sys->get_config_int(P[2].State_s, "V3_FrameTime_28", 6)-1; }
+if (P[2].TotalFrames>=29) {P2_FrameTime_29 = sys->get_config_int(P[2].State_s, "V3_FrameTime_29", 6)-1; }
 P2_FrameTime = P2_FrameTime_00;
 }
 
@@ -8514,11 +8541,11 @@ if(P[ind].State>=700){
 
 if(ind==1){
 sprintf(P1_Caminho, "data/chars/%s/special.ini", P[ind].Name);
-set_config_file(P1_Caminho);
+sys->set_config_file(P1_Caminho);
 }
 if(ind==2){
 sprintf(P2_Caminho, "data/chars/%s/special.ini", P[ind].Name);
-set_config_file(P2_Caminho);
+sys->set_config_file(P2_Caminho);
 }
 //P[ind].XAlign        = get_config_int   (P[ind].State_s, "XAlign" , P[ind].Largura/2 ); //P[ind].Largura_100
 //P[ind].YAlign        = get_config_int   (P[ind].State_s, "YAlign"      , P[ind].Altura );
@@ -8532,8 +8559,8 @@ P[ind].EnergyChange  = get_config_int  (P[ind].State_s, "EnergyChange" ,        
 P[ind].SpecialChange = get_config_int  (P[ind].State_s, "SpecialChange",          0 );
 P[ind].Visible       = get_config_int  (P[ind].State_s, "Visible"      ,          1 );
 P[ind].RoomLimit     = get_config_int  (P[ind].State_s, "RoomLimit"    ,          1 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","Normal"));
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","Multi"));
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","Normal"));
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","Multi"));
 P[ind].HitPause      = get_config_int  (P[ind].State_s, "HitPause"     ,          0 );
 P[ind].ChangeState   = get_config_int  (P[ind].State_s, "ChangeState"  ,          0 );
 P[ind].Freeze        = get_config_int  (P[ind].State_s, "Freeze"       ,          0 );
@@ -8554,7 +8581,7 @@ if(ForcaDoGolpeP2==3){ P[2].ChangeDamage = get_config_int (P[2].State_s, "V3_Dam
 /*
 	//debug - caso especial, char vazio
 	if (strcmp (P[ind].Name_Display,"-")==0){
-	allegro_message("Char Empty");
+	sys->show_message("Char Empty");
 	}
 */
 
@@ -8590,7 +8617,7 @@ sprintf(P[1].Caminho_CHBOX, "data/chars/%s/chbox.ini", P[1].Name);
 if (P[1].IndexAnim<10)  { sprintf(P[1].State_chs, "%i_0%i", P[1].State, P[1].IndexAnim); }
 if (P[1].IndexAnim>=10) { sprintf(P[1].State_chs, "%i_%i", P[1].State, P[1].IndexAnim); }
 
-set_config_file(P[1].Caminho_CHBOX);
+sys->set_config_file(P[1].Caminho_CHBOX);
 P1_HitBox01x1 = get_config_int (P[1].State_chs, "HitBox01x1", -5555 ); if (P1_HitBox01x1!=-5555) { P1_HitBox_tot++; }
 P1_HitBox01y1 = get_config_int (P[1].State_chs, "HitBox01y1", -5555 );
 P1_HitBox01x2 = get_config_int (P[1].State_chs, "HitBox01x2", -5555 );
@@ -8691,7 +8718,7 @@ sprintf(P[2].Caminho_CHBOX, "data/chars/%s/chbox.ini", P[2].Name);
 if (P[2].IndexAnim<10)  { sprintf(P[2].State_chs, "%i_0%i", P[2].State, P[2].IndexAnim); }
 if (P[2].IndexAnim>=10) { sprintf(P[2].State_chs, "%i_%i", P[2].State, P[2].IndexAnim); }
 
-set_config_file(P[2].Caminho_CHBOX);
+sys->set_config_file(P[2].Caminho_CHBOX);
 P2_HitBox01x1 = get_config_int (P[2].State_chs, "HitBox01x1", +5555 ); if (P2_HitBox01x1!=+5555) { P2_HitBox_tot++; }
 P2_HitBox01y1 = get_config_int (P[2].State_chs, "HitBox01y1", +5555 );
 P2_HitBox01x2 = get_config_int (P[2].State_chs, "HitBox01x2", +5555 );
@@ -8794,7 +8821,7 @@ sprintf(ED_Caminho_CHBOX, "data/chars/%s/chbox.ini", ED_Name);
 if (ED_IndexAnim<10)  { sprintf(ED_State_chs, "%i_0%i", ED_State, ED_IndexAnim); }
 if (ED_IndexAnim>=10) { sprintf(ED_State_chs, "%i_%i", ED_State, ED_IndexAnim); }
 
-set_config_file(ED_Caminho_CHBOX);
+sys->set_config_file(ED_Caminho_CHBOX);
 ED_HitBox01x1 = get_config_int (ED_State_chs, "HitBox01x1", -5555 ); if (ED_HitBox01x1!=-5555) {ED_HitBox_tot++;}
 ED_HitBox01y1 = get_config_int (ED_State_chs, "HitBox01y1", -5555 );
 ED_HitBox01x2 = get_config_int (ED_State_chs, "HitBox01x2", -5555 );
@@ -10456,7 +10483,7 @@ if(P[2].TotalDeFramesMov[702] >-1){
 Fireball[2].State=702;
 char P2_Caminho[99];
 sprintf(P2_Caminho, "data/chars/%s/char.ini", P[2].Name);
-set_config_file(P2_Caminho);
+sys->set_config_file(P2_Caminho);
 Fireball[2].XAlign = get_config_int ("702", "XAlign" , 0 );
 Fireball[2].YAlign = get_config_int ("702", "YAlign" , 0 );
 Fireball[2].TotalFrames=P[2].TotalDeFramesMov[702];
@@ -10550,7 +10577,7 @@ if(P[1].TotalDeFramesMov[702] >-1){
 Fireball[1].State=702;
 char P1_Caminho[99];
 sprintf(P1_Caminho, "data/chars/%s/char.ini", P[1].Name);
-set_config_file(P1_Caminho);
+sys->set_config_file(P1_Caminho);
 Fireball[1].XAlign = get_config_int ("702", "XAlign" , 0 );
 Fireball[1].YAlign = get_config_int ("702", "YAlign" , 0 );
 Fireball[1].TotalFrames=P[1].TotalDeFramesMov[702];
@@ -10699,11 +10726,11 @@ if(P[Player].State==700 && P[Player].TotalDeFramesMov[701]>-1 && P[Player].QtdeM
 
 if(Player==1){
 sprintf(P1_Caminho, "data/chars/%s/char.ini", P[Player].Name);
-set_config_file(P1_Caminho);
+sys->set_config_file(P1_Caminho);
 }
 if(Player==2){
 sprintf(P2_Caminho, "data/chars/%s/char.ini", P[Player].Name);
-set_config_file(P2_Caminho);
+sys->set_config_file(P2_Caminho);
 }
 
 P[Player].QtdeMagias++;
@@ -10719,61 +10746,61 @@ if(Player==1){
 //tem q verificar a força de variacao tb (DMG), vou implementar depois.
 //V1 = fraco, V2 = medio, V3 = forte
 if(ForcaDoGolpeP1==1){
-if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = get_config_int("701", "V1_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = get_config_int("701", "V1_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = get_config_int("701", "V1_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = get_config_int("701", "V1_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = get_config_int("701", "V1_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = get_config_int("701", "V1_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = get_config_int("701", "V1_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = get_config_int("701", "V1_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = get_config_int("701", "V1_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = get_config_int("701", "V1_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = get_config_int("701", "V1_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = sys->get_config_int("701", "V1_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = sys->get_config_int("701", "V1_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = sys->get_config_int("701", "V1_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = sys->get_config_int("701", "V1_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = sys->get_config_int("701", "V1_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = sys->get_config_int("701", "V1_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = sys->get_config_int("701", "V1_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = sys->get_config_int("701", "V1_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = sys->get_config_int("701", "V1_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = sys->get_config_int("701", "V1_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = sys->get_config_int("701", "V1_FrameTime_10", 6)-1; }
 }
 if(ForcaDoGolpeP1==2){
-if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = get_config_int("701", "V2_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = get_config_int("701", "V2_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = get_config_int("701", "V2_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = get_config_int("701", "V2_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = get_config_int("701", "V2_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = get_config_int("701", "V2_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = get_config_int("701", "V2_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = get_config_int("701", "V2_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = get_config_int("701", "V2_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = get_config_int("701", "V2_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = get_config_int("701", "V2_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = sys->get_config_int("701", "V2_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = sys->get_config_int("701", "V2_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = sys->get_config_int("701", "V2_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = sys->get_config_int("701", "V2_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = sys->get_config_int("701", "V2_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = sys->get_config_int("701", "V2_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = sys->get_config_int("701", "V2_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = sys->get_config_int("701", "V2_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = sys->get_config_int("701", "V2_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = sys->get_config_int("701", "V2_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = sys->get_config_int("701", "V2_FrameTime_10", 6)-1; }
 }
 if(ForcaDoGolpeP1==3){
-if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = get_config_int("701", "V3_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = get_config_int("701", "V3_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = get_config_int("701", "V3_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = get_config_int("701", "V3_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = get_config_int("701", "V3_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = get_config_int("701", "V3_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = get_config_int("701", "V3_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = get_config_int("701", "V3_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = get_config_int("701", "V3_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = get_config_int("701", "V3_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = get_config_int("701", "V3_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P1_Fireball_FrameTime_00 = sys->get_config_int("701", "V3_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P1_Fireball_FrameTime_01 = sys->get_config_int("701", "V3_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P1_Fireball_FrameTime_02 = sys->get_config_int("701", "V3_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P1_Fireball_FrameTime_03 = sys->get_config_int("701", "V3_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P1_Fireball_FrameTime_04 = sys->get_config_int("701", "V3_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P1_Fireball_FrameTime_05 = sys->get_config_int("701", "V3_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P1_Fireball_FrameTime_06 = sys->get_config_int("701", "V3_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P1_Fireball_FrameTime_07 = sys->get_config_int("701", "V3_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P1_Fireball_FrameTime_08 = sys->get_config_int("701", "V3_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P1_Fireball_FrameTime_09 = sys->get_config_int("701", "V3_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P1_Fireball_FrameTime_10 = sys->get_config_int("701", "V3_FrameTime_10", 6)-1; }
 }
 P1_Fireball_FrameTime = P1_Fireball_FrameTime_00;
 
 sprintf(P1_Caminho_sp, "data/chars/%s/special.ini", P[Player].Name);
-set_config_file(P1_Caminho_sp);
+sys->set_config_file(P1_Caminho_sp);
 
 int LocalPosX=get_config_int (Fireball[Player].State_s, "LocalPosX" , 0 );
 int LocalPosY=get_config_int (Fireball[Player].State_s, "LocalPosY" , 0 );
 Fireball[Player].x = P[Player].x+(LocalPosX*Fireball[Player].Direcao);
 Fireball[Player].y = P[Player].y+LocalPosY;
-Fireball[Player].HSpeed = get_config_int("701", "HSpeed", 4)-1;
+Fireball[Player].HSpeed = sys->get_config_int("701", "HSpeed", 4)-1;
 Fireball[Player].HSpeed+=1;
-Fireball[Player].VSpeed = get_config_int("701", "VSpeed", -1)-1;
+Fireball[Player].VSpeed = sys->get_config_int("701", "VSpeed", -1)-1;
 Fireball[Player].VSpeed+=1;
 Fireball[Player].ThrowFireball = get_config_int (P[Player].State_s, "ThrowFireball" , 1 );
 
 sprintf(P1_Caminho_sp, "data/chars/%s/chbox.ini", P[Player].Name);
-set_config_file(P1_Caminho_sp);
+sys->set_config_file(P1_Caminho_sp);
 P1_Fireball_HurtBox01x1 = get_config_int ("701_00", "HurtBox01x1" , -15 );
 P1_Fireball_HurtBox01y1 = get_config_int ("701_00", "HurtBox01y1" , -15 );
 P1_Fireball_HurtBox01x2 = get_config_int ("701_00", "HurtBox01x2" , 15 );
@@ -10788,61 +10815,61 @@ if(Player==2){
 //tem q verificar a força de variacao tb (DMG), vou implementar depois.
 //V1 = fraco, V2 = medio, V3 = forte
 if(ForcaDoGolpeP2==1){
-if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = get_config_int("701", "V1_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = get_config_int("701", "V1_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = get_config_int("701", "V1_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = get_config_int("701", "V1_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = get_config_int("701", "V1_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = get_config_int("701", "V1_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = get_config_int("701", "V1_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = get_config_int("701", "V1_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = get_config_int("701", "V1_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = get_config_int("701", "V1_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = get_config_int("701", "V1_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = sys->get_config_int("701", "V1_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = sys->get_config_int("701", "V1_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = sys->get_config_int("701", "V1_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = sys->get_config_int("701", "V1_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = sys->get_config_int("701", "V1_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = sys->get_config_int("701", "V1_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = sys->get_config_int("701", "V1_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = sys->get_config_int("701", "V1_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = sys->get_config_int("701", "V1_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = sys->get_config_int("701", "V1_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = sys->get_config_int("701", "V1_FrameTime_10", 6)-1; }
 }
 if(ForcaDoGolpeP2==2){
-if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = get_config_int("701", "V2_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = get_config_int("701", "V2_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = get_config_int("701", "V2_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = get_config_int("701", "V2_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = get_config_int("701", "V2_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = get_config_int("701", "V2_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = get_config_int("701", "V2_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = get_config_int("701", "V2_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = get_config_int("701", "V2_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = get_config_int("701", "V2_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = get_config_int("701", "V2_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = sys->get_config_int("701", "V2_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = sys->get_config_int("701", "V2_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = sys->get_config_int("701", "V2_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = sys->get_config_int("701", "V2_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = sys->get_config_int("701", "V2_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = sys->get_config_int("701", "V2_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = sys->get_config_int("701", "V2_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = sys->get_config_int("701", "V2_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = sys->get_config_int("701", "V2_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = sys->get_config_int("701", "V2_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = sys->get_config_int("701", "V2_FrameTime_10", 6)-1; }
 }
 if(ForcaDoGolpeP2==3){
-if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = get_config_int("701", "V3_FrameTime_00", 6)-1; }
-if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = get_config_int("701", "V3_FrameTime_01", 6)-1; }
-if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = get_config_int("701", "V3_FrameTime_02", 6)-1; }
-if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = get_config_int("701", "V3_FrameTime_03", 6)-1; }
-if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = get_config_int("701", "V3_FrameTime_04", 6)-1; }
-if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = get_config_int("701", "V3_FrameTime_05", 6)-1; }
-if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = get_config_int("701", "V3_FrameTime_06", 6)-1; }
-if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = get_config_int("701", "V3_FrameTime_07", 6)-1; }
-if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = get_config_int("701", "V3_FrameTime_08", 6)-1; }
-if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = get_config_int("701", "V3_FrameTime_09", 6)-1; }
-if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = get_config_int("701", "V3_FrameTime_10", 6)-1; }
+if (Fireball[Player].TotalFrames>= 0) {P2_Fireball_FrameTime_00 = sys->get_config_int("701", "V3_FrameTime_00", 6)-1; }
+if (Fireball[Player].TotalFrames>= 1) {P2_Fireball_FrameTime_01 = sys->get_config_int("701", "V3_FrameTime_01", 6)-1; }
+if (Fireball[Player].TotalFrames>= 2) {P2_Fireball_FrameTime_02 = sys->get_config_int("701", "V3_FrameTime_02", 6)-1; }
+if (Fireball[Player].TotalFrames>= 3) {P2_Fireball_FrameTime_03 = sys->get_config_int("701", "V3_FrameTime_03", 6)-1; }
+if (Fireball[Player].TotalFrames>= 4) {P2_Fireball_FrameTime_04 = sys->get_config_int("701", "V3_FrameTime_04", 6)-1; }
+if (Fireball[Player].TotalFrames>= 5) {P2_Fireball_FrameTime_05 = sys->get_config_int("701", "V3_FrameTime_05", 6)-1; }
+if (Fireball[Player].TotalFrames>= 6) {P2_Fireball_FrameTime_06 = sys->get_config_int("701", "V3_FrameTime_06", 6)-1; }
+if (Fireball[Player].TotalFrames>= 7) {P2_Fireball_FrameTime_07 = sys->get_config_int("701", "V3_FrameTime_07", 6)-1; }
+if (Fireball[Player].TotalFrames>= 8) {P2_Fireball_FrameTime_08 = sys->get_config_int("701", "V3_FrameTime_08", 6)-1; }
+if (Fireball[Player].TotalFrames>= 9) {P2_Fireball_FrameTime_09 = sys->get_config_int("701", "V3_FrameTime_09", 6)-1; }
+if (Fireball[Player].TotalFrames>=10) {P2_Fireball_FrameTime_10 = sys->get_config_int("701", "V3_FrameTime_10", 6)-1; }
 }
 P2_Fireball_FrameTime = P2_Fireball_FrameTime_00;
 
 sprintf(P2_Caminho_sp, "data/chars/%s/special.ini", P[Player].Name);
-set_config_file(P2_Caminho_sp);
+sys->set_config_file(P2_Caminho_sp);
 
 int LocalPosX=get_config_int (Fireball[Player].State_s, "LocalPosX" , 0 );
 int LocalPosY=get_config_int (Fireball[Player].State_s, "LocalPosY" , 0 );
 Fireball[Player].x = P[Player].x+(LocalPosX*Fireball[Player].Direcao);
 Fireball[Player].y = P[Player].y+LocalPosY;
-Fireball[Player].HSpeed = get_config_int("701", "HSpeed", 4)-1;
+Fireball[Player].HSpeed = sys->get_config_int("701", "HSpeed", 4)-1;
 Fireball[Player].HSpeed+=1;
-Fireball[Player].VSpeed = get_config_int("701", "VSpeed", -1)-1;
+Fireball[Player].VSpeed = sys->get_config_int("701", "VSpeed", -1)-1;
 Fireball[Player].VSpeed+=1;
 Fireball[Player].ThrowFireball = get_config_int (P[Player].State_s, "ThrowFireball" , 1 );
 
 sprintf(P2_Caminho_sp, "data/chars/%s/chbox.ini", P[Player].Name);
-set_config_file(P2_Caminho_sp);
+sys->set_config_file(P2_Caminho_sp);
 P2_Fireball_HurtBox01x1 = get_config_int ("701_00", "HurtBox01x1" , -15 );
 P2_Fireball_HurtBox01y1 = get_config_int ("701_00", "HurtBox01y1" , -15 );
 P2_Fireball_HurtBox01x2 = get_config_int ("701_00", "HurtBox01x2" , 15 );
@@ -10916,10 +10943,10 @@ P[ind].IndexAnim=AnimIndex;
 
 //char.ini
 char P1_Caminho[99]; char P2_Caminho[99];
-if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/char.ini", P[ind].Name); set_config_file(P1_Caminho); }
-if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/char.ini", P[ind].Name); set_config_file(P2_Caminho); }
+if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/char.ini", P[ind].Name); sys->set_config_file(P1_Caminho); }
+if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/char.ini", P[ind].Name); sys->set_config_file(P2_Caminho); }
 
-//strcpy(P[ind].Name_Display, (char *)get_config_string("Info", "Name", "-"));
+//strcpy(P[ind].Name_Display, (char *)sys->get_config_string("Info", "Name", "-"));
 
 //-----------------------------------------------------------------------------------------------------------------
 
@@ -10940,14 +10967,14 @@ P[ind].TableAtlas[line][12] = get_config_int ( P[ind].State_s, "EnergyChange" , 
 P[ind].TableAtlas[line][13] = get_config_int ( P[ind].State_s, "SpecialChange", -5555 );
 P[ind].TableAtlas[line][14] = get_config_int ( P[ind].State_s, "Visible", -5555 );
 P[ind].TableAtlas[line][15] = get_config_int ( P[ind].State_s, "RoomLimit", -5555 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","Normal")); //pega o hittype em char
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","Normal")); //pega o hittype em char
 //if (strcmp (P[ind].HitType,"")==0){ P[ind].TableAtlas[line][16] = -5555; }
 if (strcmp (P[ind].HitType,"Normal")==0){ P[ind].TableAtlas[line][16] = 1; }
 if (strcmp (P[ind].HitType,"Fall")  ==0){ P[ind].TableAtlas[line][16] = 2; }
 P[ind].TableAtlas[line][17] = get_config_int ( P[ind].State_s, "ChangeState", -5555 );
 P[ind].TableAtlas[line][18] = get_config_int ( P[ind].State_s, "Freeze", -5555 );
 P[ind].TableAtlas[line][19] = get_config_int ( P[ind].State_s, "Color", -5555 );
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","Multi")); //pega o hitstack em char
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","Multi")); //pega o hitstack em char
 //if (strcmp (P[ind].HitStack,"")==0){ P[ind].TableAtlas[line][20] = -5555; }
 if (strcmp (P[ind].HitStack,"Single")==0){ P[ind].TableAtlas[line][20] = 1; }
 if (strcmp (P[ind].HitStack,"Multi") ==0){ P[ind].TableAtlas[line][20] = 2; }
@@ -10960,8 +10987,8 @@ P[ind].TableAtlas[line][ 4] = get_config_int ( P[ind].State_s, "XAlign", P[ind].
 P[ind].TableAtlas[line][ 5] = get_config_int ( P[ind].State_s, "YAlign", P[ind].Altura );
 
 //special.ini
-if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/special.ini", P[ind].Name); set_config_file(P1_Caminho); }
-if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/special.ini", P[ind].Name); set_config_file(P2_Caminho); }
+if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/special.ini", P[ind].Name); sys->set_config_file(P1_Caminho); }
+if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/special.ini", P[ind].Name); sys->set_config_file(P2_Caminho); }
 
 P[ind].TableAtlas[line][ 6] = get_config_int ( P[ind].State_s, "X", -5555 );
 P[ind].TableAtlas[line][ 7] = get_config_int ( P[ind].State_s, "Y", -5555 );
@@ -10973,14 +11000,14 @@ P[ind].TableAtlas[line][12] = get_config_int ( P[ind].State_s, "EnergyChange" , 
 P[ind].TableAtlas[line][13] = get_config_int ( P[ind].State_s, "SpecialChange", -5555 );
 P[ind].TableAtlas[line][14] = get_config_int ( P[ind].State_s, "Visible", -5555 );
 P[ind].TableAtlas[line][15] = get_config_int ( P[ind].State_s, "RoomLimit", -5555 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","Normal")); //pega o hittype em char
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","Normal")); //pega o hittype em char
 //if (strcmp (P[ind].HitType,"")==0){ P[ind].TableAtlas[line][16] = -5555; }
 if (strcmp (P[ind].HitType,"Normal")==0){ P[ind].TableAtlas[line][16] = 1; }
 if (strcmp (P[ind].HitType,"Fall")  ==0){ P[ind].TableAtlas[line][16] = 2; }
 P[ind].TableAtlas[line][17] = get_config_int ( P[ind].State_s, "ChangeState", -5555 );
 P[ind].TableAtlas[line][18] = get_config_int ( P[ind].State_s, "Freeze", -5555 );
 P[ind].TableAtlas[line][19] = get_config_int ( P[ind].State_s, "Color", -5555 );
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","Multi")); //pega o hitstack em char
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","Multi")); //pega o hitstack em char
 //if (strcmp (P[ind].HitStack,"")==0){ P[ind].TableAtlas[line][20] = -5555; }
 if (strcmp (P[ind].HitStack,"Single")==0){ P[ind].TableAtlas[line][20] = 1; }
 if (strcmp (P[ind].HitStack,"Multi") ==0){ P[ind].TableAtlas[line][20] = 2; }
@@ -11008,14 +11035,14 @@ P[ind].TableAtlas[line][12] = get_config_int ( P[ind].State_s, "EnergyChange" , 
 P[ind].TableAtlas[line][13] = get_config_int ( P[ind].State_s, "SpecialChange", -5555 );
 P[ind].TableAtlas[line][14] = get_config_int ( P[ind].State_s, "Visible", -5555 );
 P[ind].TableAtlas[line][15] = get_config_int ( P[ind].State_s, "RoomLimit", -5555 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","")); //pega o hittype em char
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","")); //pega o hittype em char
 if (strcmp (P[ind].HitType,"")==0){ P[ind].TableAtlas[line][16] = -5555; }
 if (strcmp (P[ind].HitType,"Normal")==0){ P[ind].TableAtlas[line][16] = 1; }
 if (strcmp (P[ind].HitType,"Fall")  ==0){ P[ind].TableAtlas[line][16] = 2; }
 P[ind].TableAtlas[line][17] = get_config_int ( P[ind].State_s, "ChangeState", -5555 );
 P[ind].TableAtlas[line][18] = get_config_int ( P[ind].State_s, "Freeze", -5555 );
 P[ind].TableAtlas[line][19] = get_config_int ( P[ind].State_s, "Color", -5555 );
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","")); //pega o hitstack em char
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","")); //pega o hitstack em char
 if (strcmp (P[ind].HitStack,"")==0){ P[ind].TableAtlas[line][20] = -5555; }
 if (strcmp (P[ind].HitStack,"Single")==0){ P[ind].TableAtlas[line][20] = 1; }
 if (strcmp (P[ind].HitStack,"Multi") ==0){ P[ind].TableAtlas[line][20] = 2; }
@@ -11028,8 +11055,8 @@ P[ind].TableAtlas[line][ 4] = get_config_int ( P[ind].State_s, "XAlign", -5555 )
 P[ind].TableAtlas[line][ 5] = get_config_int ( P[ind].State_s, "YAlign", -5555 );
 
 //special.ini
-if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/special.ini", P[ind].Name); set_config_file(P1_Caminho); }
-if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/special.ini", P[ind].Name); set_config_file(P2_Caminho); }
+if(ind==1){ sprintf(P1_Caminho, "data/chars/%s/special.ini", P[ind].Name); sys->set_config_file(P1_Caminho); }
+if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/special.ini", P[ind].Name); sys->set_config_file(P2_Caminho); }
 
 P[ind].TableAtlas[line][ 6] = get_config_int ( P[ind].State_s, "X", -5555 );
 P[ind].TableAtlas[line][ 7] = get_config_int ( P[ind].State_s, "Y", -5555 );
@@ -11041,14 +11068,14 @@ P[ind].TableAtlas[line][12] = get_config_int ( P[ind].State_s, "EnergyChange" , 
 P[ind].TableAtlas[line][13] = get_config_int ( P[ind].State_s, "SpecialChange", -5555 );
 P[ind].TableAtlas[line][14] = get_config_int ( P[ind].State_s, "Visible", -5555 );
 P[ind].TableAtlas[line][15] = get_config_int ( P[ind].State_s, "RoomLimit", -5555 );
-strcpy(P[ind].HitType, (char *)get_config_string(P[ind].State_s, "HitType","")); //pega o hittype em char
+strcpy(P[ind].HitType, (char *)sys->get_config_string(P[ind].State_s, "HitType","")); //pega o hittype em char
 if (strcmp (P[ind].HitType,"")==0){ P[ind].TableAtlas[line][16] = -5555; }
 if (strcmp (P[ind].HitType,"Normal")==0){ P[ind].TableAtlas[line][16] = 1; }
 if (strcmp (P[ind].HitType,"Fall")  ==0){ P[ind].TableAtlas[line][16] = 2; }
 P[ind].TableAtlas[line][17] = get_config_int ( P[ind].State_s, "ChangeState", -5555 );
 P[ind].TableAtlas[line][18] = get_config_int ( P[ind].State_s, "Freeze", -5555 );
 P[ind].TableAtlas[line][19] = get_config_int ( P[ind].State_s, "Color", -5555 );
-strcpy(P[ind].HitStack, (char *)get_config_string(P[ind].State_s, "HitStack","")); //pega o hitstack em char
+strcpy(P[ind].HitStack, (char *)sys->get_config_string(P[ind].State_s, "HitStack","")); //pega o hitstack em char
 if (strcmp (P[ind].HitStack,"")==0){ P[ind].TableAtlas[line][20] = -5555; }
 if (strcmp (P[ind].HitStack,"Single")==0){ P[ind].TableAtlas[line][20] = 1; }
 if (strcmp (P[ind].HitStack,"Multi") ==0){ P[ind].TableAtlas[line][20] = 2; }
@@ -11065,154 +11092,154 @@ if (strcmp (P[ind].HitStack,"Multi") ==0){ P[ind].TableAtlas[line][20] = 2; }
 void ED_save_charini(){
 
 if(ED_State<700){
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
-if (ED_TotalFrames>= 0) { set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1) { set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2) { set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3) { set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4) { set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5) { set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6) { set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7) { set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8) { set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9) { set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10) { set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11) { set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12) { set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13) { set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14) { set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15) { set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16) { set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17) { set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18) { set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19) { set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20) { set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21) { set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22) { set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23) { set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24) { set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25) { set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26) { set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27) { set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28) { set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29) { set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
-set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
-set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
+if (ED_TotalFrames>= 0) { sys->set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1) { sys->set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2) { sys->set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3) { sys->set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4) { sys->set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5) { sys->set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6) { sys->set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7) { sys->set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8) { sys->set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9) { sys->set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10) { sys->set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11) { sys->set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12) { sys->set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13) { sys->set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14) { sys->set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15) { sys->set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16) { sys->set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17) { sys->set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18) { sys->set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19) { sys->set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20) { sys->set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21) { sys->set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22) { sys->set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23) { sys->set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24) { sys->set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25) { sys->set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26) { sys->set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27) { sys->set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28) { sys->set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29) { sys->set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
+sys->set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
+sys->set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
 ED_alertsave=0; ED_ShowMsgSaving=1;
 }
 
 if(ED_State>=700 && ED_Special_Version==1){
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
-if (ED_TotalFrames>= 0) { set_config_int(ED_State_s, "V1_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1) { set_config_int(ED_State_s, "V1_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2) { set_config_int(ED_State_s, "V1_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3) { set_config_int(ED_State_s, "V1_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4) { set_config_int(ED_State_s, "V1_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5) { set_config_int(ED_State_s, "V1_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6) { set_config_int(ED_State_s, "V1_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7) { set_config_int(ED_State_s, "V1_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8) { set_config_int(ED_State_s, "V1_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9) { set_config_int(ED_State_s, "V1_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10) { set_config_int(ED_State_s, "V1_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11) { set_config_int(ED_State_s, "V1_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12) { set_config_int(ED_State_s, "V1_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13) { set_config_int(ED_State_s, "V1_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14) { set_config_int(ED_State_s, "V1_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15) { set_config_int(ED_State_s, "V1_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16) { set_config_int(ED_State_s, "V1_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17) { set_config_int(ED_State_s, "V1_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18) { set_config_int(ED_State_s, "V1_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19) { set_config_int(ED_State_s, "V1_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20) { set_config_int(ED_State_s, "V1_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21) { set_config_int(ED_State_s, "V1_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22) { set_config_int(ED_State_s, "V1_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23) { set_config_int(ED_State_s, "V1_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24) { set_config_int(ED_State_s, "V1_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25) { set_config_int(ED_State_s, "V1_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26) { set_config_int(ED_State_s, "V1_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27) { set_config_int(ED_State_s, "V1_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28) { set_config_int(ED_State_s, "V1_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29) { set_config_int(ED_State_s, "V1_FrameTime_29", ED_FrameTime_29+1); }
-set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
-set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
+if (ED_TotalFrames>= 0) { sys->set_config_int(ED_State_s, "V1_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1) { sys->set_config_int(ED_State_s, "V1_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2) { sys->set_config_int(ED_State_s, "V1_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3) { sys->set_config_int(ED_State_s, "V1_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4) { sys->set_config_int(ED_State_s, "V1_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5) { sys->set_config_int(ED_State_s, "V1_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6) { sys->set_config_int(ED_State_s, "V1_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7) { sys->set_config_int(ED_State_s, "V1_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8) { sys->set_config_int(ED_State_s, "V1_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9) { sys->set_config_int(ED_State_s, "V1_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10) { sys->set_config_int(ED_State_s, "V1_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11) { sys->set_config_int(ED_State_s, "V1_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12) { sys->set_config_int(ED_State_s, "V1_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13) { sys->set_config_int(ED_State_s, "V1_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14) { sys->set_config_int(ED_State_s, "V1_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15) { sys->set_config_int(ED_State_s, "V1_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16) { sys->set_config_int(ED_State_s, "V1_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17) { sys->set_config_int(ED_State_s, "V1_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18) { sys->set_config_int(ED_State_s, "V1_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19) { sys->set_config_int(ED_State_s, "V1_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20) { sys->set_config_int(ED_State_s, "V1_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21) { sys->set_config_int(ED_State_s, "V1_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22) { sys->set_config_int(ED_State_s, "V1_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23) { sys->set_config_int(ED_State_s, "V1_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24) { sys->set_config_int(ED_State_s, "V1_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25) { sys->set_config_int(ED_State_s, "V1_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26) { sys->set_config_int(ED_State_s, "V1_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27) { sys->set_config_int(ED_State_s, "V1_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28) { sys->set_config_int(ED_State_s, "V1_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29) { sys->set_config_int(ED_State_s, "V1_FrameTime_29", ED_FrameTime_29+1); }
+sys->set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
+sys->set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
 ED_alertsave=0; ED_ShowMsgSaving=1;
 }
 
 if(ED_State>=700 && ED_Special_Version==2){
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
-if (ED_TotalFrames>= 0) { set_config_int(ED_State_s, "V2_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1) { set_config_int(ED_State_s, "V2_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2) { set_config_int(ED_State_s, "V2_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3) { set_config_int(ED_State_s, "V2_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4) { set_config_int(ED_State_s, "V2_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5) { set_config_int(ED_State_s, "V2_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6) { set_config_int(ED_State_s, "V2_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7) { set_config_int(ED_State_s, "V2_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8) { set_config_int(ED_State_s, "V2_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9) { set_config_int(ED_State_s, "V2_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10) { set_config_int(ED_State_s, "V2_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11) { set_config_int(ED_State_s, "V2_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12) { set_config_int(ED_State_s, "V2_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13) { set_config_int(ED_State_s, "V2_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14) { set_config_int(ED_State_s, "V2_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15) { set_config_int(ED_State_s, "V2_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16) { set_config_int(ED_State_s, "V2_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17) { set_config_int(ED_State_s, "V2_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18) { set_config_int(ED_State_s, "V2_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19) { set_config_int(ED_State_s, "V2_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20) { set_config_int(ED_State_s, "V2_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21) { set_config_int(ED_State_s, "V2_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22) { set_config_int(ED_State_s, "V2_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23) { set_config_int(ED_State_s, "V2_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24) { set_config_int(ED_State_s, "V2_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25) { set_config_int(ED_State_s, "V2_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26) { set_config_int(ED_State_s, "V2_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27) { set_config_int(ED_State_s, "V2_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28) { set_config_int(ED_State_s, "V2_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29) { set_config_int(ED_State_s, "V2_FrameTime_29", ED_FrameTime_29+1); }
-set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
-set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
+if (ED_TotalFrames>= 0) { sys->set_config_int(ED_State_s, "V2_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1) { sys->set_config_int(ED_State_s, "V2_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2) { sys->set_config_int(ED_State_s, "V2_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3) { sys->set_config_int(ED_State_s, "V2_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4) { sys->set_config_int(ED_State_s, "V2_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5) { sys->set_config_int(ED_State_s, "V2_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6) { sys->set_config_int(ED_State_s, "V2_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7) { sys->set_config_int(ED_State_s, "V2_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8) { sys->set_config_int(ED_State_s, "V2_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9) { sys->set_config_int(ED_State_s, "V2_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10) { sys->set_config_int(ED_State_s, "V2_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11) { sys->set_config_int(ED_State_s, "V2_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12) { sys->set_config_int(ED_State_s, "V2_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13) { sys->set_config_int(ED_State_s, "V2_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14) { sys->set_config_int(ED_State_s, "V2_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15) { sys->set_config_int(ED_State_s, "V2_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16) { sys->set_config_int(ED_State_s, "V2_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17) { sys->set_config_int(ED_State_s, "V2_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18) { sys->set_config_int(ED_State_s, "V2_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19) { sys->set_config_int(ED_State_s, "V2_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20) { sys->set_config_int(ED_State_s, "V2_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21) { sys->set_config_int(ED_State_s, "V2_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22) { sys->set_config_int(ED_State_s, "V2_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23) { sys->set_config_int(ED_State_s, "V2_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24) { sys->set_config_int(ED_State_s, "V2_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25) { sys->set_config_int(ED_State_s, "V2_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26) { sys->set_config_int(ED_State_s, "V2_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27) { sys->set_config_int(ED_State_s, "V2_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28) { sys->set_config_int(ED_State_s, "V2_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29) { sys->set_config_int(ED_State_s, "V2_FrameTime_29", ED_FrameTime_29+1); }
+sys->set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
+sys->set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
 ED_alertsave=0; ED_ShowMsgSaving=1;
 }
 
 if(ED_State>=700 && ED_Special_Version==3){
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
-if (ED_TotalFrames>= 0) { set_config_int(ED_State_s, "V3_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1) { set_config_int(ED_State_s, "V3_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2) { set_config_int(ED_State_s, "V3_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3) { set_config_int(ED_State_s, "V3_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4) { set_config_int(ED_State_s, "V3_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5) { set_config_int(ED_State_s, "V3_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6) { set_config_int(ED_State_s, "V3_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7) { set_config_int(ED_State_s, "V3_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8) { set_config_int(ED_State_s, "V3_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9) { set_config_int(ED_State_s, "V3_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10) { set_config_int(ED_State_s, "V3_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11) { set_config_int(ED_State_s, "V3_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12) { set_config_int(ED_State_s, "V3_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13) { set_config_int(ED_State_s, "V3_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14) { set_config_int(ED_State_s, "V3_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15) { set_config_int(ED_State_s, "V3_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16) { set_config_int(ED_State_s, "V3_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17) { set_config_int(ED_State_s, "V3_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18) { set_config_int(ED_State_s, "V3_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19) { set_config_int(ED_State_s, "V3_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20) { set_config_int(ED_State_s, "V3_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21) { set_config_int(ED_State_s, "V3_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22) { set_config_int(ED_State_s, "V3_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23) { set_config_int(ED_State_s, "V3_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24) { set_config_int(ED_State_s, "V3_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25) { set_config_int(ED_State_s, "V3_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26) { set_config_int(ED_State_s, "V3_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27) { set_config_int(ED_State_s, "V3_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28) { set_config_int(ED_State_s, "V3_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29) { set_config_int(ED_State_s, "V3_FrameTime_29", ED_FrameTime_29+1); }
-set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
-set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
+if (ED_TotalFrames>= 0) { sys->set_config_int(ED_State_s, "V3_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1) { sys->set_config_int(ED_State_s, "V3_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2) { sys->set_config_int(ED_State_s, "V3_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3) { sys->set_config_int(ED_State_s, "V3_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4) { sys->set_config_int(ED_State_s, "V3_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5) { sys->set_config_int(ED_State_s, "V3_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6) { sys->set_config_int(ED_State_s, "V3_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7) { sys->set_config_int(ED_State_s, "V3_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8) { sys->set_config_int(ED_State_s, "V3_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9) { sys->set_config_int(ED_State_s, "V3_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10) { sys->set_config_int(ED_State_s, "V3_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11) { sys->set_config_int(ED_State_s, "V3_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12) { sys->set_config_int(ED_State_s, "V3_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13) { sys->set_config_int(ED_State_s, "V3_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14) { sys->set_config_int(ED_State_s, "V3_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15) { sys->set_config_int(ED_State_s, "V3_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16) { sys->set_config_int(ED_State_s, "V3_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17) { sys->set_config_int(ED_State_s, "V3_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18) { sys->set_config_int(ED_State_s, "V3_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19) { sys->set_config_int(ED_State_s, "V3_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20) { sys->set_config_int(ED_State_s, "V3_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21) { sys->set_config_int(ED_State_s, "V3_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22) { sys->set_config_int(ED_State_s, "V3_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23) { sys->set_config_int(ED_State_s, "V3_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24) { sys->set_config_int(ED_State_s, "V3_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25) { sys->set_config_int(ED_State_s, "V3_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26) { sys->set_config_int(ED_State_s, "V3_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27) { sys->set_config_int(ED_State_s, "V3_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28) { sys->set_config_int(ED_State_s, "V3_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29) { sys->set_config_int(ED_State_s, "V3_FrameTime_29", ED_FrameTime_29+1); }
+sys->set_config_int(ED_State_s, "XAlign"      , ED_XAlign );
+sys->set_config_int(ED_State_s, "YAlign"      , ED_YAlign );
 ED_alertsave=0; ED_ShowMsgSaving=1;
 }
 
@@ -11225,7 +11252,7 @@ ED_alertsave=0; ED_ShowMsgSaving=1;
 void ED_load_charini(){
 
 //carrega dados do ini
-char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); set_config_file(ED_Caminho);
+char ED_Caminho[99]; sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name); sys->set_config_file(ED_Caminho);
 char ED_State_s[3]; sprintf(ED_State_s, "%i", ED_State);
 ED_FrameTime_00=0;
 ED_FrameTime_01=0; ED_FrameTime_02=0; ED_FrameTime_03=0; ED_FrameTime_04=0; ED_FrameTime_05=0;
@@ -11238,268 +11265,268 @@ ED_XAlign = get_config_int (ED_State_s, "XAlign", ED_Largura/2 ); //P[1].Largura
 ED_YAlign = get_config_int (ED_State_s, "YAlign", ED_Altura );
 
 if(ED_State<700){
-if (ED_TotalFrames>= 0) {ED_FrameTime_00 = get_config_int(ED_State_s, "FrameTime_00", 6)-1; }
-if (ED_TotalFrames>= 1) {ED_FrameTime_01 = get_config_int(ED_State_s, "FrameTime_01", 6)-1; }
-if (ED_TotalFrames>= 2) {ED_FrameTime_02 = get_config_int(ED_State_s, "FrameTime_02", 6)-1; }
-if (ED_TotalFrames>= 3) {ED_FrameTime_03 = get_config_int(ED_State_s, "FrameTime_03", 6)-1; }
-if (ED_TotalFrames>= 4) {ED_FrameTime_04 = get_config_int(ED_State_s, "FrameTime_04", 6)-1; }
-if (ED_TotalFrames>= 5) {ED_FrameTime_05 = get_config_int(ED_State_s, "FrameTime_05", 6)-1; }
-if (ED_TotalFrames>= 6) {ED_FrameTime_06 = get_config_int(ED_State_s, "FrameTime_06", 6)-1; }
-if (ED_TotalFrames>= 7) {ED_FrameTime_07 = get_config_int(ED_State_s, "FrameTime_07", 6)-1; }
-if (ED_TotalFrames>= 8) {ED_FrameTime_08 = get_config_int(ED_State_s, "FrameTime_08", 6)-1; }
-if (ED_TotalFrames>= 9) {ED_FrameTime_09 = get_config_int(ED_State_s, "FrameTime_09", 6)-1; }
-if (ED_TotalFrames>=10) {ED_FrameTime_10 = get_config_int(ED_State_s, "FrameTime_10", 6)-1; }
-if (ED_TotalFrames>=11) {ED_FrameTime_11 = get_config_int(ED_State_s, "FrameTime_11", 6)-1; }
-if (ED_TotalFrames>=12) {ED_FrameTime_12 = get_config_int(ED_State_s, "FrameTime_12", 6)-1; }
-if (ED_TotalFrames>=13) {ED_FrameTime_13 = get_config_int(ED_State_s, "FrameTime_13", 6)-1; }
-if (ED_TotalFrames>=14) {ED_FrameTime_14 = get_config_int(ED_State_s, "FrameTime_14", 6)-1; }
-if (ED_TotalFrames>=15) {ED_FrameTime_15 = get_config_int(ED_State_s, "FrameTime_15", 6)-1; }
-if (ED_TotalFrames>=16) {ED_FrameTime_16 = get_config_int(ED_State_s, "FrameTime_16", 6)-1; }
-if (ED_TotalFrames>=17) {ED_FrameTime_17 = get_config_int(ED_State_s, "FrameTime_17", 6)-1; }
-if (ED_TotalFrames>=18) {ED_FrameTime_18 = get_config_int(ED_State_s, "FrameTime_18", 6)-1; }
-if (ED_TotalFrames>=19) {ED_FrameTime_19 = get_config_int(ED_State_s, "FrameTime_19", 6)-1; }
-if (ED_TotalFrames>=20) {ED_FrameTime_20 = get_config_int(ED_State_s, "FrameTime_20", 6)-1; }
-if (ED_TotalFrames>=21) {ED_FrameTime_21 = get_config_int(ED_State_s, "FrameTime_21", 6)-1; }
-if (ED_TotalFrames>=22) {ED_FrameTime_22 = get_config_int(ED_State_s, "FrameTime_22", 6)-1; }
-if (ED_TotalFrames>=23) {ED_FrameTime_23 = get_config_int(ED_State_s, "FrameTime_23", 6)-1; }
-if (ED_TotalFrames>=24) {ED_FrameTime_24 = get_config_int(ED_State_s, "FrameTime_24", 6)-1; }
-if (ED_TotalFrames>=25) {ED_FrameTime_25 = get_config_int(ED_State_s, "FrameTime_25", 6)-1; }
-if (ED_TotalFrames>=26) {ED_FrameTime_26 = get_config_int(ED_State_s, "FrameTime_26", 6)-1; }
-if (ED_TotalFrames>=27) {ED_FrameTime_27 = get_config_int(ED_State_s, "FrameTime_27", 6)-1; }
-if (ED_TotalFrames>=28) {ED_FrameTime_28 = get_config_int(ED_State_s, "FrameTime_28", 6)-1; }
-if (ED_TotalFrames>=29) {ED_FrameTime_29 = get_config_int(ED_State_s, "FrameTime_29", 6)-1; }
+if (ED_TotalFrames>= 0) {ED_FrameTime_00 = sys->get_config_int(ED_State_s, "FrameTime_00", 6)-1; }
+if (ED_TotalFrames>= 1) {ED_FrameTime_01 = sys->get_config_int(ED_State_s, "FrameTime_01", 6)-1; }
+if (ED_TotalFrames>= 2) {ED_FrameTime_02 = sys->get_config_int(ED_State_s, "FrameTime_02", 6)-1; }
+if (ED_TotalFrames>= 3) {ED_FrameTime_03 = sys->get_config_int(ED_State_s, "FrameTime_03", 6)-1; }
+if (ED_TotalFrames>= 4) {ED_FrameTime_04 = sys->get_config_int(ED_State_s, "FrameTime_04", 6)-1; }
+if (ED_TotalFrames>= 5) {ED_FrameTime_05 = sys->get_config_int(ED_State_s, "FrameTime_05", 6)-1; }
+if (ED_TotalFrames>= 6) {ED_FrameTime_06 = sys->get_config_int(ED_State_s, "FrameTime_06", 6)-1; }
+if (ED_TotalFrames>= 7) {ED_FrameTime_07 = sys->get_config_int(ED_State_s, "FrameTime_07", 6)-1; }
+if (ED_TotalFrames>= 8) {ED_FrameTime_08 = sys->get_config_int(ED_State_s, "FrameTime_08", 6)-1; }
+if (ED_TotalFrames>= 9) {ED_FrameTime_09 = sys->get_config_int(ED_State_s, "FrameTime_09", 6)-1; }
+if (ED_TotalFrames>=10) {ED_FrameTime_10 = sys->get_config_int(ED_State_s, "FrameTime_10", 6)-1; }
+if (ED_TotalFrames>=11) {ED_FrameTime_11 = sys->get_config_int(ED_State_s, "FrameTime_11", 6)-1; }
+if (ED_TotalFrames>=12) {ED_FrameTime_12 = sys->get_config_int(ED_State_s, "FrameTime_12", 6)-1; }
+if (ED_TotalFrames>=13) {ED_FrameTime_13 = sys->get_config_int(ED_State_s, "FrameTime_13", 6)-1; }
+if (ED_TotalFrames>=14) {ED_FrameTime_14 = sys->get_config_int(ED_State_s, "FrameTime_14", 6)-1; }
+if (ED_TotalFrames>=15) {ED_FrameTime_15 = sys->get_config_int(ED_State_s, "FrameTime_15", 6)-1; }
+if (ED_TotalFrames>=16) {ED_FrameTime_16 = sys->get_config_int(ED_State_s, "FrameTime_16", 6)-1; }
+if (ED_TotalFrames>=17) {ED_FrameTime_17 = sys->get_config_int(ED_State_s, "FrameTime_17", 6)-1; }
+if (ED_TotalFrames>=18) {ED_FrameTime_18 = sys->get_config_int(ED_State_s, "FrameTime_18", 6)-1; }
+if (ED_TotalFrames>=19) {ED_FrameTime_19 = sys->get_config_int(ED_State_s, "FrameTime_19", 6)-1; }
+if (ED_TotalFrames>=20) {ED_FrameTime_20 = sys->get_config_int(ED_State_s, "FrameTime_20", 6)-1; }
+if (ED_TotalFrames>=21) {ED_FrameTime_21 = sys->get_config_int(ED_State_s, "FrameTime_21", 6)-1; }
+if (ED_TotalFrames>=22) {ED_FrameTime_22 = sys->get_config_int(ED_State_s, "FrameTime_22", 6)-1; }
+if (ED_TotalFrames>=23) {ED_FrameTime_23 = sys->get_config_int(ED_State_s, "FrameTime_23", 6)-1; }
+if (ED_TotalFrames>=24) {ED_FrameTime_24 = sys->get_config_int(ED_State_s, "FrameTime_24", 6)-1; }
+if (ED_TotalFrames>=25) {ED_FrameTime_25 = sys->get_config_int(ED_State_s, "FrameTime_25", 6)-1; }
+if (ED_TotalFrames>=26) {ED_FrameTime_26 = sys->get_config_int(ED_State_s, "FrameTime_26", 6)-1; }
+if (ED_TotalFrames>=27) {ED_FrameTime_27 = sys->get_config_int(ED_State_s, "FrameTime_27", 6)-1; }
+if (ED_TotalFrames>=28) {ED_FrameTime_28 = sys->get_config_int(ED_State_s, "FrameTime_28", 6)-1; }
+if (ED_TotalFrames>=29) {ED_FrameTime_29 = sys->get_config_int(ED_State_s, "FrameTime_29", 6)-1; }
 }
 
 if(ED_State>=700 && ED_Special_Version==1){
-if (ED_TotalFrames>= 0) {ED_FrameTime_00 = get_config_int(ED_State_s, "V1_FrameTime_00", 6)-1; }
-if (ED_TotalFrames>= 1) {ED_FrameTime_01 = get_config_int(ED_State_s, "V1_FrameTime_01", 6)-1; }
-if (ED_TotalFrames>= 2) {ED_FrameTime_02 = get_config_int(ED_State_s, "V1_FrameTime_02", 6)-1; }
-if (ED_TotalFrames>= 3) {ED_FrameTime_03 = get_config_int(ED_State_s, "V1_FrameTime_03", 6)-1; }
-if (ED_TotalFrames>= 4) {ED_FrameTime_04 = get_config_int(ED_State_s, "V1_FrameTime_04", 6)-1; }
-if (ED_TotalFrames>= 5) {ED_FrameTime_05 = get_config_int(ED_State_s, "V1_FrameTime_05", 6)-1; }
-if (ED_TotalFrames>= 6) {ED_FrameTime_06 = get_config_int(ED_State_s, "V1_FrameTime_06", 6)-1; }
-if (ED_TotalFrames>= 7) {ED_FrameTime_07 = get_config_int(ED_State_s, "V1_FrameTime_07", 6)-1; }
-if (ED_TotalFrames>= 8) {ED_FrameTime_08 = get_config_int(ED_State_s, "V1_FrameTime_08", 6)-1; }
-if (ED_TotalFrames>= 9) {ED_FrameTime_09 = get_config_int(ED_State_s, "V1_FrameTime_09", 6)-1; }
-if (ED_TotalFrames>=10) {ED_FrameTime_10 = get_config_int(ED_State_s, "V1_FrameTime_10", 6)-1; }
-if (ED_TotalFrames>=11) {ED_FrameTime_11 = get_config_int(ED_State_s, "V1_FrameTime_11", 6)-1; }
-if (ED_TotalFrames>=12) {ED_FrameTime_12 = get_config_int(ED_State_s, "V1_FrameTime_12", 6)-1; }
-if (ED_TotalFrames>=13) {ED_FrameTime_13 = get_config_int(ED_State_s, "V1_FrameTime_13", 6)-1; }
-if (ED_TotalFrames>=14) {ED_FrameTime_14 = get_config_int(ED_State_s, "V1_FrameTime_14", 6)-1; }
-if (ED_TotalFrames>=15) {ED_FrameTime_15 = get_config_int(ED_State_s, "V1_FrameTime_15", 6)-1; }
-if (ED_TotalFrames>=16) {ED_FrameTime_16 = get_config_int(ED_State_s, "V1_FrameTime_16", 6)-1; }
-if (ED_TotalFrames>=17) {ED_FrameTime_17 = get_config_int(ED_State_s, "V1_FrameTime_17", 6)-1; }
-if (ED_TotalFrames>=18) {ED_FrameTime_18 = get_config_int(ED_State_s, "V1_FrameTime_18", 6)-1; }
-if (ED_TotalFrames>=19) {ED_FrameTime_19 = get_config_int(ED_State_s, "V1_FrameTime_19", 6)-1; }
-if (ED_TotalFrames>=20) {ED_FrameTime_20 = get_config_int(ED_State_s, "V1_FrameTime_20", 6)-1; }
-if (ED_TotalFrames>=21) {ED_FrameTime_21 = get_config_int(ED_State_s, "V1_FrameTime_21", 6)-1; }
-if (ED_TotalFrames>=22) {ED_FrameTime_22 = get_config_int(ED_State_s, "V1_FrameTime_22", 6)-1; }
-if (ED_TotalFrames>=23) {ED_FrameTime_23 = get_config_int(ED_State_s, "V1_FrameTime_23", 6)-1; }
-if (ED_TotalFrames>=24) {ED_FrameTime_24 = get_config_int(ED_State_s, "V1_FrameTime_24", 6)-1; }
-if (ED_TotalFrames>=25) {ED_FrameTime_25 = get_config_int(ED_State_s, "V1_FrameTime_25", 6)-1; }
-if (ED_TotalFrames>=26) {ED_FrameTime_26 = get_config_int(ED_State_s, "V1_FrameTime_26", 6)-1; }
-if (ED_TotalFrames>=27) {ED_FrameTime_27 = get_config_int(ED_State_s, "V1_FrameTime_27", 6)-1; }
-if (ED_TotalFrames>=28) {ED_FrameTime_28 = get_config_int(ED_State_s, "V1_FrameTime_28", 6)-1; }
-if (ED_TotalFrames>=29) {ED_FrameTime_29 = get_config_int(ED_State_s, "V1_FrameTime_29", 6)-1; }
+if (ED_TotalFrames>= 0) {ED_FrameTime_00 = sys->get_config_int(ED_State_s, "V1_FrameTime_00", 6)-1; }
+if (ED_TotalFrames>= 1) {ED_FrameTime_01 = sys->get_config_int(ED_State_s, "V1_FrameTime_01", 6)-1; }
+if (ED_TotalFrames>= 2) {ED_FrameTime_02 = sys->get_config_int(ED_State_s, "V1_FrameTime_02", 6)-1; }
+if (ED_TotalFrames>= 3) {ED_FrameTime_03 = sys->get_config_int(ED_State_s, "V1_FrameTime_03", 6)-1; }
+if (ED_TotalFrames>= 4) {ED_FrameTime_04 = sys->get_config_int(ED_State_s, "V1_FrameTime_04", 6)-1; }
+if (ED_TotalFrames>= 5) {ED_FrameTime_05 = sys->get_config_int(ED_State_s, "V1_FrameTime_05", 6)-1; }
+if (ED_TotalFrames>= 6) {ED_FrameTime_06 = sys->get_config_int(ED_State_s, "V1_FrameTime_06", 6)-1; }
+if (ED_TotalFrames>= 7) {ED_FrameTime_07 = sys->get_config_int(ED_State_s, "V1_FrameTime_07", 6)-1; }
+if (ED_TotalFrames>= 8) {ED_FrameTime_08 = sys->get_config_int(ED_State_s, "V1_FrameTime_08", 6)-1; }
+if (ED_TotalFrames>= 9) {ED_FrameTime_09 = sys->get_config_int(ED_State_s, "V1_FrameTime_09", 6)-1; }
+if (ED_TotalFrames>=10) {ED_FrameTime_10 = sys->get_config_int(ED_State_s, "V1_FrameTime_10", 6)-1; }
+if (ED_TotalFrames>=11) {ED_FrameTime_11 = sys->get_config_int(ED_State_s, "V1_FrameTime_11", 6)-1; }
+if (ED_TotalFrames>=12) {ED_FrameTime_12 = sys->get_config_int(ED_State_s, "V1_FrameTime_12", 6)-1; }
+if (ED_TotalFrames>=13) {ED_FrameTime_13 = sys->get_config_int(ED_State_s, "V1_FrameTime_13", 6)-1; }
+if (ED_TotalFrames>=14) {ED_FrameTime_14 = sys->get_config_int(ED_State_s, "V1_FrameTime_14", 6)-1; }
+if (ED_TotalFrames>=15) {ED_FrameTime_15 = sys->get_config_int(ED_State_s, "V1_FrameTime_15", 6)-1; }
+if (ED_TotalFrames>=16) {ED_FrameTime_16 = sys->get_config_int(ED_State_s, "V1_FrameTime_16", 6)-1; }
+if (ED_TotalFrames>=17) {ED_FrameTime_17 = sys->get_config_int(ED_State_s, "V1_FrameTime_17", 6)-1; }
+if (ED_TotalFrames>=18) {ED_FrameTime_18 = sys->get_config_int(ED_State_s, "V1_FrameTime_18", 6)-1; }
+if (ED_TotalFrames>=19) {ED_FrameTime_19 = sys->get_config_int(ED_State_s, "V1_FrameTime_19", 6)-1; }
+if (ED_TotalFrames>=20) {ED_FrameTime_20 = sys->get_config_int(ED_State_s, "V1_FrameTime_20", 6)-1; }
+if (ED_TotalFrames>=21) {ED_FrameTime_21 = sys->get_config_int(ED_State_s, "V1_FrameTime_21", 6)-1; }
+if (ED_TotalFrames>=22) {ED_FrameTime_22 = sys->get_config_int(ED_State_s, "V1_FrameTime_22", 6)-1; }
+if (ED_TotalFrames>=23) {ED_FrameTime_23 = sys->get_config_int(ED_State_s, "V1_FrameTime_23", 6)-1; }
+if (ED_TotalFrames>=24) {ED_FrameTime_24 = sys->get_config_int(ED_State_s, "V1_FrameTime_24", 6)-1; }
+if (ED_TotalFrames>=25) {ED_FrameTime_25 = sys->get_config_int(ED_State_s, "V1_FrameTime_25", 6)-1; }
+if (ED_TotalFrames>=26) {ED_FrameTime_26 = sys->get_config_int(ED_State_s, "V1_FrameTime_26", 6)-1; }
+if (ED_TotalFrames>=27) {ED_FrameTime_27 = sys->get_config_int(ED_State_s, "V1_FrameTime_27", 6)-1; }
+if (ED_TotalFrames>=28) {ED_FrameTime_28 = sys->get_config_int(ED_State_s, "V1_FrameTime_28", 6)-1; }
+if (ED_TotalFrames>=29) {ED_FrameTime_29 = sys->get_config_int(ED_State_s, "V1_FrameTime_29", 6)-1; }
 }
 
 if(ED_State>=700 && ED_Special_Version==2){
-if (ED_TotalFrames>= 0) {ED_FrameTime_00 = get_config_int(ED_State_s, "V2_FrameTime_00", 6)-1; }
-if (ED_TotalFrames>= 1) {ED_FrameTime_01 = get_config_int(ED_State_s, "V2_FrameTime_01", 6)-1; }
-if (ED_TotalFrames>= 2) {ED_FrameTime_02 = get_config_int(ED_State_s, "V2_FrameTime_02", 6)-1; }
-if (ED_TotalFrames>= 3) {ED_FrameTime_03 = get_config_int(ED_State_s, "V2_FrameTime_03", 6)-1; }
-if (ED_TotalFrames>= 4) {ED_FrameTime_04 = get_config_int(ED_State_s, "V2_FrameTime_04", 6)-1; }
-if (ED_TotalFrames>= 5) {ED_FrameTime_05 = get_config_int(ED_State_s, "V2_FrameTime_05", 6)-1; }
-if (ED_TotalFrames>= 6) {ED_FrameTime_06 = get_config_int(ED_State_s, "V2_FrameTime_06", 6)-1; }
-if (ED_TotalFrames>= 7) {ED_FrameTime_07 = get_config_int(ED_State_s, "V2_FrameTime_07", 6)-1; }
-if (ED_TotalFrames>= 8) {ED_FrameTime_08 = get_config_int(ED_State_s, "V2_FrameTime_08", 6)-1; }
-if (ED_TotalFrames>= 9) {ED_FrameTime_09 = get_config_int(ED_State_s, "V2_FrameTime_09", 6)-1; }
-if (ED_TotalFrames>=10) {ED_FrameTime_10 = get_config_int(ED_State_s, "V2_FrameTime_10", 6)-1; }
-if (ED_TotalFrames>=11) {ED_FrameTime_11 = get_config_int(ED_State_s, "V2_FrameTime_11", 6)-1; }
-if (ED_TotalFrames>=12) {ED_FrameTime_12 = get_config_int(ED_State_s, "V2_FrameTime_12", 6)-1; }
-if (ED_TotalFrames>=13) {ED_FrameTime_13 = get_config_int(ED_State_s, "V2_FrameTime_13", 6)-1; }
-if (ED_TotalFrames>=14) {ED_FrameTime_14 = get_config_int(ED_State_s, "V2_FrameTime_14", 6)-1; }
-if (ED_TotalFrames>=15) {ED_FrameTime_15 = get_config_int(ED_State_s, "V2_FrameTime_15", 6)-1; }
-if (ED_TotalFrames>=16) {ED_FrameTime_16 = get_config_int(ED_State_s, "V2_FrameTime_16", 6)-1; }
-if (ED_TotalFrames>=17) {ED_FrameTime_17 = get_config_int(ED_State_s, "V2_FrameTime_17", 6)-1; }
-if (ED_TotalFrames>=18) {ED_FrameTime_18 = get_config_int(ED_State_s, "V2_FrameTime_18", 6)-1; }
-if (ED_TotalFrames>=19) {ED_FrameTime_19 = get_config_int(ED_State_s, "V2_FrameTime_19", 6)-1; }
-if (ED_TotalFrames>=20) {ED_FrameTime_20 = get_config_int(ED_State_s, "V2_FrameTime_20", 6)-1; }
-if (ED_TotalFrames>=21) {ED_FrameTime_21 = get_config_int(ED_State_s, "V2_FrameTime_21", 6)-1; }
-if (ED_TotalFrames>=22) {ED_FrameTime_22 = get_config_int(ED_State_s, "V2_FrameTime_22", 6)-1; }
-if (ED_TotalFrames>=23) {ED_FrameTime_23 = get_config_int(ED_State_s, "V2_FrameTime_23", 6)-1; }
-if (ED_TotalFrames>=24) {ED_FrameTime_24 = get_config_int(ED_State_s, "V2_FrameTime_24", 6)-1; }
-if (ED_TotalFrames>=25) {ED_FrameTime_25 = get_config_int(ED_State_s, "V2_FrameTime_25", 6)-1; }
-if (ED_TotalFrames>=26) {ED_FrameTime_26 = get_config_int(ED_State_s, "V2_FrameTime_26", 6)-1; }
-if (ED_TotalFrames>=27) {ED_FrameTime_27 = get_config_int(ED_State_s, "V2_FrameTime_27", 6)-1; }
-if (ED_TotalFrames>=28) {ED_FrameTime_28 = get_config_int(ED_State_s, "V2_FrameTime_28", 6)-1; }
-if (ED_TotalFrames>=29) {ED_FrameTime_29 = get_config_int(ED_State_s, "V2_FrameTime_29", 6)-1; }
+if (ED_TotalFrames>= 0) {ED_FrameTime_00 = sys->get_config_int(ED_State_s, "V2_FrameTime_00", 6)-1; }
+if (ED_TotalFrames>= 1) {ED_FrameTime_01 = sys->get_config_int(ED_State_s, "V2_FrameTime_01", 6)-1; }
+if (ED_TotalFrames>= 2) {ED_FrameTime_02 = sys->get_config_int(ED_State_s, "V2_FrameTime_02", 6)-1; }
+if (ED_TotalFrames>= 3) {ED_FrameTime_03 = sys->get_config_int(ED_State_s, "V2_FrameTime_03", 6)-1; }
+if (ED_TotalFrames>= 4) {ED_FrameTime_04 = sys->get_config_int(ED_State_s, "V2_FrameTime_04", 6)-1; }
+if (ED_TotalFrames>= 5) {ED_FrameTime_05 = sys->get_config_int(ED_State_s, "V2_FrameTime_05", 6)-1; }
+if (ED_TotalFrames>= 6) {ED_FrameTime_06 = sys->get_config_int(ED_State_s, "V2_FrameTime_06", 6)-1; }
+if (ED_TotalFrames>= 7) {ED_FrameTime_07 = sys->get_config_int(ED_State_s, "V2_FrameTime_07", 6)-1; }
+if (ED_TotalFrames>= 8) {ED_FrameTime_08 = sys->get_config_int(ED_State_s, "V2_FrameTime_08", 6)-1; }
+if (ED_TotalFrames>= 9) {ED_FrameTime_09 = sys->get_config_int(ED_State_s, "V2_FrameTime_09", 6)-1; }
+if (ED_TotalFrames>=10) {ED_FrameTime_10 = sys->get_config_int(ED_State_s, "V2_FrameTime_10", 6)-1; }
+if (ED_TotalFrames>=11) {ED_FrameTime_11 = sys->get_config_int(ED_State_s, "V2_FrameTime_11", 6)-1; }
+if (ED_TotalFrames>=12) {ED_FrameTime_12 = sys->get_config_int(ED_State_s, "V2_FrameTime_12", 6)-1; }
+if (ED_TotalFrames>=13) {ED_FrameTime_13 = sys->get_config_int(ED_State_s, "V2_FrameTime_13", 6)-1; }
+if (ED_TotalFrames>=14) {ED_FrameTime_14 = sys->get_config_int(ED_State_s, "V2_FrameTime_14", 6)-1; }
+if (ED_TotalFrames>=15) {ED_FrameTime_15 = sys->get_config_int(ED_State_s, "V2_FrameTime_15", 6)-1; }
+if (ED_TotalFrames>=16) {ED_FrameTime_16 = sys->get_config_int(ED_State_s, "V2_FrameTime_16", 6)-1; }
+if (ED_TotalFrames>=17) {ED_FrameTime_17 = sys->get_config_int(ED_State_s, "V2_FrameTime_17", 6)-1; }
+if (ED_TotalFrames>=18) {ED_FrameTime_18 = sys->get_config_int(ED_State_s, "V2_FrameTime_18", 6)-1; }
+if (ED_TotalFrames>=19) {ED_FrameTime_19 = sys->get_config_int(ED_State_s, "V2_FrameTime_19", 6)-1; }
+if (ED_TotalFrames>=20) {ED_FrameTime_20 = sys->get_config_int(ED_State_s, "V2_FrameTime_20", 6)-1; }
+if (ED_TotalFrames>=21) {ED_FrameTime_21 = sys->get_config_int(ED_State_s, "V2_FrameTime_21", 6)-1; }
+if (ED_TotalFrames>=22) {ED_FrameTime_22 = sys->get_config_int(ED_State_s, "V2_FrameTime_22", 6)-1; }
+if (ED_TotalFrames>=23) {ED_FrameTime_23 = sys->get_config_int(ED_State_s, "V2_FrameTime_23", 6)-1; }
+if (ED_TotalFrames>=24) {ED_FrameTime_24 = sys->get_config_int(ED_State_s, "V2_FrameTime_24", 6)-1; }
+if (ED_TotalFrames>=25) {ED_FrameTime_25 = sys->get_config_int(ED_State_s, "V2_FrameTime_25", 6)-1; }
+if (ED_TotalFrames>=26) {ED_FrameTime_26 = sys->get_config_int(ED_State_s, "V2_FrameTime_26", 6)-1; }
+if (ED_TotalFrames>=27) {ED_FrameTime_27 = sys->get_config_int(ED_State_s, "V2_FrameTime_27", 6)-1; }
+if (ED_TotalFrames>=28) {ED_FrameTime_28 = sys->get_config_int(ED_State_s, "V2_FrameTime_28", 6)-1; }
+if (ED_TotalFrames>=29) {ED_FrameTime_29 = sys->get_config_int(ED_State_s, "V2_FrameTime_29", 6)-1; }
 }
 
 if(ED_State>=700 && ED_Special_Version==3){
-if (ED_TotalFrames>= 0) {ED_FrameTime_00 = get_config_int(ED_State_s, "V3_FrameTime_00", 6)-1; }
-if (ED_TotalFrames>= 1) {ED_FrameTime_01 = get_config_int(ED_State_s, "V3_FrameTime_01", 6)-1; }
-if (ED_TotalFrames>= 2) {ED_FrameTime_02 = get_config_int(ED_State_s, "V3_FrameTime_02", 6)-1; }
-if (ED_TotalFrames>= 3) {ED_FrameTime_03 = get_config_int(ED_State_s, "V3_FrameTime_03", 6)-1; }
-if (ED_TotalFrames>= 4) {ED_FrameTime_04 = get_config_int(ED_State_s, "V3_FrameTime_04", 6)-1; }
-if (ED_TotalFrames>= 5) {ED_FrameTime_05 = get_config_int(ED_State_s, "V3_FrameTime_05", 6)-1; }
-if (ED_TotalFrames>= 6) {ED_FrameTime_06 = get_config_int(ED_State_s, "V3_FrameTime_06", 6)-1; }
-if (ED_TotalFrames>= 7) {ED_FrameTime_07 = get_config_int(ED_State_s, "V3_FrameTime_07", 6)-1; }
-if (ED_TotalFrames>= 8) {ED_FrameTime_08 = get_config_int(ED_State_s, "V3_FrameTime_08", 6)-1; }
-if (ED_TotalFrames>= 9) {ED_FrameTime_09 = get_config_int(ED_State_s, "V3_FrameTime_09", 6)-1; }
-if (ED_TotalFrames>=10) {ED_FrameTime_10 = get_config_int(ED_State_s, "V3_FrameTime_10", 6)-1; }
-if (ED_TotalFrames>=11) {ED_FrameTime_11 = get_config_int(ED_State_s, "V3_FrameTime_11", 6)-1; }
-if (ED_TotalFrames>=12) {ED_FrameTime_12 = get_config_int(ED_State_s, "V3_FrameTime_12", 6)-1; }
-if (ED_TotalFrames>=13) {ED_FrameTime_13 = get_config_int(ED_State_s, "V3_FrameTime_13", 6)-1; }
-if (ED_TotalFrames>=14) {ED_FrameTime_14 = get_config_int(ED_State_s, "V3_FrameTime_14", 6)-1; }
-if (ED_TotalFrames>=15) {ED_FrameTime_15 = get_config_int(ED_State_s, "V3_FrameTime_15", 6)-1; }
-if (ED_TotalFrames>=16) {ED_FrameTime_16 = get_config_int(ED_State_s, "V3_FrameTime_16", 6)-1; }
-if (ED_TotalFrames>=17) {ED_FrameTime_17 = get_config_int(ED_State_s, "V3_FrameTime_17", 6)-1; }
-if (ED_TotalFrames>=18) {ED_FrameTime_18 = get_config_int(ED_State_s, "V3_FrameTime_18", 6)-1; }
-if (ED_TotalFrames>=19) {ED_FrameTime_19 = get_config_int(ED_State_s, "V3_FrameTime_19", 6)-1; }
-if (ED_TotalFrames>=20) {ED_FrameTime_20 = get_config_int(ED_State_s, "V3_FrameTime_20", 6)-1; }
-if (ED_TotalFrames>=21) {ED_FrameTime_21 = get_config_int(ED_State_s, "V3_FrameTime_21", 6)-1; }
-if (ED_TotalFrames>=22) {ED_FrameTime_22 = get_config_int(ED_State_s, "V3_FrameTime_22", 6)-1; }
-if (ED_TotalFrames>=23) {ED_FrameTime_23 = get_config_int(ED_State_s, "V3_FrameTime_23", 6)-1; }
-if (ED_TotalFrames>=24) {ED_FrameTime_24 = get_config_int(ED_State_s, "V3_FrameTime_24", 6)-1; }
-if (ED_TotalFrames>=25) {ED_FrameTime_25 = get_config_int(ED_State_s, "V3_FrameTime_25", 6)-1; }
-if (ED_TotalFrames>=26) {ED_FrameTime_26 = get_config_int(ED_State_s, "V3_FrameTime_26", 6)-1; }
-if (ED_TotalFrames>=27) {ED_FrameTime_27 = get_config_int(ED_State_s, "V3_FrameTime_27", 6)-1; }
-if (ED_TotalFrames>=28) {ED_FrameTime_28 = get_config_int(ED_State_s, "V3_FrameTime_28", 6)-1; }
-if (ED_TotalFrames>=29) {ED_FrameTime_29 = get_config_int(ED_State_s, "V3_FrameTime_29", 6)-1; }
+if (ED_TotalFrames>= 0) {ED_FrameTime_00 = sys->get_config_int(ED_State_s, "V3_FrameTime_00", 6)-1; }
+if (ED_TotalFrames>= 1) {ED_FrameTime_01 = sys->get_config_int(ED_State_s, "V3_FrameTime_01", 6)-1; }
+if (ED_TotalFrames>= 2) {ED_FrameTime_02 = sys->get_config_int(ED_State_s, "V3_FrameTime_02", 6)-1; }
+if (ED_TotalFrames>= 3) {ED_FrameTime_03 = sys->get_config_int(ED_State_s, "V3_FrameTime_03", 6)-1; }
+if (ED_TotalFrames>= 4) {ED_FrameTime_04 = sys->get_config_int(ED_State_s, "V3_FrameTime_04", 6)-1; }
+if (ED_TotalFrames>= 5) {ED_FrameTime_05 = sys->get_config_int(ED_State_s, "V3_FrameTime_05", 6)-1; }
+if (ED_TotalFrames>= 6) {ED_FrameTime_06 = sys->get_config_int(ED_State_s, "V3_FrameTime_06", 6)-1; }
+if (ED_TotalFrames>= 7) {ED_FrameTime_07 = sys->get_config_int(ED_State_s, "V3_FrameTime_07", 6)-1; }
+if (ED_TotalFrames>= 8) {ED_FrameTime_08 = sys->get_config_int(ED_State_s, "V3_FrameTime_08", 6)-1; }
+if (ED_TotalFrames>= 9) {ED_FrameTime_09 = sys->get_config_int(ED_State_s, "V3_FrameTime_09", 6)-1; }
+if (ED_TotalFrames>=10) {ED_FrameTime_10 = sys->get_config_int(ED_State_s, "V3_FrameTime_10", 6)-1; }
+if (ED_TotalFrames>=11) {ED_FrameTime_11 = sys->get_config_int(ED_State_s, "V3_FrameTime_11", 6)-1; }
+if (ED_TotalFrames>=12) {ED_FrameTime_12 = sys->get_config_int(ED_State_s, "V3_FrameTime_12", 6)-1; }
+if (ED_TotalFrames>=13) {ED_FrameTime_13 = sys->get_config_int(ED_State_s, "V3_FrameTime_13", 6)-1; }
+if (ED_TotalFrames>=14) {ED_FrameTime_14 = sys->get_config_int(ED_State_s, "V3_FrameTime_14", 6)-1; }
+if (ED_TotalFrames>=15) {ED_FrameTime_15 = sys->get_config_int(ED_State_s, "V3_FrameTime_15", 6)-1; }
+if (ED_TotalFrames>=16) {ED_FrameTime_16 = sys->get_config_int(ED_State_s, "V3_FrameTime_16", 6)-1; }
+if (ED_TotalFrames>=17) {ED_FrameTime_17 = sys->get_config_int(ED_State_s, "V3_FrameTime_17", 6)-1; }
+if (ED_TotalFrames>=18) {ED_FrameTime_18 = sys->get_config_int(ED_State_s, "V3_FrameTime_18", 6)-1; }
+if (ED_TotalFrames>=19) {ED_FrameTime_19 = sys->get_config_int(ED_State_s, "V3_FrameTime_19", 6)-1; }
+if (ED_TotalFrames>=20) {ED_FrameTime_20 = sys->get_config_int(ED_State_s, "V3_FrameTime_20", 6)-1; }
+if (ED_TotalFrames>=21) {ED_FrameTime_21 = sys->get_config_int(ED_State_s, "V3_FrameTime_21", 6)-1; }
+if (ED_TotalFrames>=22) {ED_FrameTime_22 = sys->get_config_int(ED_State_s, "V3_FrameTime_22", 6)-1; }
+if (ED_TotalFrames>=23) {ED_FrameTime_23 = sys->get_config_int(ED_State_s, "V3_FrameTime_23", 6)-1; }
+if (ED_TotalFrames>=24) {ED_FrameTime_24 = sys->get_config_int(ED_State_s, "V3_FrameTime_24", 6)-1; }
+if (ED_TotalFrames>=25) {ED_FrameTime_25 = sys->get_config_int(ED_State_s, "V3_FrameTime_25", 6)-1; }
+if (ED_TotalFrames>=26) {ED_FrameTime_26 = sys->get_config_int(ED_State_s, "V3_FrameTime_26", 6)-1; }
+if (ED_TotalFrames>=27) {ED_FrameTime_27 = sys->get_config_int(ED_State_s, "V3_FrameTime_27", 6)-1; }
+if (ED_TotalFrames>=28) {ED_FrameTime_28 = sys->get_config_int(ED_State_s, "V3_FrameTime_28", 6)-1; }
+if (ED_TotalFrames>=29) {ED_FrameTime_29 = sys->get_config_int(ED_State_s, "V3_FrameTime_29", 6)-1; }
 }
 
 //salva o tempo de animacao 6 (se o tempo do frame for vazio, usa 6, que é o padrao)
 if(ED_State<700){
-if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
+if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { sys->set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { sys->set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { sys->set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { sys->set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { sys->set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { sys->set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { sys->set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { sys->set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { sys->set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { sys->set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { sys->set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { sys->set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { sys->set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { sys->set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { sys->set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { sys->set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { sys->set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { sys->set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { sys->set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { sys->set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { sys->set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { sys->set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { sys->set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { sys->set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { sys->set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { sys->set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { sys->set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { sys->set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { sys->set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { sys->set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
 }
 
 if(ED_State>=700 && ED_Special_Version==1){
-if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { set_config_int(ED_State_s, "V1_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { set_config_int(ED_State_s, "V1_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { set_config_int(ED_State_s, "V1_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { set_config_int(ED_State_s, "V1_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { set_config_int(ED_State_s, "V1_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { set_config_int(ED_State_s, "V1_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { set_config_int(ED_State_s, "V1_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { set_config_int(ED_State_s, "V1_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { set_config_int(ED_State_s, "V1_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { set_config_int(ED_State_s, "V1_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { set_config_int(ED_State_s, "V1_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { set_config_int(ED_State_s, "V1_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { set_config_int(ED_State_s, "V1_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { set_config_int(ED_State_s, "V1_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { set_config_int(ED_State_s, "V1_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { set_config_int(ED_State_s, "V1_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { set_config_int(ED_State_s, "V1_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { set_config_int(ED_State_s, "V1_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { set_config_int(ED_State_s, "V1_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { set_config_int(ED_State_s, "V1_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { set_config_int(ED_State_s, "V1_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { set_config_int(ED_State_s, "V1_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { set_config_int(ED_State_s, "V1_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { set_config_int(ED_State_s, "V1_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { set_config_int(ED_State_s, "V1_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { set_config_int(ED_State_s, "V1_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { set_config_int(ED_State_s, "V1_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { set_config_int(ED_State_s, "V1_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { set_config_int(ED_State_s, "V1_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { set_config_int(ED_State_s, "V1_FrameTime_29", ED_FrameTime_29+1); }
+if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { sys->set_config_int(ED_State_s, "V1_FrameTime_29", ED_FrameTime_29+1); }
 }
 
 if(ED_State>=700 && ED_Special_Version==2){
-if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { set_config_int(ED_State_s, "V2_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { set_config_int(ED_State_s, "V2_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { set_config_int(ED_State_s, "V2_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { set_config_int(ED_State_s, "V2_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { set_config_int(ED_State_s, "V2_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { set_config_int(ED_State_s, "V2_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { set_config_int(ED_State_s, "V2_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { set_config_int(ED_State_s, "V2_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { set_config_int(ED_State_s, "V2_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { set_config_int(ED_State_s, "V2_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { set_config_int(ED_State_s, "V2_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { set_config_int(ED_State_s, "V2_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { set_config_int(ED_State_s, "V2_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { set_config_int(ED_State_s, "V2_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { set_config_int(ED_State_s, "V2_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { set_config_int(ED_State_s, "V2_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { set_config_int(ED_State_s, "V2_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { set_config_int(ED_State_s, "V2_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { set_config_int(ED_State_s, "V2_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { set_config_int(ED_State_s, "V2_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { set_config_int(ED_State_s, "V2_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { set_config_int(ED_State_s, "V2_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { set_config_int(ED_State_s, "V2_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { set_config_int(ED_State_s, "V2_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { set_config_int(ED_State_s, "V2_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { set_config_int(ED_State_s, "V2_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { set_config_int(ED_State_s, "V2_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { set_config_int(ED_State_s, "V2_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { set_config_int(ED_State_s, "V2_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { set_config_int(ED_State_s, "V2_FrameTime_29", ED_FrameTime_29+1); }
+if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { sys->set_config_int(ED_State_s, "V2_FrameTime_29", ED_FrameTime_29+1); }
 }
 
 if(ED_State>=700 && ED_Special_Version==3){
-if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { set_config_int(ED_State_s, "V3_FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { set_config_int(ED_State_s, "V3_FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { set_config_int(ED_State_s, "V3_FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { set_config_int(ED_State_s, "V3_FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { set_config_int(ED_State_s, "V3_FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { set_config_int(ED_State_s, "V3_FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { set_config_int(ED_State_s, "V3_FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { set_config_int(ED_State_s, "V3_FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { set_config_int(ED_State_s, "V3_FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { set_config_int(ED_State_s, "V3_FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { set_config_int(ED_State_s, "V3_FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { set_config_int(ED_State_s, "V3_FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { set_config_int(ED_State_s, "V3_FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { set_config_int(ED_State_s, "V3_FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { set_config_int(ED_State_s, "V3_FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { set_config_int(ED_State_s, "V3_FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { set_config_int(ED_State_s, "V3_FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { set_config_int(ED_State_s, "V3_FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { set_config_int(ED_State_s, "V3_FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { set_config_int(ED_State_s, "V3_FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { set_config_int(ED_State_s, "V3_FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { set_config_int(ED_State_s, "V3_FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { set_config_int(ED_State_s, "V3_FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { set_config_int(ED_State_s, "V3_FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { set_config_int(ED_State_s, "V3_FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { set_config_int(ED_State_s, "V3_FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { set_config_int(ED_State_s, "V3_FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { set_config_int(ED_State_s, "V3_FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { set_config_int(ED_State_s, "V3_FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { set_config_int(ED_State_s, "V3_FrameTime_29", ED_FrameTime_29+1); }
+if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { sys->set_config_int(ED_State_s, "V3_FrameTime_29", ED_FrameTime_29+1); }
 }
 
 }
@@ -11519,7 +11546,7 @@ P[1].Special_Inputs[indx][ind]=0;
 
 char StrSpecialInput[99];
 sprintf(StrSpecialInput, "data/chars/%s/special.ini", P[1].Name);
-set_config_file(StrSpecialInput);
+sys->set_config_file(StrSpecialInput);
 char str[3];
 //carrega os inputs dos especiais
 for(int ind=0; ind<=9; ind++){
@@ -11533,38 +11560,38 @@ if(ind==6) { sprintf(str, "760"); }
 if(ind==7) { sprintf(str, "770"); }
 if(ind==8) { sprintf(str, "780"); }
 if(ind==9) { sprintf(str, "790"); }
-P[1].Special_Inputs_c[ind][1]  = get_config_int(str, "c1" , 0); //0 é neutro
-P[1].Special_Inputs_c[ind][2]  = get_config_int(str, "c2" , 0);
-P[1].Special_Inputs_c[ind][3]  = get_config_int(str, "c3" , 0);
-P[1].Special_Inputs_c[ind][4]  = get_config_int(str, "c4" , 0);
-P[1].Special_Inputs_c[ind][5]  = get_config_int(str, "c5" , 0);
-P[1].Special_Inputs_c[ind][6]  = get_config_int(str, "c6" , 0);
-P[1].Special_Inputs_c[ind][7]  = get_config_int(str, "c7" , 0);
-P[1].Special_Inputs_c[ind][8]  = get_config_int(str, "c8" , 0);
-P[1].Special_Inputs_c[ind][9]  = get_config_int(str, "c9" , 0);
-P[1].Special_Inputs_c[ind][10] = get_config_int(str, "c10", 0);
-P[1].Special_Inputs_c[ind][11] = get_config_int(str, "c11", 0);
-P[1].Special_Inputs_c[ind][12] = get_config_int(str, "c12", 0);
-P[1].Special_Inputs_c[ind][13] = get_config_int(str, "c13", 0);
-P[1].Special_Inputs_c[ind][14] = get_config_int(str, "c14", 0);
-P[1].Special_Inputs_c[ind][15] = get_config_int(str, "c15", 0);
-P[1].Special_Inputs_c[ind][16] = get_config_int(str, "c16", 0);
-P[1].Special_Inputs_b[ind][1]  = get_config_int(str, "b1" , 0)*-1; //0 é neutro
-P[1].Special_Inputs_b[ind][2]  = get_config_int(str, "b2" , 0)*-1;
-P[1].Special_Inputs_b[ind][3]  = get_config_int(str, "b3" , 0)*-1;
-P[1].Special_Inputs_b[ind][4]  = get_config_int(str, "b4" , 0)*-1;
-P[1].Special_Inputs_b[ind][5]  = get_config_int(str, "b5" , 0)*-1;
-P[1].Special_Inputs_b[ind][6]  = get_config_int(str, "b6" , 0)*-1;
-P[1].Special_Inputs_b[ind][7]  = get_config_int(str, "b7" , 0)*-1;
-P[1].Special_Inputs_b[ind][8]  = get_config_int(str, "b8" , 0)*-1;
-P[1].Special_Inputs_b[ind][9]  = get_config_int(str, "b9" , 0)*-1;
-P[1].Special_Inputs_b[ind][10] = get_config_int(str, "b10", 0)*-1;
-P[1].Special_Inputs_b[ind][11] = get_config_int(str, "b11", 0)*-1;
-P[1].Special_Inputs_b[ind][12] = get_config_int(str, "b12", 0)*-1;
-P[1].Special_Inputs_b[ind][13] = get_config_int(str, "b13", 0)*-1;
-P[1].Special_Inputs_b[ind][14] = get_config_int(str, "b14", 0)*-1;
-P[1].Special_Inputs_b[ind][15] = get_config_int(str, "b15", 0)*-1;
-P[1].Special_Inputs_b[ind][16] = get_config_int(str, "b16", 0)*-1;
+P[1].Special_Inputs_c[ind][1]  = sys->get_config_int(str, "c1" , 0); //0 é neutro
+P[1].Special_Inputs_c[ind][2]  = sys->get_config_int(str, "c2" , 0);
+P[1].Special_Inputs_c[ind][3]  = sys->get_config_int(str, "c3" , 0);
+P[1].Special_Inputs_c[ind][4]  = sys->get_config_int(str, "c4" , 0);
+P[1].Special_Inputs_c[ind][5]  = sys->get_config_int(str, "c5" , 0);
+P[1].Special_Inputs_c[ind][6]  = sys->get_config_int(str, "c6" , 0);
+P[1].Special_Inputs_c[ind][7]  = sys->get_config_int(str, "c7" , 0);
+P[1].Special_Inputs_c[ind][8]  = sys->get_config_int(str, "c8" , 0);
+P[1].Special_Inputs_c[ind][9]  = sys->get_config_int(str, "c9" , 0);
+P[1].Special_Inputs_c[ind][10] = sys->get_config_int(str, "c10", 0);
+P[1].Special_Inputs_c[ind][11] = sys->get_config_int(str, "c11", 0);
+P[1].Special_Inputs_c[ind][12] = sys->get_config_int(str, "c12", 0);
+P[1].Special_Inputs_c[ind][13] = sys->get_config_int(str, "c13", 0);
+P[1].Special_Inputs_c[ind][14] = sys->get_config_int(str, "c14", 0);
+P[1].Special_Inputs_c[ind][15] = sys->get_config_int(str, "c15", 0);
+P[1].Special_Inputs_c[ind][16] = sys->get_config_int(str, "c16", 0);
+P[1].Special_Inputs_b[ind][1]  = sys->get_config_int(str, "b1" , 0)*-1; //0 é neutro
+P[1].Special_Inputs_b[ind][2]  = sys->get_config_int(str, "b2" , 0)*-1;
+P[1].Special_Inputs_b[ind][3]  = sys->get_config_int(str, "b3" , 0)*-1;
+P[1].Special_Inputs_b[ind][4]  = sys->get_config_int(str, "b4" , 0)*-1;
+P[1].Special_Inputs_b[ind][5]  = sys->get_config_int(str, "b5" , 0)*-1;
+P[1].Special_Inputs_b[ind][6]  = sys->get_config_int(str, "b6" , 0)*-1;
+P[1].Special_Inputs_b[ind][7]  = sys->get_config_int(str, "b7" , 0)*-1;
+P[1].Special_Inputs_b[ind][8]  = sys->get_config_int(str, "b8" , 0)*-1;
+P[1].Special_Inputs_b[ind][9]  = sys->get_config_int(str, "b9" , 0)*-1;
+P[1].Special_Inputs_b[ind][10] = sys->get_config_int(str, "b10", 0)*-1;
+P[1].Special_Inputs_b[ind][11] = sys->get_config_int(str, "b11", 0)*-1;
+P[1].Special_Inputs_b[ind][12] = sys->get_config_int(str, "b12", 0)*-1;
+P[1].Special_Inputs_b[ind][13] = sys->get_config_int(str, "b13", 0)*-1;
+P[1].Special_Inputs_b[ind][14] = sys->get_config_int(str, "b14", 0)*-1;
+P[1].Special_Inputs_b[ind][15] = sys->get_config_int(str, "b15", 0)*-1;
+P[1].Special_Inputs_b[ind][16] = sys->get_config_int(str, "b16", 0)*-1;
 }
 
 //contagem da qtde de comandos e botoes
@@ -11658,74 +11685,74 @@ char ED_Caminho[99];
 
 sprintf(ED_State_s, "%i", ED_State);
 sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name);
-set_config_file(ED_Caminho);
-strcpy(ED_Name_Display, (char *)get_config_string("Info", "Name", "-"));
+sys->set_config_file(ED_Caminho);
+strcpy(ED_Name_Display, (char *)sys->get_config_string("Info", "Name", "-"));
 ED_XAlign    = get_config_int   (ED_State_s, "XAlign" , ED_Largura/2 );
 ED_YAlign    = get_config_int   (ED_State_s, "YAlign" , ED_Altura );
 ED_Tipo      = get_config_int   ("Info"    , "Type"   , 1 );
 ED_TotalFrames   = get_config_int   (ED_State_s, "TotalFrames"   ,   ED_TotalFrames );
-if (ED_TotalFrames>= 0) {ED_FrameTime_00 = get_config_int(ED_State_s, "FrameTime_00", 6)-1; }
-if (ED_TotalFrames>= 1) {ED_FrameTime_01 = get_config_int(ED_State_s, "FrameTime_01", 6)-1; }
-if (ED_TotalFrames>= 2) {ED_FrameTime_02 = get_config_int(ED_State_s, "FrameTime_02", 6)-1; }
-if (ED_TotalFrames>= 3) {ED_FrameTime_03 = get_config_int(ED_State_s, "FrameTime_03", 6)-1; }
-if (ED_TotalFrames>= 4) {ED_FrameTime_04 = get_config_int(ED_State_s, "FrameTime_04", 6)-1; }
-if (ED_TotalFrames>= 5) {ED_FrameTime_05 = get_config_int(ED_State_s, "FrameTime_05", 6)-1; }
-if (ED_TotalFrames>= 6) {ED_FrameTime_06 = get_config_int(ED_State_s, "FrameTime_06", 6)-1; }
-if (ED_TotalFrames>= 7) {ED_FrameTime_07 = get_config_int(ED_State_s, "FrameTime_07", 6)-1; }
-if (ED_TotalFrames>= 8) {ED_FrameTime_08 = get_config_int(ED_State_s, "FrameTime_08", 6)-1; }
-if (ED_TotalFrames>= 9) {ED_FrameTime_09 = get_config_int(ED_State_s, "FrameTime_09", 6)-1; }
-if (ED_TotalFrames>=10) {ED_FrameTime_10 = get_config_int(ED_State_s, "FrameTime_10", 6)-1; }
-if (ED_TotalFrames>=11) {ED_FrameTime_11 = get_config_int(ED_State_s, "FrameTime_11", 6)-1; }
-if (ED_TotalFrames>=12) {ED_FrameTime_12 = get_config_int(ED_State_s, "FrameTime_12", 6)-1; }
-if (ED_TotalFrames>=13) {ED_FrameTime_13 = get_config_int(ED_State_s, "FrameTime_13", 6)-1; }
-if (ED_TotalFrames>=14) {ED_FrameTime_14 = get_config_int(ED_State_s, "FrameTime_14", 6)-1; }
-if (ED_TotalFrames>=15) {ED_FrameTime_15 = get_config_int(ED_State_s, "FrameTime_15", 6)-1; }
-if (ED_TotalFrames>=16) {ED_FrameTime_16 = get_config_int(ED_State_s, "FrameTime_16", 6)-1; }
-if (ED_TotalFrames>=17) {ED_FrameTime_17 = get_config_int(ED_State_s, "FrameTime_17", 6)-1; }
-if (ED_TotalFrames>=18) {ED_FrameTime_18 = get_config_int(ED_State_s, "FrameTime_18", 6)-1; }
-if (ED_TotalFrames>=19) {ED_FrameTime_19 = get_config_int(ED_State_s, "FrameTime_19", 6)-1; }
-if (ED_TotalFrames>=20) {ED_FrameTime_20 = get_config_int(ED_State_s, "FrameTime_20", 6)-1; }
-if (ED_TotalFrames>=21) {ED_FrameTime_21 = get_config_int(ED_State_s, "FrameTime_21", 6)-1; }
-if (ED_TotalFrames>=22) {ED_FrameTime_22 = get_config_int(ED_State_s, "FrameTime_22", 6)-1; }
-if (ED_TotalFrames>=23) {ED_FrameTime_23 = get_config_int(ED_State_s, "FrameTime_23", 6)-1; }
-if (ED_TotalFrames>=24) {ED_FrameTime_24 = get_config_int(ED_State_s, "FrameTime_24", 6)-1; }
-if (ED_TotalFrames>=25) {ED_FrameTime_25 = get_config_int(ED_State_s, "FrameTime_25", 6)-1; }
-if (ED_TotalFrames>=26) {ED_FrameTime_26 = get_config_int(ED_State_s, "FrameTime_26", 6)-1; }
-if (ED_TotalFrames>=27) {ED_FrameTime_27 = get_config_int(ED_State_s, "FrameTime_27", 6)-1; }
-if (ED_TotalFrames>=28) {ED_FrameTime_28 = get_config_int(ED_State_s, "FrameTime_28", 6)-1; }
-if (ED_TotalFrames>=29) {ED_FrameTime_29 = get_config_int(ED_State_s, "FrameTime_29", 6)-1; }
+if (ED_TotalFrames>= 0) {ED_FrameTime_00 = sys->get_config_int(ED_State_s, "FrameTime_00", 6)-1; }
+if (ED_TotalFrames>= 1) {ED_FrameTime_01 = sys->get_config_int(ED_State_s, "FrameTime_01", 6)-1; }
+if (ED_TotalFrames>= 2) {ED_FrameTime_02 = sys->get_config_int(ED_State_s, "FrameTime_02", 6)-1; }
+if (ED_TotalFrames>= 3) {ED_FrameTime_03 = sys->get_config_int(ED_State_s, "FrameTime_03", 6)-1; }
+if (ED_TotalFrames>= 4) {ED_FrameTime_04 = sys->get_config_int(ED_State_s, "FrameTime_04", 6)-1; }
+if (ED_TotalFrames>= 5) {ED_FrameTime_05 = sys->get_config_int(ED_State_s, "FrameTime_05", 6)-1; }
+if (ED_TotalFrames>= 6) {ED_FrameTime_06 = sys->get_config_int(ED_State_s, "FrameTime_06", 6)-1; }
+if (ED_TotalFrames>= 7) {ED_FrameTime_07 = sys->get_config_int(ED_State_s, "FrameTime_07", 6)-1; }
+if (ED_TotalFrames>= 8) {ED_FrameTime_08 = sys->get_config_int(ED_State_s, "FrameTime_08", 6)-1; }
+if (ED_TotalFrames>= 9) {ED_FrameTime_09 = sys->get_config_int(ED_State_s, "FrameTime_09", 6)-1; }
+if (ED_TotalFrames>=10) {ED_FrameTime_10 = sys->get_config_int(ED_State_s, "FrameTime_10", 6)-1; }
+if (ED_TotalFrames>=11) {ED_FrameTime_11 = sys->get_config_int(ED_State_s, "FrameTime_11", 6)-1; }
+if (ED_TotalFrames>=12) {ED_FrameTime_12 = sys->get_config_int(ED_State_s, "FrameTime_12", 6)-1; }
+if (ED_TotalFrames>=13) {ED_FrameTime_13 = sys->get_config_int(ED_State_s, "FrameTime_13", 6)-1; }
+if (ED_TotalFrames>=14) {ED_FrameTime_14 = sys->get_config_int(ED_State_s, "FrameTime_14", 6)-1; }
+if (ED_TotalFrames>=15) {ED_FrameTime_15 = sys->get_config_int(ED_State_s, "FrameTime_15", 6)-1; }
+if (ED_TotalFrames>=16) {ED_FrameTime_16 = sys->get_config_int(ED_State_s, "FrameTime_16", 6)-1; }
+if (ED_TotalFrames>=17) {ED_FrameTime_17 = sys->get_config_int(ED_State_s, "FrameTime_17", 6)-1; }
+if (ED_TotalFrames>=18) {ED_FrameTime_18 = sys->get_config_int(ED_State_s, "FrameTime_18", 6)-1; }
+if (ED_TotalFrames>=19) {ED_FrameTime_19 = sys->get_config_int(ED_State_s, "FrameTime_19", 6)-1; }
+if (ED_TotalFrames>=20) {ED_FrameTime_20 = sys->get_config_int(ED_State_s, "FrameTime_20", 6)-1; }
+if (ED_TotalFrames>=21) {ED_FrameTime_21 = sys->get_config_int(ED_State_s, "FrameTime_21", 6)-1; }
+if (ED_TotalFrames>=22) {ED_FrameTime_22 = sys->get_config_int(ED_State_s, "FrameTime_22", 6)-1; }
+if (ED_TotalFrames>=23) {ED_FrameTime_23 = sys->get_config_int(ED_State_s, "FrameTime_23", 6)-1; }
+if (ED_TotalFrames>=24) {ED_FrameTime_24 = sys->get_config_int(ED_State_s, "FrameTime_24", 6)-1; }
+if (ED_TotalFrames>=25) {ED_FrameTime_25 = sys->get_config_int(ED_State_s, "FrameTime_25", 6)-1; }
+if (ED_TotalFrames>=26) {ED_FrameTime_26 = sys->get_config_int(ED_State_s, "FrameTime_26", 6)-1; }
+if (ED_TotalFrames>=27) {ED_FrameTime_27 = sys->get_config_int(ED_State_s, "FrameTime_27", 6)-1; }
+if (ED_TotalFrames>=28) {ED_FrameTime_28 = sys->get_config_int(ED_State_s, "FrameTime_28", 6)-1; }
+if (ED_TotalFrames>=29) {ED_FrameTime_29 = sys->get_config_int(ED_State_s, "FrameTime_29", 6)-1; }
 
 //salva o tempo de animacao 6 (se o tempo do frame for vazio, usa 6, que é o padrao)
-if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
-if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
-if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
-if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
-if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
-if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
-if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
-if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
-if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
-if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
-if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
-if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
-if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
-if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
-if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
-if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
-if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
-if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
-if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
-if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
-if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
-if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
-if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
-if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
-if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
-if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
-if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
-if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
-if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
-if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
+if (ED_TotalFrames>= 0 && ED_FrameTime_00==5) { sys->set_config_int(ED_State_s, "FrameTime_00", ED_FrameTime_00+1); }
+if (ED_TotalFrames>= 1 && ED_FrameTime_01==5) { sys->set_config_int(ED_State_s, "FrameTime_01", ED_FrameTime_01+1); }
+if (ED_TotalFrames>= 2 && ED_FrameTime_02==5) { sys->set_config_int(ED_State_s, "FrameTime_02", ED_FrameTime_02+1); }
+if (ED_TotalFrames>= 3 && ED_FrameTime_03==5) { sys->set_config_int(ED_State_s, "FrameTime_03", ED_FrameTime_03+1); }
+if (ED_TotalFrames>= 4 && ED_FrameTime_04==5) { sys->set_config_int(ED_State_s, "FrameTime_04", ED_FrameTime_04+1); }
+if (ED_TotalFrames>= 5 && ED_FrameTime_05==5) { sys->set_config_int(ED_State_s, "FrameTime_05", ED_FrameTime_05+1); }
+if (ED_TotalFrames>= 6 && ED_FrameTime_06==5) { sys->set_config_int(ED_State_s, "FrameTime_06", ED_FrameTime_06+1); }
+if (ED_TotalFrames>= 7 && ED_FrameTime_07==5) { sys->set_config_int(ED_State_s, "FrameTime_07", ED_FrameTime_07+1); }
+if (ED_TotalFrames>= 8 && ED_FrameTime_08==5) { sys->set_config_int(ED_State_s, "FrameTime_08", ED_FrameTime_08+1); }
+if (ED_TotalFrames>= 9 && ED_FrameTime_09==5) { sys->set_config_int(ED_State_s, "FrameTime_09", ED_FrameTime_09+1); }
+if (ED_TotalFrames>=10 && ED_FrameTime_10==5) { sys->set_config_int(ED_State_s, "FrameTime_10", ED_FrameTime_10+1); }
+if (ED_TotalFrames>=11 && ED_FrameTime_11==5) { sys->set_config_int(ED_State_s, "FrameTime_11", ED_FrameTime_11+1); }
+if (ED_TotalFrames>=12 && ED_FrameTime_12==5) { sys->set_config_int(ED_State_s, "FrameTime_12", ED_FrameTime_12+1); }
+if (ED_TotalFrames>=13 && ED_FrameTime_13==5) { sys->set_config_int(ED_State_s, "FrameTime_13", ED_FrameTime_13+1); }
+if (ED_TotalFrames>=14 && ED_FrameTime_14==5) { sys->set_config_int(ED_State_s, "FrameTime_14", ED_FrameTime_14+1); }
+if (ED_TotalFrames>=15 && ED_FrameTime_15==5) { sys->set_config_int(ED_State_s, "FrameTime_15", ED_FrameTime_15+1); }
+if (ED_TotalFrames>=16 && ED_FrameTime_16==5) { sys->set_config_int(ED_State_s, "FrameTime_16", ED_FrameTime_16+1); }
+if (ED_TotalFrames>=17 && ED_FrameTime_17==5) { sys->set_config_int(ED_State_s, "FrameTime_17", ED_FrameTime_17+1); }
+if (ED_TotalFrames>=18 && ED_FrameTime_18==5) { sys->set_config_int(ED_State_s, "FrameTime_18", ED_FrameTime_18+1); }
+if (ED_TotalFrames>=19 && ED_FrameTime_19==5) { sys->set_config_int(ED_State_s, "FrameTime_19", ED_FrameTime_19+1); }
+if (ED_TotalFrames>=20 && ED_FrameTime_20==5) { sys->set_config_int(ED_State_s, "FrameTime_20", ED_FrameTime_20+1); }
+if (ED_TotalFrames>=21 && ED_FrameTime_21==5) { sys->set_config_int(ED_State_s, "FrameTime_21", ED_FrameTime_21+1); }
+if (ED_TotalFrames>=22 && ED_FrameTime_22==5) { sys->set_config_int(ED_State_s, "FrameTime_22", ED_FrameTime_22+1); }
+if (ED_TotalFrames>=23 && ED_FrameTime_23==5) { sys->set_config_int(ED_State_s, "FrameTime_23", ED_FrameTime_23+1); }
+if (ED_TotalFrames>=24 && ED_FrameTime_24==5) { sys->set_config_int(ED_State_s, "FrameTime_24", ED_FrameTime_24+1); }
+if (ED_TotalFrames>=25 && ED_FrameTime_25==5) { sys->set_config_int(ED_State_s, "FrameTime_25", ED_FrameTime_25+1); }
+if (ED_TotalFrames>=26 && ED_FrameTime_26==5) { sys->set_config_int(ED_State_s, "FrameTime_26", ED_FrameTime_26+1); }
+if (ED_TotalFrames>=27 && ED_FrameTime_27==5) { sys->set_config_int(ED_State_s, "FrameTime_27", ED_FrameTime_27+1); }
+if (ED_TotalFrames>=28 && ED_FrameTime_28==5) { sys->set_config_int(ED_State_s, "FrameTime_28", ED_FrameTime_28+1); }
+if (ED_TotalFrames>=29 && ED_FrameTime_29==5) { sys->set_config_int(ED_State_s, "FrameTime_29", ED_FrameTime_29+1); }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
