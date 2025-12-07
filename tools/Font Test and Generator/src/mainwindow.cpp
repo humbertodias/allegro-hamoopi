@@ -388,6 +388,11 @@ void MainWindow::onExport()
     if (fileName.isEmpty()) {
         return;
     }
+
+    // Ensure the file has .pcx extension
+    if (!fileName.endsWith(".pcx", Qt::CaseInsensitive)) {
+        fileName += ".pcx";
+    }
     
     // Set wait cursor
     QApplication::setOverrideCursor(Qt::WaitCursor);
