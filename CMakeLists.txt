@@ -14,11 +14,17 @@ if(USE_SDL2)
     find_package(SDL2_image REQUIRED)
     find_package(SDL2_mixer REQUIRED)
     find_package(SDL2_ttf REQUIRED)
-    
+
+    # inih
+    # sudo apt install libinih-dev
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(INIH REQUIRED inih)
+
     # Include directories for SDL2
     target_include_directories(HAMOOPI PRIVATE 
         ${SDL2_INCLUDE_DIRS}
         /usr/include/SDL2
+        ${INIH_INCLUDE_DIRS}
     )
     
     # Link SDL2 libraries
@@ -28,6 +34,7 @@ if(USE_SDL2)
         SDL2_mixer
         SDL2_ttf
         m
+        ${INIH_LIBRARIES}
     )
 else()
     # Allegro 4 Backend (default)

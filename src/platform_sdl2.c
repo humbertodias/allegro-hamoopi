@@ -7,6 +7,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdarg.h>
 #include <string.h>
+#include "ini.h"
+
 
 // Global state
 static SDL_Window *g_window = NULL;
@@ -348,37 +350,42 @@ void platform_destroy_bitmap(PlatformBitmap *bitmap) {
 
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
 
-    const char *realfile = replace_pcx_with_png(filename);
+    char *realfile = replace_pcx_with_png(filename);  // allocate new name
+    if (!realfile) return NULL;
 
-    // Load image (PCX→PNG already handled)
     SDL_Surface *loaded = IMG_Load(realfile);
+    free(realfile);  // <-- IMPORTANT: avoid memory leak
+
     if (!loaded) {
         return NULL;
     }
 
-    // Convert to ARGB8888 format to match created bitmaps
+    // Convert to ARGB8888 — required for transparency and blits
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(loaded);
-    
+
     if (!surface) {
         return NULL;
     }
 
-    // Set magenta as transparent color key
-    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 255, 0, 255));
+    // Enable transparency using color key (magenta)
+    Uint32 colorkey = SDL_MapRGB(surface->format, 255, 0, 255);
+    SDL_SetColorKey(surface, SDL_TRUE, colorkey);
 
-    PlatformBitmap *pb = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
-    if (pb) {
-        pb->surface = surface;
-        pb->texture = NULL;
-        pb->w = surface->w;
-        pb->h = surface->h;
-    } else {
+    PlatformBitmap *pb = malloc(sizeof(PlatformBitmap));
+    if (!pb) {
         SDL_FreeSurface(surface);
+        return NULL;
     }
-    
+
+    pb->surface = surface;
+    pb->texture = NULL;
+    pb->w = surface->w;
+    pb->h = surface->h;
+
     return pb;
 }
+
 
 void platform_clear_bitmap(PlatformBitmap *bitmap) {
     if (bitmap && bitmap->surface) {
@@ -906,231 +913,158 @@ void platform_set_config_file(const char *filename) {
     config_file[sizeof(config_file) - 1] = '\0';
 }
 
-int platform_get_config_int(const char *section, const char *key, int default_value) {
-    FILE *f = fopen(config_file, "r");
-    if (!f) return default_value;
-    
-    char line[256];
-    int in_section = 0;
-    
-    while (fgets(line, sizeof(line), f)) {
-        // Remove newline
-        line[strcspn(line, "\r\n")] = 0;
-        
-        // Check for section
-        if (line[0] == '[') {
-            char *end = strchr(line, ']');
-            if (end) {
-                *end = 0;
-                in_section = (strcmp(line + 1, section) == 0);
-            }
-        } else if (in_section) {
-            // Check for key
-            char *eq = strchr(line, '=');
-            if (eq) {
-                *eq = 0;
-                char *k = line;
-                char *v = eq + 1;
-                
-                // Trim whitespace
-                while (*k == ' ') k++;
-                while (*v == ' ') v++;
-                
-                if (strcmp(k, key) == 0) {
-                    fclose(f);
-                    return atoi(v);
-                }
-            }
-        }
+typedef struct {
+    const char *section;
+    const char *key;
+    char value_buf[256]; // buffer próprio para salvar o value
+    int found;
+} find_context;
+
+static int ini_find_handler(void* user, const char* section, const char* name, const char* value)
+{
+    find_context *ctx = (find_context*)user;
+
+    if (strcmp(section, ctx->section) == 0 &&
+        strcmp(name, ctx->key) == 0)
+    {
+        strncpy(ctx->value_buf, value ? value : "", sizeof(ctx->value_buf) - 1);
+        ctx->value_buf[sizeof(ctx->value_buf)-1] = '\0';
+        ctx->found = 1;
+        return 0; // parar o parse
     }
-    
-    fclose(f);
-    return default_value;
+    return 1; // continuar
 }
 
-const char* platform_get_config_string(const char *section,
-                                       const char *key,
-                                       const char *default_value)
+static void write_or_replace_key(FILE *out, const char *section,
+                                 const char *key, const char *value)
 {
-    FILE *f = fopen(config_file, "r");
-    if (!f) return default_value;
-
-    char line[256];
-    int in_section = 0;
-
-    while (fgets(line, sizeof(line), f)) {
-
-        // Remove newline
-        line[strcspn(line, "\r\n")] = 0;
-
-        // Skip empty lines
-        if (line[0] == '\0')
-            continue;
-
-        // Skip comments
-        if (line[0] == ';' || line[0] == '#')
-            continue;
-
-        // Detect section
-        if (line[0] == '[') {
-            char *end = strchr(line, ']');
-            if (end) {
-                *end = '\0';
-
-                // Compare section names
-                in_section = (strcmp(line + 1, section) == 0);
-            }
-            continue;
-        }
-
-        // Look for key inside the correct section
-        if (in_section) {
-
-            char *eq = strchr(line, '=');
-            if (!eq)
-                continue;
-
-            *eq = '\0';
-
-            // Left = key, right = value
-            char *k = line;
-            char *v = eq + 1;
-
-            // Trim leading spaces
-            while (*k == ' ' || *k == '\t') k++;
-            while (*v == ' ' || *v == '\t') v++;
-
-            // Trim trailing spaces (key)
-            char *kend = k + strlen(k) - 1;
-            while (kend > k && (*kend == ' ' || *kend == '\t')) {
-                *kend-- = '\0';
-            }
-
-            // Trim trailing spaces (value)
-            char *vend = v + strlen(v) - 1;
-            while (vend > v && (*vend == ' ' || *vend == '\t')) {
-                *vend-- = '\0';
-            }
-
-            // Compare key
-            if (strcmp(k, key) == 0) {
-                fclose(f);
-
-                // Copy safely into your global buffer
-                strncpy(config_buffer, v, sizeof(config_buffer) - 1);
-                config_buffer[sizeof(config_buffer) - 1] = '\0';
-
-                return config_buffer;
-            }
-        }
-    }
-
-    fclose(f);
-    return default_value;
-}
-
-
-static void platform_set_config_value(const char *section,
-                                      const char *key,
-                                      const char *value)
-{
-    FILE *f = fopen(config_file, "r");
-
-    char temp_path[512];
+    FILE *in = fopen(config_file, "r");
     char line[512];
-    int in_section = 0, section_found = 0, key_written = 0;
+    int in_target_section = 0;
+    int key_written = 0;
 
-    snprintf(temp_path, sizeof(temp_path), "%s.tmp", config_file);
-    FILE *out = fopen(temp_path, "w");
-
-    // If file does not exist, create minimal config
-    if (!f) {
-        if (out) {
-            fprintf(out, "[%s]\n%s=%s\n", section, key, value);
-            fclose(out);
-            rename(temp_path, config_file);
-        }
+    if (!in) {
+        // No file exists → create a new one
+        fprintf(out, "[%s]\n%s=%s\n", section, key, value);
         return;
     }
 
-    if (!out) {
-        fclose(f);
-        return;
-    }
+    while (fgets(line, sizeof(line), in)) {
 
-    while (fgets(line, sizeof(line), f)) {
-        char original[512];
-        strcpy(original, line);
+        char temp[512];
+        strcpy(temp, line);
 
-        line[strcspn(line, "\r\n")] = 0;
-
-        // Check section
-        if (line[0] == '[') {
-
-            if (in_section && !key_written) {
+        // check section header
+        if (temp[0] == '[') {
+            // if we leave the section without writing key → write it before next section
+            if (in_target_section && !key_written) {
                 fprintf(out, "%s=%s\n", key, value);
                 key_written = 1;
             }
 
-            char *end = strchr(line, ']');
-            if (end) {
-                *end = 0;
-                in_section = (strcmp(line + 1, section) == 0);
-                if (in_section)
-                    section_found = 1;
+            // detect if this is our section
+            char secname[256];
+            if (sscanf(temp, "[%255[^]]]", secname) == 1 &&
+                strcmp(secname, section) == 0)
+            {
+                in_target_section = 1;
+            }
+            else {
+                in_target_section = 0;
             }
 
-            fprintf(out, "%s", original);
+            fputs(line, out);
             continue;
         }
 
-        // Inside target section?
-        if (in_section) {
-            char *eq = strchr(line, '=');
-            if (eq) {
-                *eq = 0;
-                char *k = line;
-
-                // Trim spaces
-                while (*k == ' ' || *k == '\t') k++;
-
-                if (strcmp(k, key) == 0) {
-                    fprintf(out, "%s=%s\n", k, value);
-                    key_written = 1;
-                    continue;
-                }
+        if (in_target_section) {
+            // If this line is the key we want to replace
+            char name[256];
+            if (sscanf(temp, "%255[^=]=", name) == 1 &&
+                strcmp(name, key) == 0)
+            {
+                fprintf(out, "%s=%s\n", key, value);
+                key_written = 1;
+                continue;  // skip original line
             }
         }
 
-        fprintf(out, "%s", original);
+        fputs(line, out);
     }
 
-    // Append section or key
-    if (!section_found) {
-        fprintf(out, "\n[%s]\n%s=%s\n", section, key, value);
-    } else if (!key_written) {
+    fclose(in);
+
+    // If section existed but key wasn’t written
+    if (in_target_section && !key_written) {
         fprintf(out, "%s=%s\n", key, value);
     }
 
-    fclose(f);
-    fclose(out);
-
-    remove(config_file);
-    rename(temp_path, config_file);
+    // If section does NOT exist → append at end
+    if (!in_target_section) {
+        fprintf(out, "\n[%s]\n%s=%s\n", section, key, value);
+    }
 }
 
 
-// ---------------------------------------------
-// PUBLIC API
-// ---------------------------------------------
+int platform_get_config_int(const char *section, const char *key, int default_value) {
+    find_context ctx;
+    ctx.section = section;
+    ctx.key = key;
+    ctx.value_buf[0] = '\0';
+    ctx.found = 0;
+
+    ini_parse(config_file, ini_find_handler, &ctx);
+
+    if (!ctx.found)
+        return default_value;
+
+    return atoi(ctx.value_buf);
+}
+
+const char* platform_get_config_string(const char *section, const char *key, const char *default_value)
+{
+    static char out[256]; // retorna ponteiro estático (como antes)
+    find_context ctx;
+    ctx.section = section;
+    ctx.key = key;
+    ctx.value_buf[0] = '\0';
+    ctx.found = 0;
+
+    ini_parse(config_file, ini_find_handler, &ctx);
+
+    if (!ctx.found) {
+        if (default_value) {
+            strncpy(out, default_value, sizeof(out)-1);
+            out[sizeof(out)-1] = '\0';
+        } else {
+            out[0] = '\0';
+        }
+        return out;
+    }
+
+    strncpy(out, ctx.value_buf, sizeof(out)-1);
+    out[sizeof(out)-1] = '\0';
+    return out;
+}
+
 void platform_set_config_int(const char *section, const char *key, int value) {
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%d", value);
-    platform_set_config_value(section, key, buf);
+    char temp[256];
+    snprintf(temp, sizeof(temp), "%d", value);
+
+    FILE *out = fopen("config.tmp", "w");
+    write_or_replace_key(out, section, key, temp);
+    fclose(out);
+
+    rename("config.tmp", config_file);
+
 }
 
 void platform_set_config_string(const char *section, const char *key, const char *value) {
-    platform_set_config_value(section, key, value);
+    FILE *out = fopen("config.tmp", "w");
+    write_or_replace_key(out, section, key, value);
+    fclose(out);
+
+    rename("config.tmp", config_file);
 }
 
 
