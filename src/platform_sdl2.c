@@ -1246,4 +1246,9 @@ void platform_present_screen(void) {
     
     // Present renderer (show on screen)
     SDL_RenderPresent(g_renderer);
+    
+    // Clear the screen surface for next frame to prevent ghosting
+    // In Allegro 4, the screen is typically overwritten each frame by stretch_blit
+    // but we need to clear it explicitly in SDL2 to prevent sprite trails
+    SDL_FillRect(surf, NULL, 0);
 }
