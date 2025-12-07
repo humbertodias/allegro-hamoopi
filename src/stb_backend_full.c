@@ -27,9 +27,18 @@
  * IMAGE STRUCTURE
  * ============================================================================ */
 
+/* HamoopiImage structure with Allegro BITMAP compatibility */
 struct HamoopiImage {
-    int width;
-    int height;
+    union {
+        struct {
+            int width;
+            int height;
+        };
+        struct {
+            int w;   /* Allegro BITMAP compatibility */
+            int h;   /* Allegro BITMAP compatibility */
+        };
+    };
     int channels;
     unsigned char* pixels;
 };
