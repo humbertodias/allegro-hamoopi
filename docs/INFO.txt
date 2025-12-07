@@ -13,4 +13,4 @@ ENGLISH
 PTBR
 ----
 
-"HAMOOPI" È um jogo de Luta Open Source feito em C++/Allegro. Seu nome È um acrÙnimo de "Half-Moon Punch", ou "Meia Lua Soco", uma maneira muito brasileira e particular de se referir ao movimento de soltar um hadouken, movimento cl·ssico e emblem·tico dos jogos de luta. Esta È uma Engine Brasileira, que est· em fase ALPHA e EXPERIMENTAL de desenvolvimento. Este È um software livre, sob a licenÁa GPL v2 (a mesma do Linux).
+"HAMOOPI" √© um jogo de Luta Open Source feito em C++/Allegro. Seu nome √© um acr√¥nimo de "Half-Moon Punch", ou "Meia Lua Soco", uma maneira muito brasileira e particular de se referir ao movimento de soltar um hadouken, movimento cl√°ssico e emblem√°tico dos jogos de luta. Esta √© uma Engine Brasileira, que est√° em fase ALPHA e EXPERIMENTAL de desenvolvimento. Este √© um software livre, sob a licen√©a GPL v2 (a mesma do Linux).
