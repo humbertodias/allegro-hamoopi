@@ -357,9 +357,16 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
         return NULL;
     }
 
-    // Convert to a surface WITH alpha channel (32-bit RGBA)
-    SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_RGBA32, 0);
+    // Convert to ARGB8888 format to match created bitmaps
+    SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(loaded);
+    
+    if (!surface) {
+        return NULL;
+    }
+
+    // Set magenta as transparent color key
+    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 255, 0, 255));
 
     PlatformBitmap *pb = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
     if (pb) {
