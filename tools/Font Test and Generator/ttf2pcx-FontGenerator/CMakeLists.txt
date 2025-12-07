@@ -14,20 +14,23 @@ set(CMAKE_AUTORCC ON)
 
 # Source files
 set(SOURCES
-    main.cpp
-    mainwindow.cpp
-    character_qt.cpp
-    previewwidget.cpp
+    src/main.cpp
+    src/mainwindow.cpp
+    src/character_qt.cpp
+    src/previewwidget.cpp
 )
 
 set(HEADERS
-    mainwindow.h
-    character_qt.h
-    previewwidget.h
+    src/mainwindow.h
+    src/character_qt.h
+    src/previewwidget.h
 )
 
 # Create executable
 add_executable(ttf2pcx-qt ${SOURCES} ${HEADERS})
+
+# Include directories
+target_include_directories(ttf2pcx-qt PRIVATE src)
 
 # Link Qt libraries
 target_link_libraries(ttf2pcx-qt
@@ -44,6 +47,7 @@ install(TARGETS ttf2pcx-qt
 # Optional: Build test executable
 option(BUILD_TESTS "Build test executables" ON)
 if(BUILD_TESTS)
-    add_executable(test_core test_core.cpp character_qt.cpp)
+    add_executable(test_core tests/test_core.cpp src/character_qt.cpp)
+    target_include_directories(test_core PRIVATE src)
     target_link_libraries(test_core Qt6::Core Qt6::Gui Qt6::Widgets)
 endif()

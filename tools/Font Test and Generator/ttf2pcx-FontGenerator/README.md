@@ -74,6 +74,28 @@ A test suite is included to verify core functionality:
 cd build
 make test_core
 ./test_core  # or: QT_QPA_PLATFORM=offscreen ./test_core on headless systems
+
+# Or run the smoke test script
+cd ..
+./tests/test.sh
+```
+
+## Project Structure
+
+```
+ttf2pcx-FontGenerator/
+├── CMakeLists.txt          # Build configuration
+├── README.md               # This file
+├── src/                    # Source files
+│   ├── main.cpp           # Application entry point
+│   ├── mainwindow.cpp/h   # Main UI and logic
+│   ├── character_qt.cpp/h # Character rendering
+│   └── previewwidget.cpp/h # Font preview widget
+├── tests/                  # Test suite
+│   ├── test_core.cpp      # Core functionality tests
+│   └── test.sh            # Smoke test script
+└── docs/                   # Documentation
+    └── MIGRATION.md       # MFC to Qt migration guide
 ```
 
 ## Usage
@@ -102,16 +124,16 @@ To use antialiased fonts in Allegro:
 
 ## Architecture
 
-This tool is built with Qt6 for cross-platform compatibility:
+This tool is built with Qt6 for cross-platform compatibility. All source files are organized in the `src/` directory:
 
-- **mainwindow.cpp/h**: Main UI and application logic
-- **character_qt.cpp/h**: Platform-agnostic character rendering using Qt
-- **previewwidget.cpp/h**: Font preview widget
-- **main.cpp**: Application entry point
+- **src/mainwindow.cpp/h**: Main UI and application logic
+- **src/character_qt.cpp/h**: Platform-agnostic character rendering using Qt
+- **src/previewwidget.cpp/h**: Font preview widget
+- **src/main.cpp**: Application entry point
 
 The PCX export format and algorithm remain identical to the original for compatibility with Allegro.
 
-For details on the migration from the original MFC version, see [MIGRATION.md](MIGRATION.md).
+For details on the migration from the original MFC version, see [docs/MIGRATION.md](docs/MIGRATION.md).
 
 ## Original Credits
 

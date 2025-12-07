@@ -9,7 +9,7 @@ echo "Testing ttf2pcx-qt build and basic functionality..."
 
 # Set up environment
 export QT_QPA_PLATFORM=offscreen
-BUILD_DIR="$(dirname "$0")/build"
+BUILD_DIR="$(cd "$(dirname "$0")/.." && pwd)/build"
 cd "$BUILD_DIR"
 
 # Check if executable exists
