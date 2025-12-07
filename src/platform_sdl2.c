@@ -111,6 +111,23 @@ static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
     return interval;
 }
 
+char* replace_pcx_with_png(const char* filename) {
+    if (!filename) return NULL;
+
+    // Allocate new string
+    char *new_filename = malloc(strlen(filename) + 1);
+    if (!new_filename) return NULL;
+    strcpy(new_filename, filename);
+
+    // Find last dot
+    char *ext = strrchr(new_filename, '.');
+    if (ext && strcmp(ext, ".pcx") == 0) {
+        strcpy(ext, ".png");  // replace extension
+    }
+
+    return new_filename;
+}
+
 // ============================================================================
 // INITIALIZATION & SYSTEM
 // ============================================================================
@@ -305,46 +322,27 @@ void platform_destroy_bitmap(PlatformBitmap *bitmap) {
 }
 
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
-    // Try to load as PCX first (Allegro format), fall back to PNG/JPG
-    SDL_Surface *surface = IMG_Load(filename);
-    
-    if (!surface) {
-        // Try alternate extension
-        char alt_filename[512];
-        strncpy(alt_filename, filename, sizeof(alt_filename) - 5);
-        alt_filename[sizeof(alt_filename) - 5] = '\0';
-        
-        // Replace .pcx with .png
-        char *ext = strrchr(alt_filename, '.');
-        if (ext) {
-            strcpy(ext, ".png");
-            surface = IMG_Load(alt_filename);
-        }
-    }
-    
-    if (!surface) {
+
+    const char *realfile = replace_pcx_with_png(filename);
+
+    // Load image (PCX→PNG already handled)
+    SDL_Surface *loaded = IMG_Load(realfile);
+    if (!loaded) {
         return NULL;
     }
-    
-    // Convert to a consistent 32-bit ARGB format for compatibility
-    SDL_Surface *converted = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ARGB8888, 0);
-    SDL_FreeSurface(surface);
-    
-    if (!converted) {
-        return NULL;
-    }
-    
-    // Set magenta as the color key for transparency
-    SDL_SetColorKey(converted, SDL_TRUE, SDL_MapRGB(converted->format, 255, 0, 255));
-    
+
+    // Convert to a surface WITH alpha channel (32-bit RGBA)
+    SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(loaded);
+
     PlatformBitmap *pb = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
     if (pb) {
-        pb->surface = converted;
+        pb->surface = surface;
         pb->texture = NULL;
-        pb->w = converted->w;
-        pb->h = converted->h;
+        pb->w = surface->w;
+        pb->h = surface->h;
     } else {
-        SDL_FreeSurface(converted);
+        SDL_FreeSurface(surface);
     }
     
     return pb;
@@ -402,23 +400,20 @@ void platform_masked_blit(PlatformBitmap *src, PlatformBitmap *dest,
 }
 
 void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && src->surface) {
-        SDL_Surface *src_surf = (SDL_Surface*)src->surface;
-        
-        // Create flipped surface in the same format
+    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
+        // Create flipped surface
         SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
                                                      0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
         if (flipped) {
             // Manual horizontal flip
+            SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
             SDL_LockSurface(src_surf);
             SDL_LockSurface(flipped);
             
-            // Copy pixels with horizontal flip
-            int bpp = 4; // 32-bit ARGB
             for (int i = 0; i < src->h; i++) {
                 for (int j = 0; j < src->w; j++) {
-                    Uint32 *src_pixel = (Uint32*)((Uint8*)src_surf->pixels + i * src_surf->pitch + j * bpp);
-                    Uint32 *dst_pixel = (Uint32*)((Uint8*)flipped->pixels + i * flipped->pitch + (src->w - 1 - j) * bpp);
+                    Uint32 *src_pixel = (Uint32*)((Uint8*)src_surf->pixels + i * src_surf->pitch + j * 4);
+                    Uint32 *dst_pixel = (Uint32*)((Uint8*)flipped->pixels + i * flipped->pitch + (src->w - 1 - j) * 4);
                     *dst_pixel = *src_pixel;
                 }
             }
@@ -426,47 +421,32 @@ void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
             SDL_UnlockSurface(flipped);
             SDL_UnlockSurface(src_surf);
             
-            // Copy color key if source has one
-            Uint32 colorkey;
-            if (SDL_GetColorKey(src_surf, &colorkey) == 0) {
-                SDL_SetColorKey(flipped, SDL_TRUE, colorkey);
-            }
-            
             SDL_Rect dest_rect = { x, y, src->w, src->h };
-            SDL_BlitSurface(flipped, NULL, (SDL_Surface*)dest->surface, &dest_rect);
+            SDL_BlitSurface(flipped, NULL, dest->surface, &dest_rect);
             SDL_FreeSurface(flipped);
         }
     }
 }
 
 void platform_draw_sprite_v_flip(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && src->surface) {
-        SDL_Surface *src_surf = (SDL_Surface*)src->surface;
-        
-        // Create flipped surface in the same format
+    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
+        // Create flipped surface
         SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
                                                      0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
         if (flipped) {
             // Manual vertical flip
+            SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
             SDL_LockSurface(src_surf);
             SDL_LockSurface(flipped);
             
-            // Copy rows in reverse order
-            int row_size = src->w * 4; // 32-bit ARGB
             for (int i = 0; i < src->h; i++) {
                 memcpy((Uint8*)flipped->pixels + (src->h - 1 - i) * flipped->pitch,
                        (Uint8*)src_surf->pixels + i * src_surf->pitch,
-                       row_size);
+                       src->w * 4);
             }
             
             SDL_UnlockSurface(flipped);
             SDL_UnlockSurface(src_surf);
-            
-            // Copy color key if source has one
-            Uint32 colorkey;
-            if (SDL_GetColorKey(src_surf, &colorkey) == 0) {
-                SDL_SetColorKey(flipped, SDL_TRUE, colorkey);
-            }
             
             SDL_Surface *dest_surf = (SDL_Surface*)dest->surface;
             SDL_Rect dest_rect = { x, y, src->w, src->h };
@@ -639,24 +619,6 @@ int platform_bitmap_width(PlatformBitmap *bitmap) {
 
 int platform_bitmap_height(PlatformBitmap *bitmap) {
     return bitmap ? bitmap->h : 0;
-}
-
-
-char* replace_pcx_with_png(const char* filename) {
-    if (!filename) return NULL;
-
-    // Allocate new string
-    char *new_filename = malloc(strlen(filename) + 1);
-    if (!new_filename) return NULL;
-    strcpy(new_filename, filename);
-
-    // Find last dot
-    char *ext = strrchr(new_filename, '.');
-    if (ext && strcmp(ext, ".pcx") == 0) {
-        strcpy(ext, ".png");  // replace extension
-    }
-
-    return new_filename;
 }
 
 // ============================================================================
