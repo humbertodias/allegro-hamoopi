@@ -1,19 +1,48 @@
 cmake_minimum_required(VERSION 3.7)
 project(HAMOOPI)
 
-# Define which backend to use
-add_definitions(-DUSE_ALLEGRO4)
+# Option to choose backend
+option(USE_SDL2 "Use SDL2 backend instead of Allegro 4" OFF)
 
-add_executable(HAMOOPI src/HAMOOPI.c src/platform_allegro.c)
-
-# Find Allegro
-find_package(Alleg4 4)
-
-# Add directories to the include search path
-target_include_directories(HAMOOPI PRIVATE ${ALLEGRO_INCLUDE_DIR})
-
-# Link with dependencies
-target_link_libraries(HAMOOPI alleg m)
+if(USE_SDL2)
+    # SDL2 Backend
+    add_definitions(-DUSE_SDL2)
+    add_executable(HAMOOPI src/HAMOOPI.c src/platform_sdl2.c)
+    
+    # Find SDL2 packages
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_image REQUIRED)
+    find_package(SDL2_mixer REQUIRED)
+    find_package(SDL2_ttf REQUIRED)
+    
+    # Include directories for SDL2
+    target_include_directories(HAMOOPI PRIVATE 
+        ${SDL2_INCLUDE_DIRS}
+        /usr/include/SDL2
+    )
+    
+    # Link SDL2 libraries
+    target_link_libraries(HAMOOPI 
+        SDL2
+        SDL2_image
+        SDL2_mixer
+        SDL2_ttf
+        m
+    )
+else()
+    # Allegro 4 Backend (default)
+    add_definitions(-DUSE_ALLEGRO4)
+    add_executable(HAMOOPI src/HAMOOPI.c src/platform_allegro.c)
+    
+    # Find Allegro
+    find_package(Alleg4 4)
+    
+    # Add directories to the include search path
+    target_include_directories(HAMOOPI PRIVATE ${ALLEGRO_INCLUDE_DIR})
+    
+    # Link with dependencies
+    target_link_libraries(HAMOOPI alleg m)
+endif()
 
 # Copy executable to parent folder after build
 add_custom_command(TARGET HAMOOPI POST_BUILD

@@ -204,6 +204,14 @@ PlatformColor platform_makecol(int r, int g, int b) {
     return makecol(r, g, b);
 }
 
+int platform_bitmap_width(PlatformBitmap *bitmap) {
+    return bitmap ? bitmap->w : 0;
+}
+
+int platform_bitmap_height(PlatformBitmap *bitmap) {
+    return bitmap ? bitmap->h : 0;
+}
+
 // ============================================================================
 // GRAPHICS - TEXT
 // ============================================================================
@@ -349,4 +357,17 @@ void platform_set_config_int(const char *section, const char *key, int value) {
 
 void platform_set_config_string(const char *section, const char *key, const char *value) {
     set_config_string(section, key, value);
+}
+
+
+int platform_file_exists(const char *filename) {
+    return exists(filename);
+}
+
+float platform_get_config_float(const char *section, const char *key, float default_value) {
+    const char *str = get_config_string(section, key, "");
+    if (str && *str) {
+        return atof(str);
+    }
+    return default_value;
 }

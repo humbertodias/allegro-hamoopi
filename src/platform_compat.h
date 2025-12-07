@@ -114,6 +114,11 @@
 
 #ifndef USE_ALLEGRO4
 #define U_UTF8 PU_UTF8
+#define DRAW_MODE_SOLID PDRAW_MODE_SOLID
+#define DRAW_MODE_TRANS PDRAW_MODE_TRANS
+#define mouse_x platform_mouse_x
+#define mouse_y platform_mouse_y
+#define mouse_b platform_mouse_b
 #endif
 
 // ============================================================================
@@ -213,8 +218,13 @@
 #define set_config_file(file) platform_set_config_file(file)
 #define get_config_int(sec, key, def) platform_get_config_int(sec, key, def)
 #define get_config_string(sec, key, def) platform_get_config_string(sec, key, def)
+#define get_config_float(sec, key, def) platform_get_config_float(sec, key, def)
 #define set_config_int(sec, key, val) platform_set_config_int(sec, key, val)
 #define set_config_string(sec, key, val) platform_set_config_string(sec, key, val)
+
+// File utilities
+#define exists(filename) platform_file_exists(filename)
+
 #endif // !USE_ALLEGRO4
 
 #endif // PLATFORM_COMPAT_H

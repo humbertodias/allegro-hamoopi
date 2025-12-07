@@ -13,14 +13,47 @@
 #include <allegro.h>
 #endif
 
+#ifdef USE_SDL2
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+#endif
+
 // Platform-specific type definitions
 #ifdef USE_ALLEGRO4
 typedef BITMAP PlatformBitmap;
 typedef FONT PlatformFont;
 typedef SAMPLE PlatformSample;
 typedef MIDI PlatformMidi;
+#elif defined(USE_SDL2)
+// SDL2 structures with exposed w,h for compatibility
+struct PlatformBitmap {
+    void *surface;  // SDL_Surface*
+    void *texture;  // SDL_Texture*
+    int w, h;       // Exposed for Allegro compatibility
+};
+
+struct PlatformFont {
+    void *font;     // TTF_Font*
+    int size;
+};
+
+struct PlatformSample {
+    void *chunk;    // Mix_Chunk*
+    int channel;
+};
+
+struct PlatformMidi {
+    void *music;    // Mix_Music*
+};
+
+typedef struct PlatformBitmap PlatformBitmap;
+typedef struct PlatformFont PlatformFont;
+typedef struct PlatformSample PlatformSample;
+typedef struct PlatformMidi PlatformMidi;
 #else
-// Forward declarations for opaque types (for future SDL2 implementation)
+// Forward declarations for opaque types (for future implementations)
 typedef struct PlatformBitmap PlatformBitmap;
 typedef struct PlatformFont PlatformFont;
 typedef struct PlatformSample PlatformSample;
@@ -103,6 +136,15 @@ typedef unsigned int PlatformColor;
 
 // UTF8 support
 #define PU_UTF8 1
+
+// Drawing modes
+#define PDRAW_MODE_SOLID 0
+#define PDRAW_MODE_TRANS 1
+
+// Mouse variables (globals for compatibility)
+extern volatile int platform_mouse_x;
+extern volatile int platform_mouse_y;
+extern volatile int platform_mouse_b;
 
 // ============================================================================
 // INITIALIZATION & SYSTEM
@@ -202,6 +244,12 @@ PlatformColor platform_getpixel(PlatformBitmap *bitmap, int x, int y);
 // Put pixel
 void platform_putpixel(PlatformBitmap *bitmap, int x, int y, PlatformColor color);
 
+// Get bitmap width
+int platform_bitmap_width(PlatformBitmap *bitmap);
+
+// Get bitmap height
+int platform_bitmap_height(PlatformBitmap *bitmap);
+
 // ============================================================================
 // GRAPHICS - PRIMITIVES
 // ============================================================================
@@ -289,6 +337,13 @@ void platform_set_volume(int digi, int midi);
 void platform_adjust_sample(PlatformSample *sample, int vol, int pan, int freq, int loop);
 
 // ============================================================================
+// FILE UTILITIES
+// ============================================================================
+
+// Check if file exists
+int platform_file_exists(const char *filename);
+
+// ============================================================================
 // CONFIG FILE
 // ============================================================================
 
@@ -300,6 +355,9 @@ int platform_get_config_int(const char *section, const char *key, int default_va
 
 // Get config string
 const char* platform_get_config_string(const char *section, const char *key, const char *default_value);
+
+// Get config float
+float platform_get_config_float(const char *section, const char *key, float default_value);
 
 // Set config integer
 void platform_set_config_int(const char *section, const char *key, int value);
