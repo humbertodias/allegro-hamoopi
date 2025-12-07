@@ -4447,14 +4447,14 @@ int x, y;
 //sombra p1 preparacao
 backend_clear_to_color(P1_Sombra, backend_makecol(255, 0, 255));
 backend_clear_to_color(P1_Sombra_Aux, backend_makecol(255, 0, 255));
-backend_bitmap_width(P1_Sombra)=P[1].backend_bitmap_width(Spr); backend_bitmap_height(P1_Sombra)=P[1].backend_bitmap_height(Spr)/5;
-stretch_sprite( P1_Sombra, P[1].Spr, 0, 0, P[1].backend_bitmap_width(Spr), P[1].backend_bitmap_height(Spr)/5 );
+// Note: bitmap dimensions are immutable; P1_Sombra already has its size
+backend_stretch_sprite( P1_Sombra, P[1].Spr, 0, 0, backend_bitmap_width(P[1].Spr), backend_bitmap_height(P[1].Spr)/5 );
 for(y = 0; y < backend_bitmap_height(P1_Sombra); y++) {
 for(x = 0; x < backend_bitmap_width(P1_Sombra); x++) {
 if(backend_getpixel(P1_Sombra, x, y) != backend_makecol(255,000,255)) backend_putpixel(P1_Sombra, x, y, backend_makecol(000,000,000));
 }
 }
-backend_bitmap_width(P1_Sombra_Aux)=backend_bitmap_width(P1_Sombra); backend_bitmap_height(P1_Sombra_Aux)=backend_bitmap_height(P1_Sombra);
+// Note: bitmap dimensions are immutable; P1_Sombra_Aux already has its size
 ///*debug temp*/backend_clear_to_color(P1_Sombra_Aux, backend_makecol(255, 255, 255));
 ///*debug temp*/backend_line( P1_Sombra_Aux, 0, 0, backend_bitmap_width(P1_Sombra_Aux), backend_bitmap_height(P1_Sombra_Aux), backend_makecol(000,000,000) );
 ///*debug temp*/backend_line( P1_Sombra_Aux, 0, backend_bitmap_height(P1_Sombra_Aux), backend_bitmap_width(P1_Sombra_Aux), 0, backend_makecol(000,000,000) );
@@ -4466,14 +4466,14 @@ if(P[1].Lado==-1){ backend_draw_sprite_h_flip(P1_Sombra_Aux, P1_Sombra, 0, 0); }
 //sombra p2 preparacao
 backend_clear_to_color(P2_Sombra, backend_makecol(255, 0, 255));
 backend_clear_to_color(P2_Sombra_Aux, backend_makecol(255, 0, 255));
-backend_bitmap_width(P2_Sombra)=P[2].backend_bitmap_width(Spr); backend_bitmap_height(P2_Sombra)=P[2].backend_bitmap_height(Spr)/5;
-stretch_sprite( P2_Sombra, P[2].Spr, 0, 0, P[2].backend_bitmap_width(Spr), P[2].backend_bitmap_height(Spr)/5 );
+// Note: bitmap dimensions are immutable; P2_Sombra already has its size
+backend_stretch_sprite( P2_Sombra, P[2].Spr, 0, 0, backend_bitmap_width(P[2].Spr), backend_bitmap_height(P[2].Spr)/5 );
 for(y = 0; y < backend_bitmap_height(P2_Sombra); y++) {
 for(x = 0; x < backend_bitmap_width(P2_Sombra); x++) {
 if(backend_getpixel(P2_Sombra, x, y) != backend_makecol(255,000,255)) backend_putpixel(P2_Sombra, x, y, backend_makecol(000,000,000));
 }
 }
-backend_bitmap_width(P2_Sombra_Aux)=backend_bitmap_width(P2_Sombra); backend_bitmap_height(P2_Sombra_Aux)=backend_bitmap_height(P2_Sombra);
+// Note: bitmap dimensions are immutable; P2_Sombra_Aux already has its size
 ///*debug temp*/backend_clear_to_color(P2_Sombra_Aux, backend_makecol(255, 255, 255));
 ///*debug temp*/backend_line( P2_Sombra_Aux, 0, 0, backend_bitmap_width(P2_Sombra_Aux), backend_bitmap_height(P2_Sombra_Aux), backend_makecol(000,000,000) );
 ///*debug temp*/backend_line( P2_Sombra_Aux, 0, backend_bitmap_height(P2_Sombra_Aux), backend_bitmap_width(P2_Sombra_Aux), 0, backend_makecol(000,000,000) );
@@ -4486,12 +4486,12 @@ backend_drawing_mode(HM_DRAW_MODE_TRANS,NULL,0,0); backend_set_trans_blender(0,0
 /* sombra <P2> no bufferx */
 if(P[2].Visible==1){
 if(P[2].Lado== 1){ backend_draw_trans_sprite(bufferx, P2_Sombra_Aux, (P[2].x*2+ShakeTemp2*2)-P[2].XAlign*2, AlturaPiso*2-backend_bitmap_height(P2_Sombra_Aux)+P[2].ConstanteY/3 ); }
-if(P[2].Lado==-1){ backend_draw_trans_sprite(bufferx, P2_Sombra_Aux, ((P[2].x*2+ShakeTemp2*2)-P[2].backend_bitmap_width(Spr))+P[2].XAlign*2, AlturaPiso*2-backend_bitmap_height(P2_Sombra_Aux)+P[2].ConstanteY/3 ); }
+if(P[2].Lado==-1){ backend_draw_trans_sprite(bufferx, P2_Sombra_Aux, ((P[2].x*2+ShakeTemp2*2)-backend_bitmap_width(P[2].Spr))+P[2].XAlign*2, AlturaPiso*2-backend_bitmap_height(P2_Sombra_Aux)+P[2].ConstanteY/3 ); }
 }
 /* sombra <P1> no bufferx */
 if(P[1].Visible==1){
 if(P[1].Lado== 1){ backend_draw_trans_sprite(bufferx, P1_Sombra_Aux, (P[1].x*2+ShakeTemp1*2)-P[1].XAlign*2, AlturaPiso*2-backend_bitmap_height(P1_Sombra_Aux)+P[1].ConstanteY/3 ); }
-if(P[1].Lado==-1){ backend_draw_trans_sprite(bufferx, P1_Sombra_Aux, ((P[1].x*2+ShakeTemp1*2)-P[1].backend_bitmap_width(Spr))+P[1].XAlign*2, AlturaPiso*2-backend_bitmap_height(P1_Sombra_Aux)+P[1].ConstanteY/3 ); }
+if(P[1].Lado==-1){ backend_draw_trans_sprite(bufferx, P1_Sombra_Aux, ((P[1].x*2+ShakeTemp1*2)-backend_bitmap_width(P[1].Spr))+P[1].XAlign*2, AlturaPiso*2-backend_bitmap_height(P1_Sombra_Aux)+P[1].ConstanteY/3 ); }
 }
 solid_mode();
 }
@@ -4503,11 +4503,11 @@ if(P[2].Visible==1){
 if(P[2].Prioridade==indp){
 if (P[2].State!=607 && P[2].State!=608) {
 if (P[2].Lado== 1) { backend_draw_sprite(bufferx, P[2].Spr, (P[2].x*2+ShakeTemp2*2)-P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
-if (P[2].Lado==-1) { backend_draw_sprite_h_flip(bufferx, P[2].Spr, ((P[2].x*2+ShakeTemp2*2)-P[2].backend_bitmap_width(Spr))+P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
+if (P[2].Lado==-1) { backend_draw_sprite_h_flip(bufferx, P[2].Spr, ((P[2].x*2+ShakeTemp2*2)-backend_bitmap_width(P[2].Spr))+P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
 }
 else {
 if (P[2].Lado==-1) { backend_draw_sprite(bufferx, P[2].Spr, (P[2].x*2+ShakeTemp2*2)-P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
-if (P[2].Lado== 1) { backend_draw_sprite_h_flip(bufferx, P[2].Spr, ((P[2].x*2+ShakeTemp2*2)-P[2].backend_bitmap_width(Spr))+P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
+if (P[2].Lado== 1) { backend_draw_sprite_h_flip(bufferx, P[2].Spr, ((P[2].x*2+ShakeTemp2*2)-backend_bitmap_width(P[2].Spr))+P[2].XAlign*2, P[2].y*2-P[2].YAlign*2); }
 }
 }
 }
@@ -4517,11 +4517,11 @@ if(P[1].Visible==1){
 if(P[1].Prioridade==indp){
 if (P[1].State!=607 && P[1].State!=608) {
 if (P[1].Lado== 1) { backend_draw_sprite(bufferx, P[1].Spr, (P[1].x*2+ShakeTemp1*2)-P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
-if (P[1].Lado==-1) { backend_draw_sprite_h_flip(bufferx, P[1].Spr, ((P[1].x*2+ShakeTemp1*2)-P[1].backend_bitmap_width(Spr))+P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
+if (P[1].Lado==-1) { backend_draw_sprite_h_flip(bufferx, P[1].Spr, ((P[1].x*2+ShakeTemp1*2)-backend_bitmap_width(P[1].Spr))+P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
 }
 else {
 if (P[1].Lado==-1) { backend_draw_sprite(bufferx, P[1].Spr, (P[1].x*2+ShakeTemp1*2)-P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
-if (P[1].Lado== 1) { backend_draw_sprite_h_flip(bufferx, P[1].Spr, ((P[1].x*2+ShakeTemp1*2)-P[1].backend_bitmap_width(Spr))+P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
+if (P[1].Lado== 1) { backend_draw_sprite_h_flip(bufferx, P[1].Spr, ((P[1].x*2+ShakeTemp1*2)-backend_bitmap_width(P[1].Spr))+P[1].XAlign*2, P[1].y*2-P[1].YAlign*2); }
 }
 }
 }
@@ -4543,9 +4543,8 @@ if(carga!=0) break;
 }
 //depois, pega a imagem SprAtlas correspondente ao indexador, e a coloca em Fireball[n].Spr
 //precisa otimizar, pois nao é reamente necessario fazer  blit toda hora, apenas na hora de mudar o frame de animacao
-backend_blit(P[ind].SprAtlas[carga], Fireball[ind].Spr, 0, 0, 0, 0, P[ind].backend_bitmap_width(SprAtlas[carga]), P[ind].backend_bitmap_height(SprAtlas[carga]));
-Fireball[ind].backend_bitmap_width(Spr)  = P[ind].backend_bitmap_width(SprAtlas[carga]);
-Fireball[ind].backend_bitmap_height(Spr)  = P[ind].backend_bitmap_height(SprAtlas[carga]);
+backend_blit(P[ind].SprAtlas[carga], Fireball[ind].Spr, 0, 0, 0, 0, backend_bitmap_width(P[ind].SprAtlas[carga]), backend_bitmap_height(P[ind].SprAtlas[carga]));
+// Note: Fireball[ind].Spr dimensions are already set
 }
 
 if(Fireball[ind].Ativa==1 && P[ind].IndexAnim==Fireball[ind].ThrowFireball){ Fireball[ind].Ativa=2; }
@@ -5778,22 +5777,22 @@ backend_draw_sprite(LayerHUDa, spr_bg_bar,  320-(backend_bitmap_width(spr_bg_bar
 
 //dica de codigo
 //backend_stretch_blit(BITMAP*source, BITMAP*dest, source_x, source_y, source_width, source_height, dest_x, dest_y, dest_width, dest_height);
-//masked_blit(HM_BITMAP source, HM_BITMAP dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
+//backend_masked_blit(HM_BITMAP source, HM_BITMAP dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
 
 //energia
 
 /*p1red*/
 backend_clear_to_color(P1_energy_red_flip, backend_makecol(255, 0, 255));
 backend_draw_sprite_h_flip(P1_energy_red_flip, spr_energy_red_bar_full, 0, 0);
-masked_blit(P1_energy_red_flip, LayerHUDa, backend_bitmap_width(P1_energy_red_flip)-(P[1].EnergyRedBar*250)/1000, 0, 50+(backend_bitmap_width(P1_energy_red_flip)-(P[1].EnergyRedBar*250)/1000), 0, backend_bitmap_width(P1_energy_red_flip), backend_bitmap_height(P1_energy_red_flip));
+backend_masked_blit(P1_energy_red_flip, LayerHUDa, backend_bitmap_width(P1_energy_red_flip)-(P[1].EnergyRedBar*250)/1000, 0, 50+(backend_bitmap_width(P1_energy_red_flip)-(P[1].EnergyRedBar*250)/1000), 0, backend_bitmap_width(P1_energy_red_flip), backend_bitmap_height(P1_energy_red_flip));
 /*p2red*/
-masked_blit(spr_energy_red_bar_full, LayerHUDa, 0, 0, 320+20, 0, (P[2].EnergyRedBar*250)/1000, backend_bitmap_height(spr_energy_red_bar_full));
+backend_masked_blit(spr_energy_red_bar_full, LayerHUDa, 0, 0, 320+20, 0, (P[2].EnergyRedBar*250)/1000, backend_bitmap_height(spr_energy_red_bar_full));
 /*p1*/
 backend_clear_to_color(P1_energy_flip, backend_makecol(255, 0, 255));
 backend_draw_sprite_h_flip(P1_energy_flip, spr_energy_bar_full, 0, 0);
-masked_blit(P1_energy_flip, LayerHUDa, backend_bitmap_width(P1_energy_flip)-((((P[1].Energy*100)/1000)/100)*250), 0, 50+(backend_bitmap_width(P1_energy_flip)-((((P[1].Energy*100)/1000)/100)*250)), 0, backend_bitmap_width(P1_energy_flip), backend_bitmap_height(P1_energy_flip));
+backend_masked_blit(P1_energy_flip, LayerHUDa, backend_bitmap_width(P1_energy_flip)-((((P[1].Energy*100)/1000)/100)*250), 0, 50+(backend_bitmap_width(P1_energy_flip)-((((P[1].Energy*100)/1000)/100)*250)), 0, backend_bitmap_width(P1_energy_flip), backend_bitmap_height(P1_energy_flip));
 /*p2*/
-masked_blit(spr_energy_bar_full, LayerHUDa, 0, 0, 320+20, 0, (((P[2].Energy*100)/1000)/100)*250, backend_bitmap_height(spr_energy_bar_full));
+backend_masked_blit(spr_energy_bar_full, LayerHUDa, 0, 0, 320+20, 0, (((P[2].Energy*100)/1000)/100)*250, backend_bitmap_height(spr_energy_bar_full));
 
 //Special
 /*p1*/backend_stretch_blit(spr_bg_energy_bar_sp  , LayerHUDa, 0, 0, backend_bitmap_width(spr_bg_energy_bar_sp), backend_bitmap_height(spr_bg_energy_bar_sp) ,                                  30, 457, (P[1].Special*250)/2000     , backend_bitmap_height(spr_bg_energy_bar_sp));
@@ -5922,10 +5921,10 @@ if ( ED_x<630/2 && ( P[1].key_D_status ==1 || P[1].key_D_status ==2 ) ) { ED_x++
 //se segurar o shift, movimenta 1 pixel de cada vez.
 //o codigo abaixo anula o movimento ao manter pressionado,
 //mantendo entao apenas o deslocamento do key_pressed (key_status==1)
-if ( ED_y> 50/2 && P[1].key_W_status ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_y++; } //w+shift
-if ( ED_y<470/2 && P[1].key_S_status ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_y--; } //s+shift
-if ( ED_x>180/2 && P[1].key_A_status ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_x++; } //a+shift
-if ( ED_x<630/2 && P[1].key_D_status ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_x--; } //d+shift
+if ( ED_y> 50/2 && P[1].key_W_status ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_y++; } //w+shift
+if ( ED_y<470/2 && P[1].key_S_status ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_y--; } //s+shift
+if ( ED_x>180/2 && P[1].key_A_status ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_x++; } //a+shift
+if ( ED_x<630/2 && P[1].key_D_status ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_x--; } //d+shift
 //movimenta o eixo
 if (ED_MovimentaPivot==1 && P[1].key_START_status==1) { ED_alertsave2=1; ED_MovimentaPivot=0; }
 if (ED_MovimentaPivot==1)
@@ -5938,10 +5937,10 @@ if ( ED_x<630/2 && ( P[1].key_RIGHT_status ==1 || P[1].key_RIGHT_status ==2 ) ) 
 //se segurar o shift, movimenta 1 pixel de cada vez.
 //o codigo abaixo anula o movimento ao manter pressionado,
 //mantendo entao apenas o deslocamento do key_pressed (key_status==1)
-if ( ED_y> 50/2 && P[1].key_UP_status    ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_YAlign--; AuxEixoY=+1; }
-if ( ED_y<470/2 && P[1].key_DOWN_status  ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_YAlign++; AuxEixoY=-1; }
-if ( ED_x>180/2 && P[1].key_LEFT_status  ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_XAlign--; AuxEixoX=+1; }
-if ( ED_x<630/2 && P[1].key_RIGHT_status ==2 && (key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_XAlign++; AuxEixoX=-1; }
+if ( ED_y> 50/2 && P[1].key_UP_status    ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_YAlign--; AuxEixoY=+1; }
+if ( ED_y<470/2 && P[1].key_DOWN_status  ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_YAlign++; AuxEixoY=-1; }
+if ( ED_x>180/2 && P[1].key_LEFT_status  ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_XAlign--; AuxEixoX=+1; }
+if ( ED_x<630/2 && P[1].key_RIGHT_status ==2 && (backend_key[HM_KEY_LSHIFT] || backend_key[HM_KEY_RSHIFT]) ) { ED_XAlign++; AuxEixoX=-1; }
 }
 
 //Inicializa as variaveis do Editor
@@ -6332,15 +6331,15 @@ if (ED_State==603  || ED_State==605) { sprintf(txt2, "data/chars/%s/604_%i.pcx",
 } //>=10
 
 //if (Edtimer-ED_StartFrame==0) { //Atualiza o sprite SOMENTE no primeiro frame de animacao
-clear(ED_Spr);
+backend_clear_bitmap(ED_Spr);
 ED_Spr_Aux = backend_load_bitmap(txt2, NULL);
 if (!ED_Spr_Aux){ ED_Spr_Aux=char_generic; } //se falhar o carregamento, usar imagem generica
 if(ED_Tipo==1) {
-backend_bitmap_width(ED_Spr) = backend_bitmap_width(ED_Spr_Aux)*2; backend_bitmap_height(ED_Spr) = backend_bitmap_height(ED_Spr_Aux)*2;
-backend_stretch_blit(ED_Spr_Aux, ED_Spr, 0, 0, backend_bitmap_width(ED_Spr_Aux), backend_bitmap_height(ED_Spr_Aux), 0, 0, backend_bitmap_width(ED_Spr), backend_bitmap_height(ED_Spr));
+// Note: ED_Spr already has its size; stretch blit handles scaling
+backend_stretch_blit(ED_Spr_Aux, ED_Spr, 0, 0, backend_bitmap_width(ED_Spr_Aux), backend_bitmap_height(ED_Spr_Aux), 0, 0, backend_bitmap_width(ED_Spr_Aux)*2, backend_bitmap_height(ED_Spr_Aux)*2);
 }
 if(ED_Tipo==2) {
-backend_bitmap_width(ED_Spr) = backend_bitmap_width(ED_Spr_Aux); backend_bitmap_height(ED_Spr) = backend_bitmap_height(ED_Spr_Aux);
+// Note: ED_Spr already has its size; just blit the data
 backend_blit(ED_Spr_Aux, ED_Spr, 0, 0, 0, 0, backend_bitmap_width(ED_Spr_Aux), backend_bitmap_height(ED_Spr_Aux));
 }
 backend_destroy_bitmap(ED_Spr_Aux);
@@ -6363,7 +6362,7 @@ backend_stretch_blit(LayerHUD, bufferx, 0, 0, 320, 240, 0, 0, 640, 480);
 if (ED_Tipo==1){
 if (ED_State!=607 && ED_State!=608) {
 if (ED_Lado== 1) { backend_draw_sprite(bufferx, ED_Spr, (ED_x*2)-ED_XAlign*2, ED_y*2-ED_YAlign*2); }
-if (ED_Lado==-1) { backend_draw_sprite_h_flip(bufferx, ED_Spr, ((ED_x*2)-P[1].backend_bitmap_width(Spr))+ED_XAlign*2, ED_y*2-ED_YAlign*2); }
+if (ED_Lado==-1) { backend_draw_sprite_h_flip(bufferx, ED_Spr, ((ED_x*2)-backend_bitmap_width(P[1].Spr))+ED_XAlign*2, ED_y*2-ED_YAlign*2); }
 }
 else {
 //if (ED_Lado==-1) { backend_draw_sprite(bufferx, ED_Spr, (ED_x*2)-ED_XAlign*2, ED_y*2-ED_YAlign*2); }
@@ -7224,11 +7223,11 @@ backend_stretch_blit(LayerHUDb, backend_screen, 0, 0, backend_bitmap_width(Layer
 }
 //show_mouse(backend_screen);
 while(timer==delay){}
-clear(LayerHUD);
+backend_clear_bitmap(LayerHUD);
 backend_clear_to_color(LayerHUD, backend_makecol(255, 0, 255));
 backend_clear_to_color(LayerHUDa, backend_makecol(255, 0, 255));
 backend_clear_to_color(LayerHUDb, backend_makecol(255, 0, 255));
-clear(bufferx);
+backend_clear_bitmap(bufferx);
 
 } //(while sair==0)
 

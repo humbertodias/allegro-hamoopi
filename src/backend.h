@@ -69,7 +69,9 @@ int backend_bitmap_height(HM_BITMAP bmp);
 
 // Drawing functions
 void backend_blit(HM_BITMAP source, HM_BITMAP dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
+void backend_masked_blit(HM_BITMAP source, HM_BITMAP dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
 void backend_stretch_blit(HM_BITMAP source, HM_BITMAP dest, int source_x, int source_y, int source_width, int source_height, int dest_x, int dest_y, int dest_width, int dest_height);
+void backend_stretch_sprite(HM_BITMAP bmp, HM_BITMAP sprite, int x, int y, int w, int h);
 void backend_draw_sprite(HM_BITMAP bmp, HM_BITMAP sprite, int x, int y);
 void backend_draw_sprite_h_flip(HM_BITMAP bmp, HM_BITMAP sprite, int x, int y);
 void backend_draw_sprite_v_flip(HM_BITMAP bmp, HM_BITMAP sprite, int x, int y);
