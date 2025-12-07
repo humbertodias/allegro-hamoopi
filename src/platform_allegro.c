@@ -13,7 +13,8 @@ int platform_init(void) {
 }
 
 void platform_set_uformat(int format) {
-    set_uformat(U_UTF8);
+    // For Allegro 4, we respect the format parameter
+    set_uformat(format);
 }
 
 int platform_install_timer(void) {
@@ -240,8 +241,12 @@ void platform_textprintf_ex(PlatformBitmap *bitmap, PlatformFont *font,
         va_list args;
         va_start(args, format);
         char buffer[1024];
-        vsnprintf(buffer, sizeof(buffer), format, args);
+        int written = vsnprintf(buffer, sizeof(buffer), format, args);
         va_end(args);
+        // Ensure null termination even if truncated
+        if (written >= (int)sizeof(buffer)) {
+            buffer[sizeof(buffer) - 1] = '\0';
+        }
         textout_ex(bitmap, font, buffer, x, y, color, bg);
     }
 }
@@ -253,8 +258,12 @@ void platform_textprintf_centre_ex(PlatformBitmap *bitmap, PlatformFont *font,
         va_list args;
         va_start(args, format);
         char buffer[1024];
-        vsnprintf(buffer, sizeof(buffer), format, args);
+        int written = vsnprintf(buffer, sizeof(buffer), format, args);
         va_end(args);
+        // Ensure null termination even if truncated
+        if (written >= (int)sizeof(buffer)) {
+            buffer[sizeof(buffer) - 1] = '\0';
+        }
         textout_centre_ex(bitmap, font, buffer, x, y, color, bg);
     }
 }
@@ -264,7 +273,10 @@ void platform_textprintf_centre_ex(PlatformBitmap *bitmap, PlatformFont *font,
 // ============================================================================
 
 int platform_install_sound(int digi, int midi, const char *cfg) {
-    return install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
+    // For Allegro 4, pass through parameters but use autodetect if they are the platform-independent values
+    int digi_mode = (digi == PDIGI_AUTODETECT) ? DIGI_AUTODETECT : digi;
+    int midi_mode = (midi == PMIDI_AUTODETECT) ? MIDI_AUTODETECT : midi;
+    return install_sound(digi_mode, midi_mode, cfg);
 }
 
 PlatformSample* platform_load_sample(const char *filename) {
