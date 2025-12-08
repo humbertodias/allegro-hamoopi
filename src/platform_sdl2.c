@@ -425,7 +425,7 @@ void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
             SDL_FillRect((SDL_Surface*)dest->surface, NULL, 
                          SDL_MapRGBA(((SDL_Surface*)dest->surface)->format, 0, 0, 0, 0));
         }
-        
+
         SDL_Rect src_rect = { src_x, src_y, w, h };
         SDL_Rect dest_rect = { dest_x, dest_y, w, h };
         SDL_BlitSurface((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
