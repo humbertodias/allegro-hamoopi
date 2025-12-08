@@ -258,4 +258,9 @@
 
 #endif // !USE_ALLEGRO4
 
+// Screen presentation (for SDL2 compatibility) - always available
+#ifndef present_screen
+#define present_screen() platform_present_screen()
+#endif
+
 #endif // PLATFORM_COMPAT_H

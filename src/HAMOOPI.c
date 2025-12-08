@@ -7225,6 +7225,9 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 }
 //show_mouse(screen);
 
+// Present/update the screen (needed for SDL2, no-op for Allegro)
+present_screen();
+
 while(timer==delay){}
 
 clear(LayerHUD);
