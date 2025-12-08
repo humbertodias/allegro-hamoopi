@@ -49,6 +49,9 @@ static char g_config_file[512] = "config.ini";
 // LIBRETRO INPUT MAPPING
 // ============================================================================
 
+// Transparency color (magenta) - standard Allegro/HAMOOPI convention
+#define TRANSPARENCY_COLOR_MAGENTA 0x00FF00FF
+
 // Map libretro joypad buttons to platform keys
 static const int libretro_to_platform_key_map[RETRO_DEVICE_ID_JOYPAD_R3 + 1] = {
     [RETRO_DEVICE_ID_JOYPAD_B] = PKEY_Z,      // Button B -> Z (punch)
@@ -63,6 +66,7 @@ static const int libretro_to_platform_key_map[RETRO_DEVICE_ID_JOYPAD_R3 + 1] = {
     [RETRO_DEVICE_ID_JOYPAD_X] = PKEY_A,      // Button X -> A (punch)
     [RETRO_DEVICE_ID_JOYPAD_L] = PKEY_S,      // L -> S (kick)
     [RETRO_DEVICE_ID_JOYPAD_R] = PKEY_D,      // R -> D (kick)
+    // All other entries default to 0 (unmapped)
 };
 
 // ============================================================================
@@ -377,8 +381,13 @@ void platform_install_int_ex(void (*callback)(void), int bps)
 {
     g_timer_callback = callback;
     // Convert BPS to frame count (assuming 60 FPS)
-    g_timer_interval = 60 / bps;
-    if (g_timer_interval < 1) g_timer_interval = 1;
+    // Prevent division by zero
+    if (bps > 0) {
+        g_timer_interval = 60 / bps;
+        if (g_timer_interval < 1) g_timer_interval = 1;
+    } else {
+        g_timer_interval = 1;  // Default to every frame
+    }
 }
 
 volatile char* platform_get_key_state(void)
@@ -463,7 +472,7 @@ void platform_draw_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int 
             
             uint32_t pixel = src_pixels[sy * src->w + sx];
             // Skip magenta (transparency color)
-            if ((pixel & 0x00FFFFFF) == 0x00FF00FF) continue;
+            if ((pixel & 0x00FFFFFF) == TRANSPARENCY_COLOR_MAGENTA) continue;
             
             dest_pixels[dy * dest->w + dx] = pixel;
         }
@@ -787,7 +796,10 @@ int platform_file_exists(const char *filename)
 
 void platform_set_config_file(const char *filename)
 {
-    strncpy(g_config_file, filename, sizeof(g_config_file) - 1);
+    if (filename) {
+        strncpy(g_config_file, filename, sizeof(g_config_file) - 1);
+        g_config_file[sizeof(g_config_file) - 1] = '\0';  // Ensure null termination
+    }
 }
 
 int platform_get_config_int(const char *section, const char *key, int default_value)
