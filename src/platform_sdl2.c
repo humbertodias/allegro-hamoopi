@@ -1182,31 +1182,11 @@ void platform_present_screen(void) {
         return;
     }
     
-    // Update texture with surface data using streaming (faster than SDL_UpdateTexture)
+    // Use SDL_UpdateTexture for simplicity - it's actually well-optimized internally
     SDL_Surface *surf = (SDL_Surface*)g_screen->surface;
-    void *pixels;
-    int pitch;
+    SDL_UpdateTexture((SDL_Texture*)g_screen->texture, NULL, surf->pixels, surf->pitch);
     
-    if (SDL_LockTexture((SDL_Texture*)g_screen->texture, NULL, &pixels, &pitch) == 0) {
-        // Optimized copy: use pitch from both source and destination
-        if (pitch == surf->pitch) {
-            // Fast path: pitches match, single memcpy
-            memcpy(pixels, surf->pixels, surf->h * surf->pitch);
-        } else {
-            // Slow path: copy line by line (shouldn't happen with matching formats)
-            char *src = (char*)surf->pixels;
-            char *dst = (char*)pixels;
-            int copy_size = surf->w * 4; // ARGB8888 = 4 bytes per pixel
-            for (int y = 0; y < surf->h; y++) {
-                memcpy(dst, src, copy_size);
-                src += surf->pitch;
-                dst += pitch;
-            }
-        }
-        SDL_UnlockTexture((SDL_Texture*)g_screen->texture);
-    }
-    
-    // Copy texture to renderer (no need to clear, texture is opaque)
+    // Copy texture to renderer
     SDL_RenderCopy(g_renderer, (SDL_Texture*)g_screen->texture, NULL, NULL);
     
     // Present renderer (show on screen)
