@@ -176,8 +176,10 @@ void platform_set_window_title(const char *title);
 // Set close button callback
 void platform_set_close_button_callback(void (*callback)(void));
 
-// Install timer callback (BPS = beats per second)
-void platform_install_int_ex(void (*callback)(void), int bps);
+// Install timer callback
+// The interval_us parameter is the pre-calculated timer interval in microseconds
+// (typically from PLATFORM_BPS_TO_TIMER macro). Do not pass raw BPS values.
+void platform_install_int_ex(void (*callback)(void), int interval_us);
 
 // Get key state array
 volatile char* platform_get_key_state(void);

@@ -51,8 +51,13 @@ void platform_set_close_button_callback(void (*callback)(void)) {
     set_close_button_callback(callback);
 }
 
-void platform_install_int_ex(void (*callback)(void), int bps) {
-    install_int_ex(callback, BPS_TO_TIMER(bps));
+void platform_install_int_ex(void (*callback)(void), int interval_us) {
+    // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
+    // Allegro's install_int_ex expects Allegro timer ticks
+    // Allegro timer runs at 1193181 Hz (PIT clock frequency)
+    // Convert: ticks = (microseconds * 1193181) / 1000000
+    long allegro_ticks = ((long)interval_us * 1193181L) / 1000000L;
+    install_int_ex(callback, allegro_ticks);
 }
 
 volatile char* platform_get_key_state(void) {

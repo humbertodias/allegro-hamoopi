@@ -244,18 +244,20 @@ void platform_set_close_button_callback(void (*callback)(void)) {
     g_close_callback = callback;
 }
 
-void platform_install_int_ex(void (*callback)(void), int bps) {
+void platform_install_int_ex(void (*callback)(void), int interval_us) {
     g_timer_callback = callback;
     
-    // Convert BPS to milliseconds interval
-    Uint32 interval = PLATFORM_BPS_TO_TIMER(bps) / 1000;
-    if (interval < 1) interval = 1;
+    // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
+    // SDL_AddTimer expects milliseconds
+    // Convert: milliseconds = microseconds / 1000
+    Uint32 interval_ms = interval_us / 1000;
+    if (interval_ms < 1) interval_ms = 1;
     
     if (g_timer_id) {
         SDL_RemoveTimer(g_timer_id);
     }
     
-    g_timer_id = SDL_AddTimer(interval, timer_callback_wrapper, NULL);
+    g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
 }
 
 volatile char* platform_get_key_state(void) {
