@@ -17,7 +17,11 @@ endif
 build: clean
 	cmake -Bbuild
 	cmake --build build
-	
+
+build/sdl2: clean
+	cmake -Bbuild -DUSE_SDL2=1
+	cmake --build build
+
 clean:
 	rm -rf ${TARGET} *.exe *.o  *.so build
 

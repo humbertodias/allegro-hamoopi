@@ -6,3 +6,5 @@ HAMOOPI
 PALLETEGEN
 TTF2PCX
 *.exe
+_codeql_*
+CMakeLists.txt.user
