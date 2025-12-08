@@ -9,6 +9,10 @@
 #include <string.h>
 #include "ini.h"
 
+// Transparency color key (magenta) used throughout the game
+#define TRANSPARENCY_COLOR_R 255
+#define TRANSPARENCY_COLOR_G 0
+#define TRANSPARENCY_COLOR_B 255
 
 // Global state
 static SDL_Window *g_window = NULL;
@@ -393,7 +397,9 @@ void platform_draw_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int 
     if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { x, y, src->w, src->h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         SDL_Rect dest_rect = { x, y, src->w, src->h };
         SDL_BlitSurface(((SDL_Surface*)src->surface), NULL, dest->surface, &dest_rect);
@@ -406,7 +412,9 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
     if (src && src->surface && dest && dest->surface) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { dest_x, dest_y, dest_w, dest_h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
@@ -429,7 +437,9 @@ void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
     if (src && src->surface && dest && dest->surface) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { dest_x, dest_y, w, h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         SDL_Rect src_rect = { src_x, src_y, w, h };
         SDL_Rect dest_rect = { dest_x, dest_y, w, h };
@@ -447,7 +457,9 @@ void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
     if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { x, y, src->w, src->h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         // Create flipped surface
         SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
@@ -480,7 +492,9 @@ void platform_draw_sprite_v_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
     if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { x, y, src->w, src->h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         // Create flipped surface
         SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
@@ -512,7 +526,9 @@ void platform_draw_sprite_vh_flip(PlatformBitmap *dest, PlatformBitmap *src, int
     if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
         // Clear destination area before blitting to prevent artifacts from previous frames
         SDL_Rect clear_rect = { x, y, src->w, src->h };
-        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 255, 0, 255));
+        SDL_FillRect((SDL_Surface*)dest->surface, &clear_rect, 
+                     SDL_MapRGB(((SDL_Surface*)dest->surface)->format, 
+                                TRANSPARENCY_COLOR_R, TRANSPARENCY_COLOR_G, TRANSPARENCY_COLOR_B));
         
         // Create flipped surface
         SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
