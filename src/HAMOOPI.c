@@ -7227,9 +7227,6 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 
 while(timer==delay){}
 
-// Present screen (SDL2 needs this to display the rendered content)
-// Moved here to sync with game loop timing - present after timer wait
-platform_present_screen();
 clear(LayerHUD);
 clear_to_color(LayerHUD, makecol(255, 0, 255));
 clear_to_color(LayerHUDa, makecol(255, 0, 255));

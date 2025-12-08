@@ -400,6 +400,16 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
         SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
+        
+        // Auto-update window if blitting to screen (like Allegro 4)
+        if (dest == g_screen && g_window) {
+            SDL_Surface *window_surf = SDL_GetWindowSurface(g_window);
+            if (window_surf) {
+                SDL_Surface *screen_surf = (SDL_Surface*)dest->surface;
+                SDL_BlitScaled(screen_surf, NULL, window_surf, NULL);
+                SDL_UpdateWindowSurface(g_window);
+            }
+        }
     }
 }
 
@@ -1152,20 +1162,6 @@ void platform_solid_mode(void) { g_drawing_mode = PDRAW_MODE_SOLID; }
 void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) { platform_draw_sprite(dest, src, x, y); }
 
 void platform_present_screen(void) {
-    if (!g_screen || !g_window || !g_screen->surface) {
-        return;
-    }
-    
-    // Get window surface for direct blitting (like Allegro)
-    SDL_Surface *window_surf = SDL_GetWindowSurface(g_window);
-    if (!window_surf) {
-        return;
-    }
-    
-    // Blit screen surface to window surface (handles scaling if needed)
-    SDL_Surface *screen_surf = (SDL_Surface*)g_screen->surface;
-    SDL_BlitScaled(screen_surf, NULL, window_surf, NULL);
-    
-    // Update window (like Allegro's vsync)
-    SDL_UpdateWindowSurface(g_window);
+    // No-op: Screen updates automatically when blitting to screen surface
+    // This function kept for API compatibility but does nothing
 }
