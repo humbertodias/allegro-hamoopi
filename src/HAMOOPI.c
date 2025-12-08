@@ -5,18 +5,24 @@
 //    \/_/\/_/   \/_/\/_/   \/_/  \/_/   \/_____/   \/_____/   \/_/     \/_/  //
 //                                          by Daniel Moura (dev@hamoopi.com) //
 //                                                                            //
-// [**01] Declaracoes Iniciais                                                //
-// [**02] Ini Allegro                                                         //
-// [**03] Loop de Jogo                                                        //
-// [**04] Sistema de Colisao                                                  //
-// [**05] FSM                                                                 //
-// [**06] Difs                                                                //
-// [**07] Funcoes de Desenho                                                  //
-// [**08] Debug                                                               //
-// [**09] Edit Mode                                                           //
-// [**10] Finalizacoes                                                        //
-// [**11] Checar Teclas                                                       //
-// [**12] STATES (Chg)                                                        //
+// ESTRUTURA DO CÓDIGO (Refatorado para melhor modularidade e legibilidade) //
+//                                                                            //
+// [**01 ] Declarações Iniciais - Structs, variáveis globais, defines        //
+// [**01B] Forward Declarations - Funções auxiliares do game loop             //
+// [**02 ] Inicialização Allegro - Função main() e setup inicial             //
+// [**03 ] Loop de Jogo Principal - Game loop modular com estados claros     //
+//         - Atualização de estado (Input, Timers, Física)                   //
+//         - Gerenciamento de Estados (Intro, Menu, Gameplay, etc)           //
+//         - Renderização Final                                              //
+// [**04 ] Sistema de Colisão - Detecção e resposta a colisões               //
+// [**05 ] FSM (Finite State Machine) - Máquina de estados dos jogadores     //
+// [**06 ] Difs - Dificuldades e ajustes de gameplay                         //
+// [**07 ] Funções de Desenho - Renderização de sprites e HUD                //
+// [**08 ] Debug - Ferramentas de debug e diagnóstico                        //
+// [**09 ] Edit Mode - Editor de personagens                                 //
+// [**10 ] Finalizações - Limpeza de recursos                                //
+// [**11 ] Checar Teclas - Sistema de input                                  //
+// [**12 ] STATES (Chg) - Gerenciamento de estados dos personagens           //
 ////////////////////////////////////////////////////////////////////////////////
 /*******************************************************************************
 	TO DO LIST: 
@@ -575,6 +581,14 @@ int ED_MovimentaPivot=0;
 char ED_Name_Display[50]="char1";
 
 ///////////////////////////////////////////////////////////////////////////////
+// FORWARD DECLARATIONS - HELPER FUNCTIONS FOR GAME LOOP ---------------[**01B]
+///////////////////////////////////////////////////////////////////////////////
+
+// Game state update functions
+void update_game_state();
+void handle_fullscreen_toggle(int *ModoFullscreen);
+
+///////////////////////////////////////////////////////////////////////////////
 // INICIALIZACAO ALLEGRO ------------------------------------------------[**02]
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1061,45 +1075,106 @@ set_window_title(versao);
 
 while (sair==0)
 {
-
-check_keys_P1(); check_keys_P2(); //verifica teclas key_press, key_hold, key_released
-delay=timer;
-Segundos=((timer/60)-Minutos*60)-Horas*3600;
-if (Segundos>=60) { Minutos++; Segundos=0; if(Minutos>=60){ Horas++; Minutos=0; } }
-if (timermenus<15) { timermenus++; } //utilizado para melhor navegacao entre os menus
-MeioDaTela=(P[1].x+P[2].x)/2;
-if (P[1].State==300 || P[1].State==310 || P[1].State==320) { P[1].TempoPulo=P[1].TempoPulo+1; }
-if (P[2].State==300 || P[2].State==310 || P[2].State==320) { P[2].TempoPulo=P[2].TempoPulo+1; }
-P[1].ticks_4slot=P[1].ticks_4slot+1;
-P[2].ticks_4slot=P[2].ticks_4slot+1;
-if (ModoFullscreen==0 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=1; set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0); }
-if (ModoFullscreen==1 && key[KEY_ALT] && key[KEY_ENTER]) { ModoFullscreen=0; set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); }
-set_volume(op_sfx_volume, op_sound_volume); //volume //set_volume(int digi_volume, int midi_volume);
-
-/////////////////////////////////////////////////////////////////////////////
-// INTRO --------------------------------------------------------------------
-/////////////////////////////////////////////////////////////////////////////
-
-if (IntroMode==1){
-if(timermenus==0) {
-play_sample(intro, 255, 128, 1000, 0);
-}
-
-IntroTimer++;
-P[1].Pode_Mexer=1;
-P[2].Pode_Mexer=1;
-
-if (timermenus==15){
-if (key[KEY_ESC]) {sair=1;}
-if (key[KEY_ALT] && key[KEY_F4]) {sair=1;}
-if (P[1].key_START_pressed==1) { timermenus=0; FadeCtr=255; FadeIN=0; FadeOUT=1; IntroMode=0; IntroTimer=0; DonationScreen=1; }
-}
-
-if (IntroTimer==300-30){ FadeIN=1; FadeOUT=0; }
-if (IntroTimer>=300){ timermenus=0; IntroMode=0; IntroTimer=0; DonationScreen=1; }
-draw_sprite(bufferx, GAME_intro, 0, 0);
-stretch_blit(bufferx, bufferx, 0, 0, 640, 480, 0, 0, 640, 480);
-}
+    ///////////////////////////////////////////////////////////////////////////
+    // ATUALIZACAO DO ESTADO DO JOGO (Input, Timers, Fisica)
+    ///////////////////////////////////////////////////////////////////////////
+    
+    // Processar input dos jogadores
+    check_keys_P1(); 
+    check_keys_P2();
+    
+    // Atualizar timers do jogo
+    delay = timer;
+    Segundos = ((timer/60) - Minutos*60) - Horas*3600;
+    if (Segundos >= 60) { 
+        Minutos++; 
+        Segundos = 0; 
+        if (Minutos >= 60) { 
+            Horas++; 
+            Minutos = 0; 
+        } 
+    }
+    if (timermenus < 15) { 
+        timermenus++; 
+    }
+    
+    // Atualizar física dos jogadores
+    MeioDaTela = (P[1].x + P[2].x) / 2;
+    if (P[1].State == 300 || P[1].State == 310 || P[1].State == 320) { 
+        P[1].TempoPulo = P[1].TempoPulo + 1; 
+    }
+    if (P[2].State == 300 || P[2].State == 310 || P[2].State == 320) { 
+        P[2].TempoPulo = P[2].TempoPulo + 1; 
+    }
+    P[1].ticks_4slot = P[1].ticks_4slot + 1;
+    P[2].ticks_4slot = P[2].ticks_4slot + 1;
+    
+    // Gerenciar modo fullscreen (ALT+ENTER)
+    if (ModoFullscreen == 0 && key[KEY_ALT] && key[KEY_ENTER]) { 
+        ModoFullscreen = 1; 
+        set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0); 
+    }
+    if (ModoFullscreen == 1 && key[KEY_ALT] && key[KEY_ENTER]) { 
+        ModoFullscreen = 0; 
+        set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); 
+    }
+    
+    // Atualizar volume
+    set_volume(op_sfx_volume, op_sound_volume);
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // GERENCIAMENTO DE ESTADOS DO JOGO (Game State Machine)
+    ///////////////////////////////////////////////////////////////////////////
+    
+    // ========================================================================
+    // ESTADO: INTRO - Tela inicial do jogo
+    // ========================================================================
+    
+    if (IntroMode == 1) {
+        // Inicialização do estado
+        if (timermenus == 0) {
+            play_sample(intro, 255, 128, 1000, 0);
+        }
+        
+        IntroTimer++;
+        P[1].Pode_Mexer = 1;
+        P[2].Pode_Mexer = 1;
+        
+        // Processar input do jogador
+        if (timermenus == 15) {
+            if (key[KEY_ESC]) {
+                sair = 1;
+            }
+            if (key[KEY_ALT] && key[KEY_F4]) {
+                sair = 1;
+            }
+            if (P[1].key_START_pressed == 1) { 
+                timermenus = 0; 
+                FadeCtr = 255; 
+                FadeIN = 0; 
+                FadeOUT = 1; 
+                IntroMode = 0; 
+                IntroTimer = 0; 
+                DonationScreen = 1; 
+            }
+        }
+        
+        // Gerenciar transição automática
+        if (IntroTimer == 300 - 30) { 
+            FadeIN = 1; 
+            FadeOUT = 0; 
+        }
+        if (IntroTimer >= 300) { 
+            timermenus = 0; 
+            IntroMode = 0; 
+            IntroTimer = 0; 
+            DonationScreen = 1; 
+        }
+        
+        // Renderizar
+        draw_sprite(bufferx, GAME_intro, 0, 0);
+        stretch_blit(bufferx, bufferx, 0, 0, 640, 480, 0, 0, 640, 480);
+    }
 
 /////////////////////////////////////////////////////////////////////////////
 // DONATION SCREEN ----------------------------------------------------------
