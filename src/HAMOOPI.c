@@ -7373,6 +7373,12 @@ draw_sprite(bufferx, AnimTrans[ind], 0, 0); //bufferx, antes de entrar na tela d
 }
 }
 }
+
+///////////////////////////////////////////////////////////////////////////
+// RENDERIZAÇÃO FINAL E SINCRONIZAÇÃO
+///////////////////////////////////////////////////////////////////////////
+
+// Animações de transição
 if (AnimTransTimer!=-1){
 for (int ind=14;ind<=29;ind++){
 if(ind==floor(AnimTransTimer)) {
@@ -7389,9 +7395,7 @@ AnimTransTimer=-1;
 }
 }
 
-//////////////////////////////
-//BLIT de BUFFERX em SCREEN!//
-//////////////////////////////
+// Renderização final para a tela (Blit de BUFFERX em SCREEN)
 if (GamePlayMode==0) { stretch_blit(bufferx, screen, 0, 0, 640, 480, 0, 0, screen->w, screen->h); }
 if (GamePlayMode==1) {
 masked_stretch_blit(LayerHUDa, LayerHUDb, 0, 0, LayerHUDa->w, LayerHUDa->h, 0, 0, LayerHUDb->w, LayerHUDb->h);
@@ -7400,15 +7404,21 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 }
 //show_mouse(screen);
 
+// Sincronização de FPS (aguarda próximo frame)
 while(timer==delay){}
 
+// Limpar buffers para próximo frame
 clear(LayerHUD);
 clear_to_color(LayerHUD, makecol(255, 0, 255));
 clear_to_color(LayerHUDa, makecol(255, 0, 255));
 clear_to_color(LayerHUDb, makecol(255, 0, 255));
 clear(bufferx);
 
-} //(while sair==0)
+} // FIM DO GAME LOOP PRINCIPAL (while sair==0)
+
+///////////////////////////////////////////////////////////////////////////////
+// LIMPEZA E FINALIZAÇÃO -----------------------------------------------[**10]
+///////////////////////////////////////////////////////////////////////////////
 
 //limpa a memoria, destroi imagens e audios utilizados no jogo
 destroy_bitmap(donation);
