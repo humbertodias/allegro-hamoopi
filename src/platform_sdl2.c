@@ -1176,9 +1176,16 @@ void platform_present_screen(void) {
         return;
     }
     
-    // Update texture with surface data
+    // Update texture with surface data using streaming (faster than SDL_UpdateTexture)
     SDL_Surface *surf = (SDL_Surface*)g_screen->surface;
-    SDL_UpdateTexture((SDL_Texture*)g_screen->texture, NULL, surf->pixels, surf->pitch);
+    void *pixels;
+    int pitch;
+    
+    if (SDL_LockTexture((SDL_Texture*)g_screen->texture, NULL, &pixels, &pitch) == 0) {
+        // Copy surface pixels to texture
+        memcpy(pixels, surf->pixels, surf->h * surf->pitch);
+        SDL_UnlockTexture((SDL_Texture*)g_screen->texture);
+    }
     
     // Clear renderer
     SDL_RenderClear(g_renderer);
