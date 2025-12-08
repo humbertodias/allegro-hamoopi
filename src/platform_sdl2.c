@@ -19,6 +19,9 @@ static void (*g_close_callback)(void) = NULL;
 static SDL_TimerID g_timer_id = 0;
 static void (*g_timer_callback)(void) = NULL;
 
+// Track if screen needs to be auto-presented
+static int g_screen_needs_present = 0;
+
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
 volatile int platform_mouse_y = 0;
@@ -262,6 +265,12 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
 }
 
 volatile char* platform_get_key_state(void) {
+    // Auto-present screen if it was rendered to (called at start of frame)
+    if (g_screen_needs_present) {
+        platform_present_screen();
+        g_screen_needs_present = 0;
+    }
+    
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
     
@@ -410,15 +419,37 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
                           int src_x, int src_y, int src_w, int src_h,
                           int dest_x, int dest_y, int dest_w, int dest_h) {
     if (src && src->surface && dest && dest->surface) {
+        // Auto-clear screen buffer before blitting to it (prevents ghosting)
+        if (dest == g_screen && dest_x == 0 && dest_y == 0) {
+            SDL_Surface *surf = (SDL_Surface*)dest->surface;
+            Uint32 black = SDL_MapRGB(surf->format, 0, 0, 0);
+            SDL_FillRect(surf, NULL, black);
+        }
+        
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
         SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
+        
+        // Mark that screen needs presenting if we blitted to it
+        if (dest == g_screen) {
+            g_screen_needs_present = 1;
+        }
     }
 }
 
 void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
                   int src_x, int src_y, int dest_x, int dest_y, int w, int h) {
     if (src && src->surface && dest && dest->surface) {
+        // Auto-clear destination sprite area before blitting (prevents ghosting)
+        // Only when copying full sprite from top-left corner
+        if (src_x == 0 && src_y == 0 && dest_x == 0 && dest_y == 0 && dest != g_screen) {
+            SDL_Surface *dest_surf = (SDL_Surface*)dest->surface;
+            // Clear only the rectangle that will be used
+            SDL_Rect clear_rect = { 0, 0, w, h };
+            Uint32 magenta = SDL_MapRGB(dest_surf->format, 255, 0, 255);
+            SDL_FillRect(dest_surf, &clear_rect, magenta);
+        }
+        
         SDL_Rect src_rect = { src_x, src_y, w, h };
         SDL_Rect dest_rect = { dest_x, dest_y, w, h };
         SDL_BlitSurface((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);

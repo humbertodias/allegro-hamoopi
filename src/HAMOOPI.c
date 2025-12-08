@@ -4435,13 +4435,8 @@ carga=P[indx].TableAtlas[ind][2];
 if(carga!=0) break;
 }
 //depois, pega a imagem SprAtlas correspondente ao indexador, e a coloca em P[n].Spr
-//clear only the sprite area (not the entire 480x480) to prevent ghosting (needed for SDL2)
-int sprite_w = P[indx].SprAtlas[carga]->w;
-int sprite_h = P[indx].SprAtlas[carga]->h;
-// Clear only the rectangle that will be used
-rectfill(P[indx].Spr, 0, 0, sprite_w-1, sprite_h-1, makecol(255, 0, 255));
-blit(P[indx].SprAtlas[carga], P[indx].Spr, 0, 0, 0, 0, sprite_w, sprite_h);
-P[indx].Spr->w  = sprite_w;
+blit(P[indx].SprAtlas[carga], P[indx].Spr, 0, 0, 0, 0, P[indx].SprAtlas[carga]->w, P[indx].SprAtlas[carga]->h);
+P[indx].Spr->w  = P[indx].SprAtlas[carga]->w;
 P[indx].Spr->h  = P[indx].SprAtlas[carga]->h;
 P[indx].Altura  = P[indx].Spr->h;
 P[indx].Largura = P[indx].Spr->w;
@@ -7222,9 +7217,6 @@ AnimTransTimer=-1;
 //////////////////////////////
 //BLIT de BUFFERX em SCREEN!//
 //////////////////////////////
-// Clear screen buffer to prevent ghosting (needed for SDL2)
-clear_to_color(screen, makecol(0, 0, 0));
-
 if (GamePlayMode==0) { stretch_blit(bufferx, screen, 0, 0, 640, 480, 0, 0, screen->w, screen->h); }
 if (GamePlayMode==1) {
 masked_stretch_blit(LayerHUDa, LayerHUDb, 0, 0, LayerHUDa->w, LayerHUDa->h, 0, 0, LayerHUDb->w, LayerHUDb->h);
@@ -7232,9 +7224,6 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 //draw_sprite(screen, LayerHUDb, 0, 0); //PS: desativado, resolucao fixa em 640x480, stretch_blit funciona melhor
 }
 //show_mouse(screen);
-
-// Present/update the screen (needed for SDL2, no-op for Allegro)
-present_screen();
 
 while(timer==delay){}
 
