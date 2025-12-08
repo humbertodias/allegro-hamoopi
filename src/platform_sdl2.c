@@ -135,6 +135,12 @@ char* replace_pcx_with_png(const char* filename) {
 // ============================================================================
 
 int platform_init(void) {
+    // Set SDL hints for better performance
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");  // Disable VSync via hint as well
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");  // Nearest neighbor (faster)
+    SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");  // Enable if available
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d,opengl,opengles2,software");  // Prefer hardware
+    
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return -1;
@@ -217,7 +223,7 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
     
-    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
     if (!g_renderer) {
         fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
         SDL_DestroyWindow(g_window);
@@ -1182,15 +1188,25 @@ void platform_present_screen(void) {
     int pitch;
     
     if (SDL_LockTexture((SDL_Texture*)g_screen->texture, NULL, &pixels, &pitch) == 0) {
-        // Copy surface pixels to texture
-        memcpy(pixels, surf->pixels, surf->h * surf->pitch);
+        // Optimized copy: use pitch from both source and destination
+        if (pitch == surf->pitch) {
+            // Fast path: pitches match, single memcpy
+            memcpy(pixels, surf->pixels, surf->h * surf->pitch);
+        } else {
+            // Slow path: copy line by line (shouldn't happen with matching formats)
+            char *src = (char*)surf->pixels;
+            char *dst = (char*)pixels;
+            int copy_size = surf->w * 4; // ARGB8888 = 4 bytes per pixel
+            for (int y = 0; y < surf->h; y++) {
+                memcpy(dst, src, copy_size);
+                src += surf->pitch;
+                dst += pitch;
+            }
+        }
         SDL_UnlockTexture((SDL_Texture*)g_screen->texture);
     }
     
-    // Clear renderer
-    SDL_RenderClear(g_renderer);
-    
-    // Copy texture to renderer
+    // Copy texture to renderer (no need to clear, texture is opaque)
     SDL_RenderCopy(g_renderer, (SDL_Texture*)g_screen->texture, NULL, NULL);
     
     // Present renderer (show on screen)
