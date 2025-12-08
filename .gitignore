@@ -8,3 +8,6 @@ TTF2PCX
 *.exe
 _codeql_*
 CMakeLists.txt.user
+*.so
+*.dll
+*.dylib
