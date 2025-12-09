@@ -25,6 +25,25 @@ static void (*g_timer_callback)(void) = NULL;
 static int g_drawing_mode = PDRAW_MODE_SOLID;
 static int g_trans_alpha = 255;
 
+// Helper function to update screen using renderer and texture
+static void update_screen_with_renderer(void) {
+    if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
+        // Update texture with screen surface data
+        SDL_UpdateTexture(g_screen_texture, NULL, 
+                        ((SDL_Surface*)g_screen->surface)->pixels, 
+                        ((SDL_Surface*)g_screen->surface)->pitch);
+        
+        // Clear renderer
+        SDL_RenderClear(g_renderer);
+        
+        // Copy texture to renderer
+        SDL_RenderCopy(g_renderer, g_screen_texture, NULL, NULL);
+        
+        // Present renderer
+        SDL_RenderPresent(g_renderer);
+    }
+}
+
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
 volatile int platform_mouse_y = 0;
@@ -440,20 +459,8 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
         SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
         
         // Auto-update window if blitting to screen using renderer and texture
-        if (dest == g_screen && g_renderer && g_screen_texture) {
-            // Update texture with screen surface data
-            SDL_UpdateTexture(g_screen_texture, NULL, 
-                            ((SDL_Surface*)dest->surface)->pixels, 
-                            ((SDL_Surface*)dest->surface)->pitch);
-            
-            // Clear renderer
-            SDL_RenderClear(g_renderer);
-            
-            // Copy texture to renderer
-            SDL_RenderCopy(g_renderer, g_screen_texture, NULL, NULL);
-            
-            // Present renderer
-            SDL_RenderPresent(g_renderer);
+        if (dest == g_screen) {
+            update_screen_with_renderer();
         }
     }
 }
@@ -1250,19 +1257,5 @@ void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x
 
 void platform_present_screen(void) {
     // Update the screen with renderer and texture
-    if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
-        // Update texture with screen surface data
-        SDL_UpdateTexture(g_screen_texture, NULL, 
-                        ((SDL_Surface*)g_screen->surface)->pixels, 
-                        ((SDL_Surface*)g_screen->surface)->pitch);
-        
-        // Clear renderer
-        SDL_RenderClear(g_renderer);
-        
-        // Copy texture to renderer
-        SDL_RenderCopy(g_renderer, g_screen_texture, NULL, NULL);
-        
-        // Present renderer
-        SDL_RenderPresent(g_renderer);
-    }
+    update_screen_with_renderer();
 }
