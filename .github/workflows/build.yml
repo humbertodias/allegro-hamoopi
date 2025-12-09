@@ -31,6 +31,9 @@ jobs:
           # Exclude macOS + Allegro, only build SDL2 for macOS
           - os: macos-latest
             backend: allegro
+          # Exclude Windows + Allegro
+          - os: windows-latest
+            backend: allegro
 
     steps:
       - name: Checkout code
