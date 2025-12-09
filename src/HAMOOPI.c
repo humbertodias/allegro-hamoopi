@@ -7228,7 +7228,11 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 }
 //show_mouse(screen);
 
-while(timer==delay){}
+// Present the frame to screen (SDL optimization)
+platform_present_screen();
+
+// Frame limiter - wait for next frame without busy-waiting
+while(timer==delay){ rest(1); }
 
 clear(LayerHUD);
 clear_to_color(LayerHUD, makecol(255, 0, 255));

@@ -164,6 +164,8 @@ int platform_init(void) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");  // Nearest neighbor (faster)
     SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");  // Enable if available
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d,opengl,opengles2,software");  // Prefer hardware
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");  // Don't minimize on focus loss
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");  // Enable render batching for better performance
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
@@ -248,8 +250,8 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
 
-    // Create renderer with hardware acceleration for better macOS compatibility
-    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // Create renderer with hardware acceleration without VSync for maximum FPS
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
     if (!g_renderer) {
         fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
         SDL_DestroyWindow(g_window);
@@ -257,9 +259,9 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
 
-    // Create streaming texture for the screen
+    // Create static texture for better performance (we update entire texture each frame)
     g_screen_texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
-                                         SDL_TEXTUREACCESS_STREAMING, width, height);
+                                         SDL_TEXTUREACCESS_STATIC, width, height);
     if (!g_screen_texture) {
         fprintf(stderr, "SDL_CreateTexture failed: %s\n", SDL_GetError());
         SDL_DestroyRenderer(g_renderer);
@@ -458,10 +460,7 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
         SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
 
-        // Auto-update window if blitting to screen using renderer and texture
-        if (dest == g_screen) {
-            update_screen_with_renderer();
-        }
+        // Note: Screen update removed from here for performance - call platform_present_screen() explicitly
     }
 }
 
