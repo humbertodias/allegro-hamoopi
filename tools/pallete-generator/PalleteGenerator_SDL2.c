@@ -135,8 +135,9 @@ SDL_Surface* load_bitmap(const char *filename) {
         return NULL;
     }
     
-    // Convert to the same format as buffer for consistent pixel operations
-    SDL_Surface *converted = SDL_ConvertSurface(loaded, buffer_surface->format, 0);
+    // Convert to 32-bit ARGB format for consistent pixel operations
+    // Use a standard format that doesn't depend on buffer_surface
+    SDL_Surface *converted = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(loaded);
     
     return converted;
