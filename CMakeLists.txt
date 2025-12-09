@@ -53,14 +53,14 @@ else()
     add_definitions(-DUSE_ALLEGRO4)
     add_executable(HAMOOPI src/HAMOOPI.c src/platform_allegro.c)
     
-    # Find Allegro
-    find_package(Alleg4 4)
+    # Find Allegro 4 using custom Find module
+    find_package(Allegro4 REQUIRED)
     
     # Add directories to the include search path
-    target_include_directories(HAMOOPI PRIVATE ${ALLEGRO_INCLUDE_DIR})
+    target_include_directories(HAMOOPI PRIVATE ${ALLEGRO4_INCLUDE_DIRS})
     
     # Link with dependencies
-    target_link_libraries(HAMOOPI alleg)
+    target_link_libraries(HAMOOPI ${ALLEGRO4_LIBRARIES})
     
     # Link math library on Unix-like systems (not needed on Windows)
     if(UNIX)
