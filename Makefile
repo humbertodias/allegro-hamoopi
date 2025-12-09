@@ -19,7 +19,7 @@ build: clean
 	cmake --build build
 
 build/sdl2: clean
-	cmake -Bbuild -DUSE_SDL2=1
+	cmake -Bbuild -DCMAKE_BUILD_TYPE=DEBUG -DUSE_SDL2=1
 	cmake --build build
 
 clean:
