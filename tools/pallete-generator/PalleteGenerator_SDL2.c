@@ -362,8 +362,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot0, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot0, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -375,7 +378,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -395,8 +397,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot1, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot1, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -408,7 +413,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -428,8 +432,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot2, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot2, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -441,7 +448,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -461,8 +467,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot3, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot3, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -474,7 +483,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -494,8 +502,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot4, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot4, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -507,7 +518,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -527,8 +537,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot5, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot5, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -540,7 +553,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -560,8 +572,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot6, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot6, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -573,7 +588,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -593,8 +607,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot7, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot7, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -606,7 +623,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
@@ -626,8 +642,11 @@ int main(int argc, char *argv[])
                             if (getpixel(Slot8, x, y) != makecol(255, 0, 255)) {
                                 ValorDeCor = getpixel(Slot8, x, y);
                                 r = getr(ValorDeCor); g = getg(ValorDeCor); b = getb(ValorDeCor);
-                                ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
-                                CorNum++; podeatualizar = 0;
+                                if (CorNum < 32) {  // Bounds check BEFORE array access
+                                    ArrayPallete[CorNum][1] = r; ArrayPallete[CorNum][2] = g; ArrayPallete[CorNum][3] = b;
+                                    CorNum++;
+                                }
+                                podeatualizar = 0;
                             }
                         }
                     }
@@ -639,7 +658,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                if (CorNum > 33) { CorNum = 33; }
                 if (i == 32) { AtualizaSlotPallete = 1; }
             }
         }
