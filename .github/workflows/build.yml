@@ -83,16 +83,33 @@ jobs:
       - name: Install Allegro 4 manually (Windows)
         if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
         run: |
-          # Download Allegro 4.4.3.1 binary for Windows
-          # Note: Allegro 4 official binaries may need to be sourced from SourceForge or compiled
-          # Using a known working version for MinGW
+          # Download Allegro 4.4.2 binary for Windows
           curl -L -f https://master.dl.sourceforge.net/project/alleg/allegro/4.4.2/allegro-4.4.2.zip?viasf=1 -o allegro.zip || {
             echo "Failed to download Allegro 4. Please verify the download URL."
             exit 1
           }
+          # Extract and organize files
           7z x allegro.zip -oC:/allegro-temp
-          # Move contents to final location
-          mv C:/allegro-temp/* C:/allegro/ || mv C:/allegro-temp/allegro-* C:/allegro/
+          # Find the actual allegro directory and copy its contents
+          if [ -d "C:/allegro-temp/allegro-4.4.2" ]; then
+            cp -r C:/allegro-temp/allegro-4.4.2/* C:/allegro/
+          elif [ -d "C:/allegro-temp/allegro" ]; then
+            cp -r C:/allegro-temp/allegro/* C:/allegro/
+          else
+            # Fallback: just copy everything
+            cp -r C:/allegro-temp/* C:/allegro/
+          fi
+          # List contents for debugging
+          echo "Contents of C:/allegro:"
+          ls -la C:/allegro/
+          if [ -d "C:/allegro/include" ]; then
+            echo "Include directory found"
+            ls -la C:/allegro/include/
+          fi
+          if [ -d "C:/allegro/lib" ]; then
+            echo "Lib directory found"
+            ls -la C:/allegro/lib/
+          fi
           # Set environment variables for CMake to find Allegro
           echo "ALLEGRO_ROOT=C:/allegro" >> $GITHUB_ENV
           echo "CMAKE_PREFIX_PATH=C:/allegro" >> $GITHUB_ENV

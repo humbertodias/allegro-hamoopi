@@ -15,22 +15,32 @@ find_path(ALLEGRO4_INCLUDE_DIR
         /opt/homebrew/include
         /usr/local/opt/allegro@4/include
         C:/allegro/include
+        C:/allegro-temp/include
         $ENV{ALLEGRO_ROOT}/include
         $ENV{ALLEGRODIR}/include
+        $ENV{CMAKE_PREFIX_PATH}/include
     PATH_SUFFIXES allegro
+    DOC "Allegro 4 include directory"
 )
 
 # Find the Allegro 4 library
+# Windows may use different naming: alleg44.lib, alleg.lib, liballeg.a, etc.
 find_library(ALLEGRO4_LIBRARY
-    NAMES alleg allegro allegro-4.4
+    NAMES alleg44 alleg allegro allegro-4.4 allegro-4.4.2 liballeg
     PATHS
         /usr/local/lib
         /usr/lib
         /opt/homebrew/lib
         /usr/local/opt/allegro@4/lib
         C:/allegro/lib
+        C:/allegro/lib/msvc
+        C:/allegro/lib/mingw
+        C:/allegro-temp/lib
         $ENV{ALLEGRO_ROOT}/lib
         $ENV{ALLEGRODIR}/lib
+        $ENV{CMAKE_PREFIX_PATH}/lib
+    PATH_SUFFIXES lib
+    DOC "Allegro 4 library"
 )
 
 # Handle the QUIETLY and REQUIRED arguments
@@ -56,6 +66,18 @@ if(ALLEGRO4_FOUND)
     set(ALLEGRO_FOUND ${ALLEGRO4_FOUND})
     set(ALLEGRO_LIBRARIES ${ALLEGRO4_LIBRARIES})
     set(ALLEGRO_INCLUDE_DIR ${ALLEGRO4_INCLUDE_DIR})
+else()
+    # Debugging: show what paths were searched
+    message(STATUS "Allegro4 not found. Searched paths:")
+    message(STATUS "  Include: ${ALLEGRO4_INCLUDE_DIR}")
+    message(STATUS "  Library: ${ALLEGRO4_LIBRARY}")
+    if(DEFINED ENV{ALLEGRO_ROOT})
+        message(STATUS "  ALLEGRO_ROOT env: $ENV{ALLEGRO_ROOT}")
+    endif()
+    if(DEFINED ENV{CMAKE_PREFIX_PATH})
+        message(STATUS "  CMAKE_PREFIX_PATH env: $ENV{CMAKE_PREFIX_PATH}")
+    endif()
 endif()
 
 mark_as_advanced(ALLEGRO4_INCLUDE_DIR ALLEGRO4_LIBRARY)
+
