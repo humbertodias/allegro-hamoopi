@@ -68,6 +68,12 @@ else()
     # Link with dependencies
     target_link_libraries(HAMOOPI ${ALLEGRO4_LIBRARIES})
     
+    # On Windows, disable SAFESEH for compatibility with Allegro 4
+    # Allegro 4 was compiled without SAFESEH support
+    if(WIN32 AND MSVC)
+        target_link_options(HAMOOPI PRIVATE /SAFESEH:NO)
+    endif()
+    
     # Link math library on Unix-like systems (not needed on Windows)
     if(UNIX)
         target_link_libraries(HAMOOPI m)
