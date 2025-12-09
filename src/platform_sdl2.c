@@ -19,6 +19,9 @@ static void (*g_close_callback)(void) = NULL;
 static SDL_TimerID g_timer_id = 0;
 static void (*g_timer_callback)(void) = NULL;
 
+// Hitbox transparency (0-255, where 128 = 50% transparent)
+static int g_hitbox_alpha = 80;  // Semi-transparent by default
+
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
 volatile int platform_mouse_y = 0;
@@ -552,10 +555,39 @@ PlatformColor platform_getpixel(PlatformBitmap *bitmap, int x, int y) {
 void platform_putpixel(PlatformBitmap *bitmap, int x, int y, PlatformColor color) {
     if (bitmap && bitmap->surface && x >= 0 && x < bitmap->w && y >= 0 && y < bitmap->h) {
         SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
-        SDL_LockSurface(surf);
-        Uint32 *pixels = (Uint32*)surf->pixels;
-        pixels[y * (surf->pitch / 4) + x] = color;
-        SDL_UnlockSurface(surf);
+        
+        // Extract RGB from color
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+        
+        // If it's pure red (hitbox color), apply alpha blending
+        if (r == 255 && g == 0 && b == 0) {
+            SDL_LockSurface(surf);
+            Uint32 *pixels = (Uint32*)surf->pixels;
+            int offset = y * (surf->pitch / 4) + x;
+            
+            // Get existing pixel
+            Uint32 existing = pixels[offset];
+            Uint8 exist_r, exist_g, exist_b, exist_a;
+            SDL_GetRGBA(existing, surf->format, &exist_r, &exist_g, &exist_b, &exist_a);
+            
+            // Alpha blend
+            int alpha = g_hitbox_alpha;
+            int inv_alpha = 255 - alpha;
+            Uint8 final_r = (r * alpha + exist_r * inv_alpha) / 255;
+            Uint8 final_g = (g * alpha + exist_g * inv_alpha) / 255;
+            Uint8 final_b = (b * alpha + exist_b * inv_alpha) / 255;
+            
+            pixels[offset] = SDL_MapRGBA(surf->format, final_r, final_g, final_b, 255);
+            SDL_UnlockSurface(surf);
+        } else {
+            // Normal opaque pixel
+            SDL_LockSurface(surf);
+            Uint32 *pixels = (Uint32*)surf->pixels;
+            pixels[y * (surf->pitch / 4) + x] = color;
+            SDL_UnlockSurface(surf);
+        }
     }
 }
 
@@ -602,7 +634,30 @@ void platform_rect(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, Platf
 void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, PlatformColor color) {
     if (bitmap && bitmap->surface) {
         SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
-        SDL_FillRect(bitmap->surface, &rect, color);
+        
+        // Check if this is a hitbox (red color: 0x00FF0000 or makecol(255,0,0))
+        // Extract RGB from color (format is typically 0x00RRGGBB)
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+        
+        // If it's pure red (hitbox color), apply transparency
+        if (r == 255 && g == 0 && b == 0) {
+            SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
+            
+            // Enable alpha blending temporarily
+            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_BLEND);
+            
+            // Create semi-transparent red color
+            Uint32 transparent_color = SDL_MapRGBA(surf->format, r, g, b, g_hitbox_alpha);
+            SDL_FillRect(surf, &rect, transparent_color);
+            
+            // Restore original blend mode
+            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
+        } else {
+            // Normal opaque fill for non-hitbox colors
+            SDL_FillRect((SDL_Surface*)bitmap->surface, &rect, color);
+        }
     }
 }
 
