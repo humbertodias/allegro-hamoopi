@@ -39,6 +39,7 @@ if(WIN32)
             /opt/homebrew/lib
             /usr/local/opt/sdl2/lib
             $ENV{SDL2DIR}/lib
+            $ENV{VCPKG_INSTALLATION_ROOT}/installed/x86-windows/lib
             $ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/lib
     )
 endif()
