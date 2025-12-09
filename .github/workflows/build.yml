@@ -25,6 +25,10 @@ jobs:
             platform_name: macos
           - os: windows-latest
             platform_name: windows
+        exclude:
+          # Exclude Windows + Allegro due to Allegro 4 availability issues
+          - os: windows-latest
+            backend: allegro
 
     steps:
       - name: Checkout code
@@ -55,17 +59,10 @@ jobs:
           brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih
 
       # Windows dependencies
-      - name: Install dependencies (Windows - Allegro)
-        if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
-        run: |
-          # vcpkg install allegro:x64-windows
-          echo "Note: Allegro 4 installation on Windows requires manual setup or vcpkg"
-        shell: bash
-
-      - name: Install dependencies (Windows - SDL2)
+      - name: Setup vcpkg (Windows - SDL2)
         if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
         run: |
-          # Using vcpkg for Windows dependencies
+          vcpkg integrate install
           vcpkg install sdl2:x64-windows sdl2-image:x64-windows sdl2-mixer:x64-windows sdl2-ttf:x64-windows
         shell: bash
 
@@ -81,7 +78,11 @@ jobs:
       - name: Build (SDL2)
         if: matrix.backend == 'sdl2'
         run: |
-          cmake -B build -DUSE_SDL2=ON
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cmake -B build -DUSE_SDL2=ON -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          else
+            cmake -B build -DUSE_SDL2=ON
+          fi
           cmake --build build --config Release
         shell: bash
 
@@ -90,11 +91,21 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p artifacts
-          cp HAMOOPI artifacts/ || cp build/HAMOOPI artifacts/ || echo "Executable not found at expected location"
+          # Copy executable
+          if [ -f "HAMOOPI" ]; then
+            cp HAMOOPI artifacts/
+          elif [ -f "build/HAMOOPI" ]; then
+            cp build/HAMOOPI artifacts/
+          else
+            echo "Warning: Executable not found"
+            exit 1
+          fi
+          # Copy data files
           cp -r data artifacts/
           cp LICENSE artifacts/
           cp README.md artifacts/
           cp SETUP.ini artifacts/
+          # Create tarball
           cd artifacts
           tar czf ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz *
         shell: bash
@@ -103,11 +114,25 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir -p artifacts
-          cp HAMOOPI.exe artifacts/ || cp build/Release/HAMOOPI.exe artifacts/ || cp build/HAMOOPI.exe artifacts/ || echo "Executable not found"
+          # Copy executable
+          if [ -f "HAMOOPI.exe" ]; then
+            cp HAMOOPI.exe artifacts/
+          elif [ -f "build/Release/HAMOOPI.exe" ]; then
+            cp build/Release/HAMOOPI.exe artifacts/
+          elif [ -f "build/HAMOOPI.exe" ]; then
+            cp build/HAMOOPI.exe artifacts/
+          else
+            echo "Warning: Executable not found"
+            exit 1
+          fi
+          # Copy data files
           cp -r data artifacts/
           cp LICENSE artifacts/
           cp README.md artifacts/
           cp SETUP.ini artifacts/
+          # Create zip for Windows
+          cd artifacts
+          7z a -tzip ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip *
         shell: bash
 
       # Upload artifacts for all builds
@@ -124,17 +149,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}
-          path: artifacts/
+          path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
           retention-days: 30
 
       # Create release assets for tags
-      - name: Create release archive (Windows)
-        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'windows-latest'
-        run: |
-          cd artifacts
-          7z a -tzip ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip *
-        shell: bash
-
       - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
