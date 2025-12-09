@@ -29,14 +29,36 @@ find_library(SDL2_LIBRARY
         $ENV{SDL2DIR}/lib
 )
 
+# On Windows, also find SDL2main
+if(WIN32)
+    find_library(SDL2MAIN_LIBRARY
+        NAMES SDL2main
+        PATHS
+            $ENV{SDL2DIR}/lib
+            $ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/lib
+    )
+endif()
+
 # Handle the QUIETLY and REQUIRED arguments
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SDL2
-    REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR
-)
+if(WIN32 AND SDL2MAIN_LIBRARY)
+    find_package_handle_standard_args(SDL2
+        REQUIRED_VARS SDL2_LIBRARY SDL2MAIN_LIBRARY SDL2_INCLUDE_DIR
+    )
+else()
+    find_package_handle_standard_args(SDL2
+        REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR
+    )
+endif()
 
 if(SDL2_FOUND)
-    set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+    # Set libraries - include SDL2main on Windows
+    if(WIN32 AND SDL2MAIN_LIBRARY)
+        set(SDL2_LIBRARIES ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY})
+    else()
+        set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+    endif()
+    
     # Set SDL2_INCLUDE_DIRS to the parent directory so <SDL2/SDL.h> works
     get_filename_component(SDL2_INCLUDE_PARENT "${SDL2_INCLUDE_DIR}" DIRECTORY)
     set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_PARENT})
@@ -51,5 +73,5 @@ if(SDL2_FOUND)
     endif()
 endif()
 
-mark_as_advanced(SDL2_INCLUDE_DIR SDL2_LIBRARY)
+mark_as_advanced(SDL2_INCLUDE_DIR SDL2_LIBRARY SDL2MAIN_LIBRARY)
 

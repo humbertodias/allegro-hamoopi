@@ -10,7 +10,13 @@ option(USE_SDL2 "Use SDL2 backend instead of Allegro 4" OFF)
 if(USE_SDL2)
     # SDL2 Backend
     add_definitions(-DUSE_SDL2)
-    add_executable(HAMOOPI src/HAMOOPI.c src/platform_sdl2.c)
+    
+    # On Windows, SDL2 requires WIN32 executable type
+    if(WIN32)
+        add_executable(HAMOOPI WIN32 src/HAMOOPI.c src/platform_sdl2.c)
+    else()
+        add_executable(HAMOOPI src/HAMOOPI.c src/platform_sdl2.c)
+    endif()
     
     # Find SDL2 packages
     find_package(SDL2 REQUIRED)
