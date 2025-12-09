@@ -88,6 +88,8 @@ jobs:
             echo "Failed to download Allegro 4. Please verify the download URL."
             exit 1
           }
+          # Create destination directory
+          mkdir -p C:/allegro
           # Extract and organize files
           7z x allegro.zip -oC:/allegro-temp
           # Find the actual allegro directory and copy its contents
