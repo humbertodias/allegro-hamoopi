@@ -329,10 +329,10 @@ char ChoiceP1[50];
 char ChoiceP2[50];
 char ChoiceBG[50];
 int NumPersonagensEscolhidos=0;
-char P1BIGDisplaystring[25]="";
-char P2BIGDisplaystring[25]="";
-char P1_Pallete_string[25]="";
-char P2_Pallete_string[25]="";
+char P1BIGDisplaystring[40]="";
+char P2BIGDisplaystring[40]="";
+char P1_Pallete_string[40]="";
+char P2_Pallete_string[40]="";
 int SelectCharTimerAnim=0;
 int EditMode=0; int EditModeTime=0;
 int Draw_Debug=0;
@@ -641,10 +641,10 @@ sprintf(strtemp, "bg%i", ind);
 strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
 }
 //abastece Atlas de cenario
-char bg_choice[25]="";
+char bg_choice[40]="";
 for(int ind=1;ind<=8;ind++)
 {
-sprintf(bg_choice, "data/backgrounds/%s/000_00.pcx", Lista_de_Cenarios_Instalados[ind]);
+snprintf(bg_choice, sizeof(bg_choice),"data/backgrounds/%s/000_00.pcx",Lista_de_Cenarios_Instalados[ind]);
 bg_hamoopi[ind]= load_bitmap(bg_choice, NULL);
 }
 
@@ -916,9 +916,10 @@ BITMAP *P2BIGDisplay = create_bitmap(128,128);
 BITMAP *P2BIGDisplayInv = create_bitmap(128,128);
 
 //idioma do jogo
-strcpy(IDIOMA, (char *)get_config_string("CONFIG", "language", "BR"));
-if (strcmp (IDIOMA,"BR")==0){ if (HamoopiError==1) allegro_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS."); };
-if (strcmp (IDIOMA,"US")==0){ if (HamoopiError==1) allegro_message("FILES OR DIRECTORIES NOT FOUND."); };
+const char *lang = get_config_string("CONFIG", "language", "BR");
+snprintf(IDIOMA, sizeof(IDIOMA), "%s", lang);
+if (strcmp (IDIOMA,"BR")==0){ if (HamoopiError==1) allegro_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS."); }
+if (strcmp (IDIOMA,"US")==0){ if (HamoopiError==1) allegro_message("FILES OR DIRECTORIES NOT FOUND."); }
 
 //define centro do mapa
 MapCenterX=get_config_int ( "TEMPLATE", "MapCenterX", 320 );
@@ -985,7 +986,7 @@ destroy_bitmap(MINIspr[ind]);
 //P1 miniatura da foto ingame
 strcpy(P[1].Name, (char *)get_config_string("CHARS", "char1", ""));
 char P1_1s[25]="";
-sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
+snprintf(P1_1s, sizeof(P1_1s),"data/chars/%s/000_01.pcx",P[1].Name);
 BITMAP *P1_1 = load_bitmap(P1_1s, NULL);
 if (!P1_1) { P1_1=load_bitmap("data/system/000_01.pcx", NULL); }
 //P2 miniatura da foto ingame
@@ -1729,7 +1730,7 @@ P[1].Special_Inputs[indx][ind]=0;
 char StrSpecialInput[99];
 sprintf(StrSpecialInput, "data/chars/%s/special.ini", ChoiceP1);
 set_config_file(StrSpecialInput);
-char str[3];
+char str[4];
 //carrega os inputs dos especiais
 for(int ind=0; ind<=9; ind++){
 if(ind==0) { sprintf(str, "700"); }
@@ -1864,7 +1865,7 @@ P[2].Special_Inputs[indx][ind]=0;
 char StrSpecialInput[99];
 sprintf(StrSpecialInput, "data/chars/%s/special.ini", ChoiceP2);
 set_config_file(StrSpecialInput);
-char str[3];
+char str[4];
 //carrega os inputs dos especiais
 for(int ind=0; ind<=9; ind++){
 if(ind==0) { sprintf(str, "700"); }
@@ -1952,7 +1953,7 @@ if (NumPersonagensEscolhidos==2) { timermenus=0; }
 
 //atualiza gps do mapa
 if (Qtde_Cenarios_Instalados>=1 && timermenus==0){
-char bg_choice_string[25];
+char bg_choice_string[40];
 if (SelectBGID==1) { sprintf(bg_choice_string, "data/backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[1]); }
 if (SelectBGID==2) { sprintf(bg_choice_string, "data/backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[2]); }
 if (SelectBGID==3) { sprintf(bg_choice_string, "data/backgrounds/%s/config.ini", Lista_de_Cenarios_Instalados[3]); }
@@ -10927,7 +10928,7 @@ if(ind==2){ sprintf(P2_Caminho, "data/chars/%s/char.ini", P[ind].Name); set_conf
 
 if( P[ind].IndexAnim==0 ){
 
-sprintf(P[ind].State_s, "%i" , P[ind].State); //State String
+snprintf(P[ind].State_s, sizeof(P[ind].State_s), "%d", P[ind].State); //State String
 
 if (P[ind].State<700) {
 P[ind].TableAtlas[line][ 4] = get_config_int ( P[ind].State_s, "XAlign", P[ind].Largura/2 );
