@@ -609,33 +609,54 @@ void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, P
         SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
         
         if (g_drawing_mode == PDRAW_MODE_TRANS) {
+            // Only support 32-bit surfaces for alpha blending
+            if (surface->format->BytesPerPixel != 4) {
+                // Fallback to solid drawing for non-32-bit surfaces
+                SDL_FillRect(surface, &rect, color);
+                return;
+            }
+            
             // Extract RGB components from the color
             SDL_PixelFormat *fmt = surface->format;
             Uint8 r, g, b, a;
             SDL_GetRGBA(color, fmt, &r, &g, &b, &a);
             
+            // Pre-calculate alpha factors for integer arithmetic (better performance)
+            int alpha_int = g_trans_alpha;
+            int inv_alpha_int = 255 - g_trans_alpha;
+            
             // Apply transparency by blending manually
             SDL_LockSurface(surface);
-            for (int y = rect.y; y < rect.y + rect.h && y < surface->h; y++) {
-                for (int x = rect.x; x < rect.x + rect.w && x < surface->w; x++) {
-                    if (x >= 0 && y >= 0) {
-                        // Get the destination pixel
-                        Uint32 *pixels = (Uint32 *)surface->pixels;
-                        Uint32 dst_pixel = pixels[y * (surface->pitch / 4) + x];
-                        
-                        // Get destination RGB
-                        Uint8 dst_r, dst_g, dst_b;
-                        SDL_GetRGB(dst_pixel, fmt, &dst_r, &dst_g, &dst_b);
-                        
-                        // Alpha blend: result = src * alpha + dst * (1 - alpha)
-                        float alpha = g_trans_alpha / 255.0f;
-                        Uint8 result_r = (Uint8)(r * alpha + dst_r * (1.0f - alpha));
-                        Uint8 result_g = (Uint8)(g * alpha + dst_g * (1.0f - alpha));
-                        Uint8 result_b = (Uint8)(b * alpha + dst_b * (1.0f - alpha));
-                        
-                        // Write blended pixel
-                        pixels[y * (surface->pitch / 4) + x] = SDL_MapRGB(fmt, result_r, result_g, result_b);
-                    }
+            
+            // Clamp rectangle to surface bounds
+            int start_x = (rect.x < 0) ? 0 : rect.x;
+            int start_y = (rect.y < 0) ? 0 : rect.y;
+            int end_x = (rect.x + rect.w > surface->w) ? surface->w : rect.x + rect.w;
+            int end_y = (rect.y + rect.h > surface->h) ? surface->h : rect.y + rect.h;
+            
+            // Additional safety check for overflow/negative dimensions
+            if (end_x < start_x || end_y < start_y) {
+                SDL_UnlockSurface(surface);
+                return;
+            }
+            
+            for (int y = start_y; y < end_y; y++) {
+                Uint32 *pixels = (Uint32 *)((Uint8 *)surface->pixels + y * surface->pitch);
+                for (int x = start_x; x < end_x; x++) {
+                    // Get the destination pixel
+                    Uint32 dst_pixel = pixels[x];
+                    
+                    // Get destination RGB
+                    Uint8 dst_r, dst_g, dst_b;
+                    SDL_GetRGB(dst_pixel, fmt, &dst_r, &dst_g, &dst_b);
+                    
+                    // Alpha blend using integer arithmetic: result = (src * alpha + dst * (255 - alpha)) / 255
+                    Uint8 result_r = (Uint8)((r * alpha_int + dst_r * inv_alpha_int) / 255);
+                    Uint8 result_g = (Uint8)((g * alpha_int + dst_g * inv_alpha_int) / 255);
+                    Uint8 result_b = (Uint8)((b * alpha_int + dst_b * inv_alpha_int) / 255);
+                    
+                    // Write blended pixel
+                    pixels[x] = SDL_MapRGB(fmt, result_r, result_g, result_b);
                 }
             }
             SDL_UnlockSurface(surface);
