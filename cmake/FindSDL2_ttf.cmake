@@ -37,14 +37,16 @@ find_package_handle_standard_args(SDL2_ttf
 
 if(SDL2_TTF_FOUND)
     set(SDL2_TTF_LIBRARIES ${SDL2_TTF_LIBRARY})
-    set(SDL2_TTF_INCLUDE_DIRS ${SDL2_TTF_INCLUDE_DIR})
+    # Set SDL2_TTF_INCLUDE_DIRS to the parent directory so <SDL2/SDL_ttf.h> works
+    get_filename_component(SDL2_TTF_INCLUDE_PARENT "${SDL2_TTF_INCLUDE_DIR}" DIRECTORY)
+    set(SDL2_TTF_INCLUDE_DIRS ${SDL2_TTF_INCLUDE_PARENT})
     
     # Create imported target
     if(NOT TARGET SDL2::SDL2_ttf)
         add_library(SDL2::SDL2_ttf UNKNOWN IMPORTED)
         set_target_properties(SDL2::SDL2_ttf PROPERTIES
             IMPORTED_LOCATION "${SDL2_TTF_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_TTF_INCLUDE_DIR}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_TTF_INCLUDE_PARENT}"
         )
     endif()
 endif()

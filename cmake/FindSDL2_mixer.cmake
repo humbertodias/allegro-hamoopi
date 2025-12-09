@@ -37,14 +37,16 @@ find_package_handle_standard_args(SDL2_mixer
 
 if(SDL2_MIXER_FOUND)
     set(SDL2_MIXER_LIBRARIES ${SDL2_MIXER_LIBRARY})
-    set(SDL2_MIXER_INCLUDE_DIRS ${SDL2_MIXER_INCLUDE_DIR})
+    # Set SDL2_MIXER_INCLUDE_DIRS to the parent directory so <SDL2/SDL_mixer.h> works
+    get_filename_component(SDL2_MIXER_INCLUDE_PARENT "${SDL2_MIXER_INCLUDE_DIR}" DIRECTORY)
+    set(SDL2_MIXER_INCLUDE_DIRS ${SDL2_MIXER_INCLUDE_PARENT})
     
     # Create imported target
     if(NOT TARGET SDL2::SDL2_mixer)
         add_library(SDL2::SDL2_mixer UNKNOWN IMPORTED)
         set_target_properties(SDL2::SDL2_mixer PROPERTIES
             IMPORTED_LOCATION "${SDL2_MIXER_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_MIXER_INCLUDE_DIR}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_MIXER_INCLUDE_PARENT}"
         )
     endif()
 endif()

@@ -37,14 +37,16 @@ find_package_handle_standard_args(SDL2_image
 
 if(SDL2_IMAGE_FOUND)
     set(SDL2_IMAGE_LIBRARIES ${SDL2_IMAGE_LIBRARY})
-    set(SDL2_IMAGE_INCLUDE_DIRS ${SDL2_IMAGE_INCLUDE_DIR})
+    # Set SDL2_IMAGE_INCLUDE_DIRS to the parent directory so <SDL2/SDL_image.h> works
+    get_filename_component(SDL2_IMAGE_INCLUDE_PARENT "${SDL2_IMAGE_INCLUDE_DIR}" DIRECTORY)
+    set(SDL2_IMAGE_INCLUDE_DIRS ${SDL2_IMAGE_INCLUDE_PARENT})
     
     # Create imported target
     if(NOT TARGET SDL2::SDL2_image)
         add_library(SDL2::SDL2_image UNKNOWN IMPORTED)
         set_target_properties(SDL2::SDL2_image PROPERTIES
             IMPORTED_LOCATION "${SDL2_IMAGE_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_IMAGE_INCLUDE_DIR}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_IMAGE_INCLUDE_PARENT}"
         )
     endif()
 endif()

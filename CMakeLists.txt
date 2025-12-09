@@ -26,7 +26,9 @@ if(USE_SDL2)
     # Include directories for SDL2
     target_include_directories(HAMOOPI PRIVATE 
         ${SDL2_INCLUDE_DIRS}
-        /usr/include/SDL2
+        ${SDL2_IMAGE_INCLUDE_DIRS}
+        ${SDL2_MIXER_INCLUDE_DIRS}
+        ${SDL2_TTF_INCLUDE_DIRS}
         ${INIH_INCLUDE_DIRS}
     )
     
