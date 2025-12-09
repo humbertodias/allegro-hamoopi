@@ -23,6 +23,9 @@ static void (*g_timer_callback)(void) = NULL;
 static int g_drawing_mode = PDRAW_MODE_SOLID;
 static int g_trans_alpha = 255;
 
+// Default font (simple 8x8 bitmap font for compatibility)
+static PlatformFont *g_default_font = NULL;
+
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
 volatile int platform_mouse_y = 0;
@@ -327,6 +330,38 @@ PlatformBitmap* platform_create_bitmap(int width, int height) {
     return pb;
 }
 
+PlatformBitmap* platform_create_sub_bitmap(PlatformBitmap *parent, int x, int y, int width, int height) {
+    if (!parent || !parent->surface) {
+        return NULL;
+    }
+    
+    // Create a new surface for the sub-bitmap
+    // Note: SDL doesn't have a true sub-bitmap concept like Allegro, so we create a separate surface
+    SDL_Surface *sub_surface = SDL_CreateRGBSurface(0, width, height, 32,
+                                                      0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    if (!sub_surface) {
+        return NULL;
+    }
+    
+    // Copy the region from parent to sub-bitmap
+    SDL_Rect src_rect = { x, y, width, height };
+    SDL_BlitSurface((SDL_Surface*)parent->surface, &src_rect, sub_surface, NULL);
+    
+    // Set magenta as the transparent color key
+    SDL_SetColorKey(sub_surface, SDL_TRUE, SDL_MapRGB(sub_surface->format, 255, 0, 255));
+    
+    PlatformBitmap *pb = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
+    if (pb) {
+        pb->surface = sub_surface;
+        pb->w = width;
+        pb->h = height;
+    } else {
+        SDL_FreeSurface(sub_surface);
+    }
+    
+    return pb;
+}
+
 void platform_destroy_bitmap(PlatformBitmap *bitmap) {
     if (bitmap) {
         if (bitmap->surface) {
@@ -373,6 +408,41 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
     return pb;
 }
 
+
+int platform_save_bitmap(const char *filename, PlatformBitmap *bitmap, void *palette) {
+    (void)palette;  // Unused parameter
+    
+    if (!bitmap || !bitmap->surface || !filename) {
+        return -1;
+    }
+    
+    SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
+    
+    // Determine output format based on extension
+    const char *ext = strrchr(filename, '.');
+    if (!ext) {
+        return -1;
+    }
+    
+    // Convert .pcx to .png for SDL2
+    char *outfile = NULL;
+    if (strcasecmp(ext, ".pcx") == 0) {
+        // Replace .pcx with .png
+        size_t len = strlen(filename);
+        outfile = malloc(len + 2);  // +1 for potential extra char, +1 for null
+        if (!outfile) return -1;
+        strcpy(outfile, filename);
+        strcpy(outfile + len - 4, ".png");
+    } else {
+        outfile = strdup(filename);
+        if (!outfile) return -1;
+    }
+    
+    int result = IMG_SavePNG(surf, outfile);
+    free(outfile);
+    
+    return (result == 0) ? 0 : -1;
+}
 
 void platform_clear_bitmap(PlatformBitmap *bitmap) {
     if (bitmap && bitmap->surface) {
@@ -738,12 +808,47 @@ PlatformFont* platform_load_font(const char *filename, void *palette, void *para
 }
 
 void platform_destroy_font(PlatformFont *font) {
-    if (font) {
+    if (font && font != g_default_font) {
         if (font->font) {
             TTF_CloseFont(font->font);
         }
         free(font);
     }
+}
+
+PlatformFont* platform_get_default_font(void) {
+    // Return a simple default font
+    // For now, we'll try to load a system font, or return NULL
+    // The palette generator uses Allegro's built-in font, which is 8x8 pixels
+    
+    if (!g_default_font) {
+        // Try to create a simple default font at small size
+        // Common system fonts that might be available
+        const char *font_paths[] = {
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "C:\\Windows\\Fonts\\Arial.ttf",
+            NULL
+        };
+        
+        TTF_Font *font = NULL;
+        for (int i = 0; font_paths[i] != NULL && font == NULL; i++) {
+            font = TTF_OpenFont(font_paths[i], 8);
+        }
+        
+        if (font) {
+            g_default_font = (PlatformFont*)malloc(sizeof(PlatformFont));
+            if (g_default_font) {
+                g_default_font->font = font;
+                g_default_font->size = 8;
+            } else {
+                TTF_CloseFont(font);
+            }
+        }
+    }
+    
+    return g_default_font;
 }
 
 void platform_textout_ex(PlatformBitmap *bitmap, PlatformFont *font,

@@ -195,11 +195,17 @@ void platform_present_screen(void);
 // Create a new bitmap
 PlatformBitmap* platform_create_bitmap(int width, int height);
 
+// Create a sub-bitmap (view into another bitmap)
+PlatformBitmap* platform_create_sub_bitmap(PlatformBitmap *parent, int x, int y, int width, int height);
+
 // Destroy a bitmap
 void platform_destroy_bitmap(PlatformBitmap *bitmap);
 
 // Load bitmap from file
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette);
+
+// Save bitmap to file
+int platform_save_bitmap(const char *filename, PlatformBitmap *bitmap, void *palette);
 
 // Clear bitmap to specific color
 void platform_clear_bitmap(PlatformBitmap *bitmap);
@@ -280,6 +286,9 @@ PlatformColor platform_makecol(int r, int g, int b);
 
 // Load font from file
 PlatformFont* platform_load_font(const char *filename, void *palette, void *param);
+
+// Get default system font
+PlatformFont* platform_get_default_font(void);
 
 // Destroy font
 void platform_destroy_font(PlatformFont *font);
