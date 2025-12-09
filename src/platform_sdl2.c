@@ -19,6 +19,10 @@ static void (*g_close_callback)(void) = NULL;
 static SDL_TimerID g_timer_id = 0;
 static void (*g_timer_callback)(void) = NULL;
 
+// Drawing state
+static int g_drawing_mode = PDRAW_MODE_SOLID;
+static int g_trans_alpha = 255;
+
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
 volatile int platform_mouse_y = 0;
@@ -601,8 +605,44 @@ void platform_rect(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, Platf
 
 void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, PlatformColor color) {
     if (bitmap && bitmap->surface) {
+        SDL_Surface *surface = (SDL_Surface *)bitmap->surface;
         SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
-        SDL_FillRect(bitmap->surface, &rect, color);
+        
+        if (g_drawing_mode == PDRAW_MODE_TRANS) {
+            // Extract RGB components from the color
+            SDL_PixelFormat *fmt = surface->format;
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(color, fmt, &r, &g, &b, &a);
+            
+            // Apply transparency by blending manually
+            SDL_LockSurface(surface);
+            for (int y = rect.y; y < rect.y + rect.h && y < surface->h; y++) {
+                for (int x = rect.x; x < rect.x + rect.w && x < surface->w; x++) {
+                    if (x >= 0 && y >= 0) {
+                        // Get the destination pixel
+                        Uint32 *pixels = (Uint32 *)surface->pixels;
+                        Uint32 dst_pixel = pixels[y * (surface->pitch / 4) + x];
+                        
+                        // Get destination RGB
+                        Uint8 dst_r, dst_g, dst_b;
+                        SDL_GetRGB(dst_pixel, fmt, &dst_r, &dst_g, &dst_b);
+                        
+                        // Alpha blend: result = src * alpha + dst * (1 - alpha)
+                        float alpha = g_trans_alpha / 255.0f;
+                        Uint8 result_r = (Uint8)(r * alpha + dst_r * (1.0f - alpha));
+                        Uint8 result_g = (Uint8)(g * alpha + dst_g * (1.0f - alpha));
+                        Uint8 result_b = (Uint8)(b * alpha + dst_b * (1.0f - alpha));
+                        
+                        // Write blended pixel
+                        pixels[y * (surface->pitch / 4) + x] = SDL_MapRGB(fmt, result_r, result_g, result_b);
+                    }
+                }
+            }
+            SDL_UnlockSurface(surface);
+        } else {
+            // Solid mode - use normal SDL_FillRect
+            SDL_FillRect(surface, &rect, color);
+        }
     }
 }
 
@@ -1102,8 +1142,6 @@ void platform_rest(int milliseconds) {
     SDL_Delay(milliseconds);
 }
 
-static int g_drawing_mode = PDRAW_MODE_SOLID;
-
 void platform_drawing_mode(int mode, void *pattern, int x_anchor, int y_anchor) {
     g_drawing_mode = mode;
     // Note: SDL2 doesn't have direct equivalent, would need custom implementation
@@ -1126,7 +1164,8 @@ void platform_clear_keybuf(void) {
 }
 
 void platform_set_trans_blender(int r, int g, int b, int a) {
-    // SDL2 uses alpha in textures automatically
+    // Store alpha value for transparent drawing operations
+    g_trans_alpha = a;
 }
 
 void platform_textprintf_right_ex(PlatformBitmap *bitmap, PlatformFont *font,
