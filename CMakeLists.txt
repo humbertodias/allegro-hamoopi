@@ -41,9 +41,13 @@ if(USE_SDL2)
         ${SDL2_IMAGE_LIBRARIES}
         ${SDL2_MIXER_LIBRARIES}
         ${SDL2_TTF_LIBRARIES}
-        m
         ${INIH_LIBRARIES}
     )
+    
+    # Link math library on Unix-like systems (not needed on Windows)
+    if(UNIX)
+        target_link_libraries(HAMOOPI m)
+    endif()
 else()
     # Allegro 4 Backend (default)
     add_definitions(-DUSE_ALLEGRO4)
@@ -56,7 +60,12 @@ else()
     target_include_directories(HAMOOPI PRIVATE ${ALLEGRO_INCLUDE_DIR})
     
     # Link with dependencies
-    target_link_libraries(HAMOOPI alleg m)
+    target_link_libraries(HAMOOPI alleg)
+    
+    # Link math library on Unix-like systems (not needed on Windows)
+    if(UNIX)
+        target_link_libraries(HAMOOPI m)
+    endif()
 endif()
 
 # Copy executable to parent folder after build
