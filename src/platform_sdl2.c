@@ -12,6 +12,8 @@
 
 // Global state
 static SDL_Window *g_window = NULL;
+static SDL_Renderer *g_renderer = NULL;
+static SDL_Texture *g_screen_texture = NULL;
 static PlatformBitmap *g_screen = NULL;
 static volatile Uint8 *g_sdl_key_state = NULL;
 static int g_key_state_size = 0;
@@ -22,6 +24,25 @@ static void (*g_timer_callback)(void) = NULL;
 // Drawing state
 static int g_drawing_mode = PDRAW_MODE_SOLID;
 static int g_trans_alpha = 255;
+
+// Helper function to update screen using renderer and texture
+static void update_screen_with_renderer(void) {
+    if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
+        // Update texture with screen surface data
+        SDL_UpdateTexture(g_screen_texture, NULL,
+                        ((SDL_Surface*)g_screen->surface)->pixels,
+                        ((SDL_Surface*)g_screen->surface)->pitch);
+
+        // Clear renderer
+        SDL_RenderClear(g_renderer);
+
+        // Copy texture to renderer
+        SDL_RenderCopy(g_renderer, g_screen_texture, NULL, NULL);
+
+        // Present renderer
+        SDL_RenderPresent(g_renderer);
+    }
+}
 
 // Mouse state (exported for compatibility)
 volatile int platform_mouse_x = 0;
@@ -37,7 +58,7 @@ static volatile char g_translated_key_state[256];
 // Initialize key mapping
 static void init_key_mapping(void) {
     memset(platform_to_sdl_key, 0, sizeof(platform_to_sdl_key));
-    
+
     // Letters
     platform_to_sdl_key[PKEY_A] = SDL_SCANCODE_A;
     platform_to_sdl_key[PKEY_B] = SDL_SCANCODE_B;
@@ -65,7 +86,7 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_X] = SDL_SCANCODE_X;
     platform_to_sdl_key[PKEY_Y] = SDL_SCANCODE_Y;
     platform_to_sdl_key[PKEY_Z] = SDL_SCANCODE_Z;
-    
+
     // Numbers
     platform_to_sdl_key[PKEY_0] = SDL_SCANCODE_0;
     platform_to_sdl_key[PKEY_1] = SDL_SCANCODE_1;
@@ -77,7 +98,7 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_7] = SDL_SCANCODE_7;
     platform_to_sdl_key[PKEY_8] = SDL_SCANCODE_8;
     platform_to_sdl_key[PKEY_9] = SDL_SCANCODE_9;
-    
+
     // Function keys
     platform_to_sdl_key[PKEY_F1] = SDL_SCANCODE_F1;
     platform_to_sdl_key[PKEY_F2] = SDL_SCANCODE_F2;
@@ -91,7 +112,7 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_F10] = SDL_SCANCODE_F10;
     platform_to_sdl_key[PKEY_F11] = SDL_SCANCODE_F11;
     platform_to_sdl_key[PKEY_F12] = SDL_SCANCODE_F12;
-    
+
     // Special keys
     platform_to_sdl_key[PKEY_ESC] = SDL_SCANCODE_ESCAPE;
     platform_to_sdl_key[PKEY_ENTER] = SDL_SCANCODE_RETURN;
@@ -143,20 +164,20 @@ int platform_init(void) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");  // Nearest neighbor (faster)
     SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");  // Enable if available
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d,opengl,opengles2,software");  // Prefer hardware
-    
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return -1;
     }
-    
+
     init_key_mapping();
-    
+
     // Initialize SDL_image for PNG support
     int img_flags = IMG_INIT_PNG | IMG_INIT_JPG;
     if (!(IMG_Init(img_flags) & img_flags)) {
         fprintf(stderr, "IMG_Init failed: %s\n", IMG_GetError());
     }
-    
+
     return 0;
 }
 
@@ -172,10 +193,10 @@ int platform_install_timer(void) {
 int platform_install_keyboard(void) {
     // SDL2 keyboard is initialized with SDL_Init
     g_sdl_key_state = SDL_GetKeyboardState(&g_key_state_size);
-    
+
     // Initialize translated key state array
     memset((void*)g_translated_key_state, 0, sizeof(g_translated_key_state));
-    
+
     return 0;
 }
 
@@ -190,12 +211,20 @@ void platform_set_color_depth(int depth) {
 
 int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_height) {
     Uint32 flags = SDL_WINDOW_SHOWN;
-    
+
     if (mode == PGFX_AUTODETECT_FULLSCREEN) {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
-    
+
     // Destroy existing resources if they exist
+    if (g_screen_texture) {
+        SDL_DestroyTexture(g_screen_texture);
+        g_screen_texture = NULL;
+    }
+    if (g_renderer) {
+        SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
+    }
     if (g_screen) {
         if (g_screen->surface) {
             SDL_FreeSurface((SDL_Surface*)g_screen->surface);
@@ -207,26 +236,47 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         SDL_DestroyWindow(g_window);
         g_window = NULL;
     }
-    
+
     g_window = SDL_CreateWindow("HAMOOPI",
                                  SDL_WINDOWPOS_CENTERED,
                                  SDL_WINDOWPOS_CENTERED,
                                  width, height,
                                  flags);
-    
+
     if (!g_window) {
         fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
         return -1;
     }
-    
-    // Create screen surface (no renderer/texture - direct blitting like Allegro)
+
+    // Create renderer with hardware acceleration for better macOS compatibility
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!g_renderer) {
+        fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(g_window);
+        g_window = NULL;
+        return -1;
+    }
+
+    // Create streaming texture for the screen
+    g_screen_texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
+                                         SDL_TEXTUREACCESS_STREAMING, width, height);
+    if (!g_screen_texture) {
+        fprintf(stderr, "SDL_CreateTexture failed: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(g_renderer);
+        SDL_DestroyWindow(g_window);
+        g_renderer = NULL;
+        g_window = NULL;
+        return -1;
+    }
+
+    // Create screen surface (for drawing operations)
     g_screen = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
     if (g_screen) {
         g_screen->surface = SDL_CreateRGBSurface(0, width, height, 32,
                                                   0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
         g_screen->w = width;
         g_screen->h = height;
-        
+
         // Don't set color key on screen surface - it's the final composite
         // Screen surface should have blending disabled for direct pixel writes
         if (g_screen->surface) {
@@ -234,7 +284,7 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
             SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
         }
     }
-    
+
     return 0;
 }
 
@@ -250,32 +300,32 @@ void platform_set_close_button_callback(void (*callback)(void)) {
 
 void platform_install_int_ex(void (*callback)(void), int interval_us) {
     g_timer_callback = callback;
-    
+
     // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
     // SDL_AddTimer expects milliseconds
     // Convert: milliseconds = microseconds / 1000
 
     Uint32 interval_ms = interval_us / 1000;
     if (interval_ms < 1) interval_ms = 1;
-    
+
     if (g_timer_id) {
         SDL_RemoveTimer(g_timer_id);
     }
-    
+
     g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
 }
 
 volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
-    
+
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
     platform_mouse_b = 0;
     if (mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT)) platform_mouse_b |= 1;
     if (mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) platform_mouse_b |= 2;
     if (mouse_state & SDL_BUTTON(SDL_BUTTON_MIDDLE)) platform_mouse_b |= 4;
-    
+
     // Check for close button
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -283,11 +333,11 @@ volatile char* platform_get_key_state(void) {
             g_close_callback();
         }
     }
-    
+
     // Translate SDL keyboard state to Allegro key indices
     // Clear the translated state first
     memset((void*)g_translated_key_state, 0, sizeof(g_translated_key_state));
-    
+
     // Map each platform key to SDL scancode and check if it's pressed
     for (int i = 0; i < 256; i++) {
         SDL_Scancode scancode = platform_to_sdl_key[i];
@@ -295,7 +345,7 @@ volatile char* platform_get_key_state(void) {
             g_translated_key_state[i] = g_sdl_key_state[scancode];
         }
     }
-    
+
     return g_translated_key_state;
 }
 
@@ -314,12 +364,12 @@ PlatformBitmap* platform_create_bitmap(int width, int height) {
                                            0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
         pb->w = width;
         pb->h = height;
-        
+
         if (!pb->surface) {
             free(pb);
             return NULL;
         }
-        
+
         // Set magenta (255, 0, 255) as the color key for transparency
         SDL_Surface *surf = (SDL_Surface*)pb->surface;
         SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 0, 255));
@@ -384,7 +434,7 @@ void platform_clear_to_color(PlatformBitmap *bitmap, PlatformColor color) {
     if (bitmap && bitmap->surface) {
         SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
         SDL_FillRect(surf, NULL, color);
-        
+
         // If clearing to magenta (255, 0, 255), set it as the color key for transparency
         // This is the standard Allegro transparency color
         if ((color & 0x00FFFFFF) == 0x00FF00FF) {  // Check if RGB is 255, 0, 255
@@ -407,15 +457,10 @@ void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
         SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
-        
-        // Auto-update window if blitting to screen (like Allegro 4)
-        if (dest == g_screen && g_window) {
-            SDL_Surface *window_surf = SDL_GetWindowSurface(g_window);
-            if (window_surf) {
-                SDL_Surface *screen_surf = (SDL_Surface*)dest->surface;
-                SDL_BlitScaled(screen_surf, NULL, window_surf, NULL);
-                SDL_UpdateWindowSurface(g_window);
-            }
+
+        // Auto-update window if blitting to screen using renderer and texture
+        if (dest == g_screen) {
+            update_screen_with_renderer();
         }
     }
 }
@@ -426,7 +471,7 @@ void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
         // Clear destination surface if blitting to the top-left corner (0,0)
         // This prevents artifacts when reusing sprite buffers across frames
         if (dest_x == 0 && dest_y == 0 && src_x == 0 && src_y == 0) {
-            SDL_FillRect((SDL_Surface*)dest->surface, NULL, 
+            SDL_FillRect((SDL_Surface*)dest->surface, NULL,
                          SDL_MapRGBA(((SDL_Surface*)dest->surface)->format, 0, 0, 0, 0));
         }
 
@@ -452,7 +497,7 @@ void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
             SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
             SDL_LockSurface(src_surf);
             SDL_LockSurface(flipped);
-            
+
             for (int i = 0; i < src->h; i++) {
                 for (int j = 0; j < src->w; j++) {
                     Uint32 *src_pixel = (Uint32*)((Uint8*)src_surf->pixels + i * src_surf->pitch + j * 4);
@@ -460,10 +505,10 @@ void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
                     *dst_pixel = *src_pixel;
                 }
             }
-            
+
             SDL_UnlockSurface(flipped);
             SDL_UnlockSurface(src_surf);
-            
+
             SDL_Rect dest_rect = { x, y, src->w, src->h };
             SDL_BlitSurface(flipped, NULL, dest->surface, &dest_rect);
             SDL_FreeSurface(flipped);
@@ -481,16 +526,16 @@ void platform_draw_sprite_v_flip(PlatformBitmap *dest, PlatformBitmap *src, int 
             SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
             SDL_LockSurface(src_surf);
             SDL_LockSurface(flipped);
-            
+
             for (int i = 0; i < src->h; i++) {
                 memcpy((Uint8*)flipped->pixels + (src->h - 1 - i) * flipped->pitch,
                        (Uint8*)src_surf->pixels + i * src_surf->pitch,
                        src->w * 4);
             }
-            
+
             SDL_UnlockSurface(flipped);
             SDL_UnlockSurface(src_surf);
-            
+
             SDL_Surface *dest_surf = (SDL_Surface*)dest->surface;
             SDL_Rect dest_rect = { x, y, src->w, src->h };
             SDL_BlitSurface(flipped, NULL, dest_surf, &dest_rect);
@@ -508,7 +553,7 @@ void platform_draw_sprite_vh_flip(PlatformBitmap *dest, PlatformBitmap *src, int
             // Manual horizontal and vertical flip
             SDL_LockSurface(((SDL_Surface*)src->surface));
             SDL_LockSurface(flipped);
-            
+
             for (int i = 0; i < src->h; i++) {
                 for (int j = 0; j < src->w; j++) {
                     Uint32 *src_pixel = (Uint32*)((Uint8*)((SDL_Surface*)src->surface)->pixels + i * ((SDL_Surface*)src->surface)->pitch + j * 4);
@@ -516,10 +561,10 @@ void platform_draw_sprite_vh_flip(PlatformBitmap *dest, PlatformBitmap *src, int
                     *dst_pixel = *src_pixel;
                 }
             }
-            
+
             SDL_UnlockSurface(flipped);
             SDL_UnlockSurface(((SDL_Surface*)src->surface));
-            
+
             SDL_Rect dest_rect = { x, y, src->w, src->h };
             SDL_BlitSurface(flipped, NULL, dest->surface, &dest_rect);
             SDL_FreeSurface(flipped);
@@ -575,12 +620,12 @@ void platform_line(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, Platf
         int sx = x1 < x2 ? 1 : -1;
         int sy = y1 < y2 ? 1 : -1;
         int err = dx - dy;
-        
+
         while (1) {
             platform_putpixel(bitmap, x1, y1, color);
-            
+
             if (x1 == x2 && y1 == y2) break;
-            
+
             int e2 = 2 * err;
             if (e2 > -dy) {
                 err -= dy;
@@ -607,13 +652,13 @@ void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, P
     if (bitmap && bitmap->surface) {
         SDL_Surface *surface = (SDL_Surface *)bitmap->surface;
         SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
-        
+
         if (g_drawing_mode == PDRAW_MODE_TRANS) {
             // Extract RGB components from the color
             SDL_PixelFormat *fmt = surface->format;
             Uint8 r, g, b, a;
             SDL_GetRGBA(color, fmt, &r, &g, &b, &a);
-            
+
             // Apply transparency by blending manually
             SDL_LockSurface(surface);
             for (int y = rect.y; y < rect.y + rect.h && y < surface->h; y++) {
@@ -622,17 +667,17 @@ void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, P
                         // Get the destination pixel
                         Uint32 *pixels = (Uint32 *)surface->pixels;
                         Uint32 dst_pixel = pixels[y * (surface->pitch / 4) + x];
-                        
+
                         // Get destination RGB
                         Uint8 dst_r, dst_g, dst_b;
                         SDL_GetRGB(dst_pixel, fmt, &dst_r, &dst_g, &dst_b);
-                        
+
                         // Alpha blend: result = src * alpha + dst * (1 - alpha)
                         float alpha = g_trans_alpha / 255.0f;
                         Uint8 result_r = (Uint8)(r * alpha + dst_r * (1.0f - alpha));
                         Uint8 result_g = (Uint8)(g * alpha + dst_g * (1.0f - alpha));
                         Uint8 result_b = (Uint8)(b * alpha + dst_b * (1.0f - alpha));
-                        
+
                         // Write blended pixel
                         pixels[y * (surface->pitch / 4) + x] = SDL_MapRGB(fmt, result_r, result_g, result_b);
                     }
@@ -652,7 +697,7 @@ void platform_circle(PlatformBitmap *bitmap, int x, int y, int radius, PlatformC
         int dx = radius;
         int dy = 0;
         int err = 0;
-        
+
         while (dx >= dy) {
             platform_putpixel(bitmap, x + dx, y + dy, color);
             platform_putpixel(bitmap, x + dy, y + dx, color);
@@ -662,12 +707,12 @@ void platform_circle(PlatformBitmap *bitmap, int x, int y, int radius, PlatformC
             platform_putpixel(bitmap, x - dy, y - dx, color);
             platform_putpixel(bitmap, x + dy, y - dx, color);
             platform_putpixel(bitmap, x + dx, y - dy, color);
-            
+
             if (err <= 0) {
                 dy += 1;
                 err += 2 * dy + 1;
             }
-            
+
             if (err > 0) {
                 dx -= 1;
                 err -= 2 * dx + 1;
@@ -714,18 +759,18 @@ PlatformFont* platform_load_font(const char *filename, void *palette, void *para
         char alt_filename[512];
         strncpy(alt_filename, filename, sizeof(alt_filename) - 5);
         alt_filename[sizeof(alt_filename) - 5] = '\0';
-        
+
         char *ext = strrchr(alt_filename, '.');
         if (ext) {
             strcpy(ext, ".ttf");
             font = TTF_OpenFont(alt_filename, size);
         }
     }
-    
+
     if (!font) {
         return NULL;
     }
-    
+
     PlatformFont *pf = (PlatformFont*)malloc(sizeof(PlatformFont));
     if (pf) {
         pf->font = font;
@@ -733,7 +778,7 @@ PlatformFont* platform_load_font(const char *filename, void *palette, void *para
     } else {
         TTF_CloseFont(font);
     }
-    
+
     return pf;
 }
 
@@ -752,7 +797,7 @@ void platform_textout_ex(PlatformBitmap *bitmap, PlatformFont *font,
     if (bitmap && bitmap->surface && font && font->font && text) {
         SDL_Color fg = { (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255 };
         SDL_Surface *text_surface = TTF_RenderUTF8_Blended(font->font, text, fg);
-        
+
         if (text_surface) {
             SDL_Rect dest_rect = { x, y, text_surface->w, text_surface->h };
             SDL_BlitSurface(text_surface, NULL, bitmap->surface, &dest_rect);
@@ -781,11 +826,11 @@ void platform_textprintf_ex(PlatformBitmap *bitmap, PlatformFont *font,
         char buffer[1024];
         int written = vsnprintf(buffer, sizeof(buffer), format, args);
         va_end(args);
-        
+
         if (written >= (int)sizeof(buffer)) {
             buffer[sizeof(buffer) - 1] = '\0';
         }
-        
+
         platform_textout_ex(bitmap, font, buffer, x, y, color, bg);
     }
 }
@@ -799,11 +844,11 @@ void platform_textprintf_centre_ex(PlatformBitmap *bitmap, PlatformFont *font,
         char buffer[1024];
         int written = vsnprintf(buffer, sizeof(buffer), format, args);
         va_end(args);
-        
+
         if (written >= (int)sizeof(buffer)) {
             buffer[sizeof(buffer) - 1] = '\0';
         }
-        
+
         platform_textout_centre_ex(bitmap, font, buffer, x, y, color, bg);
     }
 }
@@ -817,36 +862,36 @@ int platform_install_sound(int digi, int midi, const char *cfg) {
         fprintf(stderr, "TTF_Init failed: %s\n", TTF_GetError());
         return -1;
     }
-    
+
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         fprintf(stderr, "Mix_OpenAudio failed: %s\n", Mix_GetError());
         return -1;
     }
-    
+
     Mix_AllocateChannels(16);
     return 0;
 }
 
 PlatformSample* platform_load_sample(const char *filename) {
     Mix_Chunk *chunk = Mix_LoadWAV(filename);
-    
+
     if (!chunk) {
         // Try alternate extension
         char alt_filename[512];
         strncpy(alt_filename, filename, sizeof(alt_filename) - 5);
         alt_filename[sizeof(alt_filename) - 5] = '\0';
-        
+
         char *ext = strrchr(alt_filename, '.');
         if (ext) {
             strcpy(ext, ".ogg");
             chunk = Mix_LoadWAV(alt_filename);
         }
     }
-    
+
     if (!chunk) {
         return NULL;
     }
-    
+
     PlatformSample *ps = (PlatformSample*)malloc(sizeof(PlatformSample));
     if (ps) {
         ps->chunk = chunk;
@@ -854,37 +899,37 @@ PlatformSample* platform_load_sample(const char *filename) {
     } else {
         Mix_FreeChunk(chunk);
     }
-    
+
     return ps;
 }
 
 PlatformMidi* platform_load_midi(const char *filename) {
     Mix_Music *music = Mix_LoadMUS(filename);
-    
+
     if (!music) {
         // Try alternate extension
         char alt_filename[512];
         strncpy(alt_filename, filename, sizeof(alt_filename) - 5);
         alt_filename[sizeof(alt_filename) - 5] = '\0';
-        
+
         char *ext = strrchr(alt_filename, '.');
         if (ext) {
             strcpy(ext, ".ogg");
             music = Mix_LoadMUS(alt_filename);
         }
     }
-    
+
     if (!music) {
         return NULL;
     }
-    
+
     PlatformMidi *pm = (PlatformMidi*)malloc(sizeof(PlatformMidi));
     if (pm) {
         pm->music = music;
     } else {
         Mix_FreeMusic(music);
     }
-    
+
     return pm;
 }
 
@@ -1180,7 +1225,7 @@ void platform_textprintf_right_ex(PlatformBitmap *bitmap, PlatformFont *font,
         if (written >= (int)sizeof(buffer)) {
             buffer[sizeof(buffer) - 1] = '\0';
         }
-        
+
         // Calculate width and draw right-aligned
         int w, h;
         if (TTF_SizeText((TTF_Font*)font->font, buffer, &w, &h) == 0) {
@@ -1195,7 +1240,7 @@ void platform_alert_message(const char *format, ...) {
     char buffer[1024];
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
-    
+
     fprintf(stderr, "ALERT: %s\n", buffer);
     if (g_window) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "HAMOOPI", buffer, g_window);
@@ -1211,6 +1256,6 @@ void platform_solid_mode(void) { g_drawing_mode = PDRAW_MODE_SOLID; }
 void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) { platform_draw_sprite(dest, src, x, y); }
 
 void platform_present_screen(void) {
-    // No-op: Screen updates automatically when blitting to screen surface
-    // This function kept for API compatibility but does nothing
+    // Update the screen with renderer and texture
+    update_screen_with_renderer();
 }
