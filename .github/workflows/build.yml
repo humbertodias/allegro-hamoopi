@@ -86,7 +86,7 @@ jobs:
           # Download Allegro 4.4.3.1 binary for Windows
           # Note: Allegro 4 official binaries may need to be sourced from SourceForge or compiled
           # Using a known working version for MinGW
-          curl -L -f https://sourceforge.net/projects/alleg/files/allegro/4.4.3/allegro-4.4.3.1-msvc-10.0.zip/download -o allegro.zip || {
+          curl -L -f https://master.dl.sourceforge.net/project/alleg/allegro/4.4.2/allegro-4.4.2.zip?viasf=1 -o allegro.zip || {
             echo "Failed to download Allegro 4. Please verify the download URL."
             exit 1
           }
