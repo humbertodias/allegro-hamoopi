@@ -29,7 +29,7 @@ typedef MIDI PlatformMidi;
 #elif defined(USE_SDL2)
 // SDL2 structures with exposed w,h for compatibility
 struct PlatformBitmap {
-    void *surface;  // SDL_Surface*
+    void *texture;  // SDL_Texture*
     int w, h;       // Exposed for Allegro compatibility
 };
 
