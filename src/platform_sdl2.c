@@ -12,6 +12,7 @@
 
 // Global state
 static SDL_Window *g_window = NULL;
+static SDL_Renderer *g_renderer = NULL;
 static PlatformBitmap *g_screen = NULL;
 static volatile Uint8 *g_sdl_key_state = NULL;
 static int g_key_state_size = 0;
@@ -197,11 +198,15 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
     
     // Destroy existing resources if they exist
     if (g_screen) {
-        if (g_screen->surface) {
-            SDL_FreeSurface((SDL_Surface*)g_screen->surface);
+        if (g_screen->texture) {
+            SDL_DestroyTexture((SDL_Texture*)g_screen->texture);
         }
         free(g_screen);
         g_screen = NULL;
+    }
+    if (g_renderer) {
+        SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
     }
     if (g_window) {
         SDL_DestroyWindow(g_window);
@@ -219,20 +224,38 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
     
-    // Create screen surface (no renderer/texture - direct blitting like Allegro)
+    // Create renderer with hardware acceleration
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+    if (!g_renderer) {
+        fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(g_window);
+        g_window = NULL;
+        return -1;
+    }
+    
+    // Set renderer blend mode for transparency
+    SDL_SetRenderDrawBlendMode(g_renderer, SDL_BLENDMODE_BLEND);
+    
+    // Create screen texture (render target)
     g_screen = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
     if (g_screen) {
-        g_screen->surface = SDL_CreateRGBSurface(0, width, height, 32,
-                                                  0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+        g_screen->texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
+                                               SDL_TEXTUREACCESS_TARGET, width, height);
+        if (!g_screen->texture) {
+            fprintf(stderr, "SDL_CreateTexture failed: %s\n", SDL_GetError());
+            free(g_screen);
+            g_screen = NULL;
+            SDL_DestroyRenderer(g_renderer);
+            g_renderer = NULL;
+            SDL_DestroyWindow(g_window);
+            g_window = NULL;
+            return -1;
+        }
         g_screen->w = width;
         g_screen->h = height;
         
-        // Don't set color key on screen surface - it's the final composite
-        // Screen surface should have blending disabled for direct pixel writes
-        if (g_screen->surface) {
-            SDL_Surface *surf = (SDL_Surface*)g_screen->surface;
-            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
-        }
+        // Set texture blend mode
+        SDL_SetTextureBlendMode((SDL_Texture*)g_screen->texture, SDL_BLENDMODE_BLEND);
     }
     
     return 0;
@@ -308,35 +331,43 @@ PlatformBitmap* platform_get_screen(void) {
 // ============================================================================
 
 PlatformBitmap* platform_create_bitmap(int width, int height) {
+    if (!g_renderer) return NULL;
+    
     PlatformBitmap *pb = (PlatformBitmap*)malloc(sizeof(PlatformBitmap));
     if (pb) {
-        pb->surface = SDL_CreateRGBSurface(0, width, height, 32,
-                                           0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+        pb->texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
+                                        SDL_TEXTUREACCESS_TARGET, width, height);
         pb->w = width;
         pb->h = height;
         
-        if (!pb->surface) {
+        if (!pb->texture) {
             free(pb);
             return NULL;
         }
         
-        // Set magenta (255, 0, 255) as the color key for transparency
-        SDL_Surface *surf = (SDL_Surface*)pb->surface;
-        SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 0, 255));
+        // Set texture blend mode for transparency
+        SDL_SetTextureBlendMode((SDL_Texture*)pb->texture, SDL_BLENDMODE_BLEND);
+        
+        // Clear texture to transparent
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)pb->texture);
+        SDL_SetRenderDrawColor(g_renderer, 0, 0, 0, 0);
+        SDL_RenderClear(g_renderer);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
     return pb;
 }
 
 void platform_destroy_bitmap(PlatformBitmap *bitmap) {
     if (bitmap) {
-        if (bitmap->surface) {
-            SDL_FreeSurface(bitmap->surface);
+        if (bitmap->texture) {
+            SDL_DestroyTexture((SDL_Texture*)bitmap->texture);
         }
         free(bitmap);
     }
 }
 
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
+    if (!g_renderer) return NULL;
 
     char *realfile = replace_pcx_with_png(filename);  // allocate new name
     if (!realfile) return NULL;
@@ -356,83 +387,97 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
         return NULL;
     }
 
-    // Enable transparency using color key (magenta)
+    // Apply color key (magenta) to make it transparent
     Uint32 colorkey = SDL_MapRGB(surface->format, 255, 0, 255);
     SDL_SetColorKey(surface, SDL_TRUE, colorkey);
 
-    PlatformBitmap *pb = malloc(sizeof(PlatformBitmap));
-    if (!pb) {
+    // Create texture from surface
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(g_renderer, surface);
+    
+    if (!texture) {
         SDL_FreeSurface(surface);
         return NULL;
     }
 
-    pb->surface = surface;
+    PlatformBitmap *pb = malloc(sizeof(PlatformBitmap));
+    if (!pb) {
+        SDL_DestroyTexture(texture);
+        SDL_FreeSurface(surface);
+        return NULL;
+    }
+
+    pb->texture = texture;
     pb->w = surface->w;
     pb->h = surface->h;
+    
+    // Set texture blend mode for transparency
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    
+    SDL_FreeSurface(surface);
 
     return pb;
 }
 
 
 void platform_clear_bitmap(PlatformBitmap *bitmap) {
-    if (bitmap && bitmap->surface) {
-        SDL_FillRect(bitmap->surface, NULL, 0);
+    if (bitmap && bitmap->texture && g_renderer) {
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, 0, 0, 0, 0);
+        SDL_RenderClear(g_renderer);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_clear_to_color(PlatformBitmap *bitmap, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
-        SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
-        SDL_FillRect(surf, NULL, color);
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
         
-        // If clearing to magenta (255, 0, 255), set it as the color key for transparency
-        // This is the standard Allegro transparency color
-        if ((color & 0x00FFFFFF) == 0x00FF00FF) {  // Check if RGB is 255, 0, 255
-            SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 0, 255));
-        }
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        SDL_RenderClear(g_renderer);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_draw_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
+    if (dest && dest->texture && src && src->texture && g_renderer) {
         SDL_Rect dest_rect = { x, y, src->w, src->h };
-        SDL_BlitSurface(((SDL_Surface*)src->surface), NULL, dest->surface, &dest_rect);
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopy(g_renderer, (SDL_Texture*)src->texture, NULL, &dest_rect);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_stretch_blit(PlatformBitmap *src, PlatformBitmap *dest,
                           int src_x, int src_y, int src_w, int src_h,
                           int dest_x, int dest_y, int dest_w, int dest_h) {
-    if (src && src->surface && dest && dest->surface) {
+    if (src && src->texture && dest && dest->texture && g_renderer) {
         SDL_Rect src_rect = { src_x, src_y, src_w, src_h };
         SDL_Rect dest_rect = { dest_x, dest_y, dest_w, dest_h };
-        SDL_BlitScaled((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
         
-        // Auto-update window if blitting to screen (like Allegro 4)
-        if (dest == g_screen && g_window) {
-            SDL_Surface *window_surf = SDL_GetWindowSurface(g_window);
-            if (window_surf) {
-                SDL_Surface *screen_surf = (SDL_Surface*)dest->surface;
-                SDL_BlitScaled(screen_surf, NULL, window_surf, NULL);
-                SDL_UpdateWindowSurface(g_window);
-            }
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopy(g_renderer, (SDL_Texture*)src->texture, &src_rect, &dest_rect);
+        SDL_SetRenderTarget(g_renderer, NULL);
+        
+        // Auto-present if blitting to screen (like Allegro 4 behavior)
+        if (dest == g_screen) {
+            platform_present_screen();
         }
     }
 }
 
 void platform_blit(PlatformBitmap *src, PlatformBitmap *dest,
                   int src_x, int src_y, int dest_x, int dest_y, int w, int h) {
-    if (src && src->surface && dest && dest->surface) {
-        // Clear destination surface if blitting to the top-left corner (0,0)
-        // This prevents artifacts when reusing sprite buffers across frames
-        if (dest_x == 0 && dest_y == 0 && src_x == 0 && src_y == 0) {
-            SDL_FillRect((SDL_Surface*)dest->surface, NULL, 
-                         SDL_MapRGBA(((SDL_Surface*)dest->surface)->format, 0, 0, 0, 0));
-        }
-
+    if (src && src->texture && dest && dest->texture && g_renderer) {
         SDL_Rect src_rect = { src_x, src_y, w, h };
         SDL_Rect dest_rect = { dest_x, dest_y, w, h };
-        SDL_BlitSurface((SDL_Surface*)src->surface, &src_rect, (SDL_Surface*)dest->surface, &dest_rect);
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopy(g_renderer, (SDL_Texture*)src->texture, &src_rect, &dest_rect);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
@@ -443,87 +488,29 @@ void platform_masked_blit(PlatformBitmap *src, PlatformBitmap *dest,
 }
 
 void platform_draw_sprite_h_flip(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
-        // Create flipped surface
-        SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
-                                                     0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-        if (flipped) {
-            // Manual horizontal flip
-            SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
-            SDL_LockSurface(src_surf);
-            SDL_LockSurface(flipped);
-            
-            for (int i = 0; i < src->h; i++) {
-                for (int j = 0; j < src->w; j++) {
-                    Uint32 *src_pixel = (Uint32*)((Uint8*)src_surf->pixels + i * src_surf->pitch + j * 4);
-                    Uint32 *dst_pixel = (Uint32*)((Uint8*)flipped->pixels + i * flipped->pitch + (src->w - 1 - j) * 4);
-                    *dst_pixel = *src_pixel;
-                }
-            }
-            
-            SDL_UnlockSurface(flipped);
-            SDL_UnlockSurface(src_surf);
-            
-            SDL_Rect dest_rect = { x, y, src->w, src->h };
-            SDL_BlitSurface(flipped, NULL, dest->surface, &dest_rect);
-            SDL_FreeSurface(flipped);
-        }
+    if (dest && dest->texture && src && src->texture && g_renderer) {
+        SDL_Rect dest_rect = { x, y, src->w, src->h };
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopyEx(g_renderer, (SDL_Texture*)src->texture, NULL, &dest_rect, 0, NULL, SDL_FLIP_HORIZONTAL);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_draw_sprite_v_flip(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
-        // Create flipped surface
-        SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
-                                                     0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-        if (flipped) {
-            // Manual vertical flip
-            SDL_Surface *src_surf = (SDL_Surface*)((SDL_Surface*)src->surface);
-            SDL_LockSurface(src_surf);
-            SDL_LockSurface(flipped);
-            
-            for (int i = 0; i < src->h; i++) {
-                memcpy((Uint8*)flipped->pixels + (src->h - 1 - i) * flipped->pitch,
-                       (Uint8*)src_surf->pixels + i * src_surf->pitch,
-                       src->w * 4);
-            }
-            
-            SDL_UnlockSurface(flipped);
-            SDL_UnlockSurface(src_surf);
-            
-            SDL_Surface *dest_surf = (SDL_Surface*)dest->surface;
-            SDL_Rect dest_rect = { x, y, src->w, src->h };
-            SDL_BlitSurface(flipped, NULL, dest_surf, &dest_rect);
-            SDL_FreeSurface(flipped);
-        }
+    if (dest && dest->texture && src && src->texture && g_renderer) {
+        SDL_Rect dest_rect = { x, y, src->w, src->h };
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopyEx(g_renderer, (SDL_Texture*)src->texture, NULL, &dest_rect, 0, NULL, SDL_FLIP_VERTICAL);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_draw_sprite_vh_flip(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) {
-    if (dest && dest->surface && src && ((SDL_Surface*)src->surface)) {
-        // Create flipped surface
-        SDL_Surface *flipped = SDL_CreateRGBSurface(0, src->w, src->h, 32,
-                                                     0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-        if (flipped) {
-            // Manual horizontal and vertical flip
-            SDL_LockSurface(((SDL_Surface*)src->surface));
-            SDL_LockSurface(flipped);
-            
-            for (int i = 0; i < src->h; i++) {
-                for (int j = 0; j < src->w; j++) {
-                    Uint32 *src_pixel = (Uint32*)((Uint8*)((SDL_Surface*)src->surface)->pixels + i * ((SDL_Surface*)src->surface)->pitch + j * 4);
-                    Uint32 *dst_pixel = (Uint32*)((Uint8*)flipped->pixels + (src->h - 1 - i) * flipped->pitch + (src->w - 1 - j) * 4);
-                    *dst_pixel = *src_pixel;
-                }
-            }
-            
-            SDL_UnlockSurface(flipped);
-            SDL_UnlockSurface(((SDL_Surface*)src->surface));
-            
-            SDL_Rect dest_rect = { x, y, src->w, src->h };
-            SDL_BlitSurface(flipped, NULL, dest->surface, &dest_rect);
-            SDL_FreeSurface(flipped);
-        }
+    if (dest && dest->texture && src && src->texture && g_renderer) {
+        SDL_Rect dest_rect = { x, y, src->w, src->h };
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)dest->texture);
+        SDL_RenderCopyEx(g_renderer, (SDL_Texture*)src->texture, NULL, &dest_rect, 0, NULL, SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
@@ -542,24 +529,31 @@ void platform_pivot_sprite(PlatformBitmap *dest, PlatformBitmap *src,
 }
 
 PlatformColor platform_getpixel(PlatformBitmap *bitmap, int x, int y) {
-    if (bitmap && bitmap->surface && x >= 0 && x < bitmap->w && y >= 0 && y < bitmap->h) {
-        SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
-        SDL_LockSurface(surf);
-        Uint32 *pixels = (Uint32*)surf->pixels;
-        PlatformColor color = pixels[y * (surf->pitch / 4) + x];
-        SDL_UnlockSurface(surf);
-        return color;
+    if (bitmap && bitmap->texture && x >= 0 && x < bitmap->w && y >= 0 && y < bitmap->h && g_renderer) {
+        Uint32 pixel = 0;
+        SDL_Rect rect = { x, y, 1, 1 };
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_RenderReadPixels(g_renderer, &rect, SDL_PIXELFORMAT_ARGB8888, &pixel, 4);
+        SDL_SetRenderTarget(g_renderer, NULL);
+        
+        return pixel;
     }
     return 0;
 }
 
 void platform_putpixel(PlatformBitmap *bitmap, int x, int y, PlatformColor color) {
-    if (bitmap && bitmap->surface && x >= 0 && x < bitmap->w && y >= 0 && y < bitmap->h) {
-        SDL_Surface *surf = (SDL_Surface*)bitmap->surface;
-        SDL_LockSurface(surf);
-        Uint32 *pixels = (Uint32*)surf->pixels;
-        pixels[y * (surf->pitch / 4) + x] = color;
-        SDL_UnlockSurface(surf);
+    if (bitmap && bitmap->texture && x >= 0 && x < bitmap->w && y >= 0 && y < bitmap->h && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        if (a == 0) a = 255;  // Default to opaque if no alpha
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        SDL_RenderDrawPoint(g_renderer, x, y);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
@@ -568,100 +562,84 @@ void platform_putpixel(PlatformBitmap *bitmap, int x, int y, PlatformColor color
 // ============================================================================
 
 void platform_line(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
-        // Bresenham's line algorithm
-        int dx = abs(x2 - x1);
-        int dy = abs(y2 - y1);
-        int sx = x1 < x2 ? 1 : -1;
-        int sy = y1 < y2 ? 1 : -1;
-        int err = dx - dy;
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        if (a == 0) a = 255;
         
-        while (1) {
-            platform_putpixel(bitmap, x1, y1, color);
-            
-            if (x1 == x2 && y1 == y2) break;
-            
-            int e2 = 2 * err;
-            if (e2 > -dy) {
-                err -= dy;
-                x1 += sx;
-            }
-            if (e2 < dx) {
-                err += dx;
-                y1 += sy;
-            }
-        }
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        SDL_RenderDrawLine(g_renderer, x1, y1, x2, y2);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_rect(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
-        platform_line(bitmap, x1, y1, x2, y1, color);
-        platform_line(bitmap, x2, y1, x2, y2, color);
-        platform_line(bitmap, x2, y2, x1, y2, color);
-        platform_line(bitmap, x1, y2, x1, y1, color);
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        if (a == 0) a = 255;
+        
+        SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        SDL_RenderDrawRect(g_renderer, &rect);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_rectfill(PlatformBitmap *bitmap, int x1, int y1, int x2, int y2, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
-        SDL_Surface *surface = (SDL_Surface *)bitmap->surface;
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        
         SDL_Rect rect = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
         
         if (g_drawing_mode == PDRAW_MODE_TRANS) {
-            // Extract RGB components from the color
-            SDL_PixelFormat *fmt = surface->format;
-            Uint8 r, g, b, a;
-            SDL_GetRGBA(color, fmt, &r, &g, &b, &a);
-            
-            // Apply transparency by blending manually
-            SDL_LockSurface(surface);
-            for (int y = rect.y; y < rect.y + rect.h && y < surface->h; y++) {
-                for (int x = rect.x; x < rect.x + rect.w && x < surface->w; x++) {
-                    if (x >= 0 && y >= 0) {
-                        // Get the destination pixel
-                        Uint32 *pixels = (Uint32 *)surface->pixels;
-                        Uint32 dst_pixel = pixels[y * (surface->pitch / 4) + x];
-                        
-                        // Get destination RGB
-                        Uint8 dst_r, dst_g, dst_b;
-                        SDL_GetRGB(dst_pixel, fmt, &dst_r, &dst_g, &dst_b);
-                        
-                        // Alpha blend: result = src * alpha + dst * (1 - alpha)
-                        float alpha = g_trans_alpha / 255.0f;
-                        Uint8 result_r = (Uint8)(r * alpha + dst_r * (1.0f - alpha));
-                        Uint8 result_g = (Uint8)(g * alpha + dst_g * (1.0f - alpha));
-                        Uint8 result_b = (Uint8)(b * alpha + dst_b * (1.0f - alpha));
-                        
-                        // Write blended pixel
-                        pixels[y * (surface->pitch / 4) + x] = SDL_MapRGB(fmt, result_r, result_g, result_b);
-                    }
-                }
-            }
-            SDL_UnlockSurface(surface);
+            // Apply transparency
+            a = g_trans_alpha;
         } else {
-            // Solid mode - use normal SDL_FillRect
-            SDL_FillRect(surface, &rect, color);
+            if (a == 0) a = 255;
         }
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        SDL_RenderFillRect(g_renderer, &rect);
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_circle(PlatformBitmap *bitmap, int x, int y, int radius, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
-        // Midpoint circle algorithm
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        if (a == 0) a = 255;
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        
+        // Midpoint circle algorithm using renderer
         int dx = radius;
         int dy = 0;
         int err = 0;
         
         while (dx >= dy) {
-            platform_putpixel(bitmap, x + dx, y + dy, color);
-            platform_putpixel(bitmap, x + dy, y + dx, color);
-            platform_putpixel(bitmap, x - dy, y + dx, color);
-            platform_putpixel(bitmap, x - dx, y + dy, color);
-            platform_putpixel(bitmap, x - dx, y - dy, color);
-            platform_putpixel(bitmap, x - dy, y - dx, color);
-            platform_putpixel(bitmap, x + dy, y - dx, color);
-            platform_putpixel(bitmap, x + dx, y - dy, color);
+            SDL_RenderDrawPoint(g_renderer, x + dx, y + dy);
+            SDL_RenderDrawPoint(g_renderer, x + dy, y + dx);
+            SDL_RenderDrawPoint(g_renderer, x - dy, y + dx);
+            SDL_RenderDrawPoint(g_renderer, x - dx, y + dy);
+            SDL_RenderDrawPoint(g_renderer, x - dx, y - dy);
+            SDL_RenderDrawPoint(g_renderer, x - dy, y - dx);
+            SDL_RenderDrawPoint(g_renderer, x + dy, y - dx);
+            SDL_RenderDrawPoint(g_renderer, x + dx, y - dy);
             
             if (err <= 0) {
                 dy += 1;
@@ -673,18 +651,31 @@ void platform_circle(PlatformBitmap *bitmap, int x, int y, int radius, PlatformC
                 err -= 2 * dx + 1;
             }
         }
+        
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
 void platform_circlefill(PlatformBitmap *bitmap, int x, int y, int radius, PlatformColor color) {
-    if (bitmap && bitmap->surface) {
+    if (bitmap && bitmap->texture && g_renderer) {
+        Uint8 r = (color >> 16) & 0xFF;
+        Uint8 g = (color >> 8) & 0xFF;
+        Uint8 b = color & 0xFF;
+        Uint8 a = (color >> 24) & 0xFF;
+        if (a == 0) a = 255;
+        
+        SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+        SDL_SetRenderDrawColor(g_renderer, r, g, b, a);
+        
         for (int i = -radius; i <= radius; i++) {
             for (int j = -radius; j <= radius; j++) {
                 if (i * i + j * j <= radius * radius) {
-                    platform_putpixel(bitmap, x + i, y + j, color);
+                    SDL_RenderDrawPoint(g_renderer, x + i, y + j);
                 }
             }
         }
+        
+        SDL_SetRenderTarget(g_renderer, NULL);
     }
 }
 
@@ -749,13 +740,19 @@ void platform_destroy_font(PlatformFont *font) {
 void platform_textout_ex(PlatformBitmap *bitmap, PlatformFont *font,
                         const char *text, int x, int y,
                         PlatformColor color, PlatformColor bg) {
-    if (bitmap && bitmap->surface && font && font->font && text) {
+    if (bitmap && bitmap->texture && font && font->font && text && g_renderer) {
         SDL_Color fg = { (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255 };
-        SDL_Surface *text_surface = TTF_RenderUTF8_Blended(font->font, text, fg);
+        SDL_Surface *text_surface = TTF_RenderUTF8_Blended((TTF_Font*)font->font, text, fg);
         
         if (text_surface) {
-            SDL_Rect dest_rect = { x, y, text_surface->w, text_surface->h };
-            SDL_BlitSurface(text_surface, NULL, bitmap->surface, &dest_rect);
+            SDL_Texture *text_texture = SDL_CreateTextureFromSurface(g_renderer, text_surface);
+            if (text_texture) {
+                SDL_Rect dest_rect = { x, y, text_surface->w, text_surface->h };
+                SDL_SetRenderTarget(g_renderer, (SDL_Texture*)bitmap->texture);
+                SDL_RenderCopy(g_renderer, text_texture, NULL, &dest_rect);
+                SDL_SetRenderTarget(g_renderer, NULL);
+                SDL_DestroyTexture(text_texture);
+            }
             SDL_FreeSurface(text_surface);
         }
     }
@@ -764,9 +761,9 @@ void platform_textout_ex(PlatformBitmap *bitmap, PlatformFont *font,
 void platform_textout_centre_ex(PlatformBitmap *bitmap, PlatformFont *font,
                                const char *text, int x, int y,
                                PlatformColor color, PlatformColor bg) {
-    if (bitmap && bitmap->surface && font && font->font && text) {
+    if (bitmap && bitmap->texture && font && font->font && text) {
         int w, h;
-        if (TTF_SizeText(font->font, text, &w, &h) == 0) {
+        if (TTF_SizeText((TTF_Font*)font->font, text, &w, &h) == 0) {
             platform_textout_ex(bitmap, font, text, x - w / 2, y, color, bg);
         }
     }
@@ -1211,6 +1208,10 @@ void platform_solid_mode(void) { g_drawing_mode = PDRAW_MODE_SOLID; }
 void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) { platform_draw_sprite(dest, src, x, y); }
 
 void platform_present_screen(void) {
-    // No-op: Screen updates automatically when blitting to screen surface
-    // This function kept for API compatibility but does nothing
+    if (g_screen && g_screen->texture && g_renderer) {
+        // Render the screen texture to the window
+        SDL_SetRenderTarget(g_renderer, NULL);
+        SDL_RenderCopy(g_renderer, (SDL_Texture*)g_screen->texture, NULL, NULL);
+        SDL_RenderPresent(g_renderer);
+    }
 }
