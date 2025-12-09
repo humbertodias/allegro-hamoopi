@@ -92,3 +92,19 @@ add_custom_command(TARGET HAMOOPI POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:HAMOOPI> ${CMAKE_SOURCE_DIR}
     COMMENT "Copying executable to parent folder..."
 )
+
+# Copy data/ folder to the build directory
+add_custom_command(TARGET HAMOOPI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/data
+        $<TARGET_FILE_DIR:HAMOOPI>/data
+        COMMENT "Copying data folder..."
+)
+
+# Copy SETUP.ini to output
+add_custom_command(TARGET HAMOOPI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/SETUP.ini
+        $<TARGET_FILE_DIR:HAMOOPI>/SETUP.ini
+        COMMENT "Copying SETUP.ini..."
+)
