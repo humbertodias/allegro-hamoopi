@@ -96,14 +96,20 @@ jobs:
         if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
         run: |
           vcpkg integrate install
-          vcpkg install allegro:x64-windows
+          # Note: Using allegro5 as allegro4 may not be available in vcpkg
+          # The build may require code adjustments for Allegro 5 compatibility
+          vcpkg install allegro5:x64-windows
         shell: bash
 
       # Build with Allegro
       - name: Build (Allegro)
         if: matrix.backend == 'allegro'
         run: |
-          cmake -B build -DUSE_SDL2=OFF
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cmake -B build -DUSE_SDL2=OFF -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          else
+            cmake -B build -DUSE_SDL2=OFF
+          fi
           cmake --build build --config Release
         shell: bash
 
