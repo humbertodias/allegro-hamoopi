@@ -1,4 +1,4 @@
-[![Continuous Delivery](https://github.com/humbertodias/hamoopi/actions/workflows/build.yml/badge.svg)](https://github.com/humbertodias/hamoopi/actions/workflows/build.yml)
+[![CD](https://github.com/humbertodias/hamoopi/actions/workflows/cd.yml/badge.svg)](https://github.com/humbertodias/hamoopi/actions/workflows/cd.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/humbertodias/hamoopi)
 ![GitHub all releases](https://img.shields.io/github/downloads/humbertodias/hamoopi/total)
 

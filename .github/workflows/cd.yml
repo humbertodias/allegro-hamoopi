@@ -1,0 +1,239 @@
+name: CD
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }} with ${{ matrix.backend }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        backend: [allegro, sdl2]
+        include:
+          - os: ubuntu-latest
+            platform_name: linux
+          - os: macos-latest
+            platform_name: macos
+          - os: windows-latest
+            platform_name: windows
+        exclude:
+          # Exclude macOS + Allegro, only build SDL2 for macOS
+          - os: macos-latest
+            backend: allegro
+          # Exclude Windows + Allegro
+          - os: windows-latest
+            backend: allegro
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Linux dependencies
+      - name: Install dependencies (Linux - Allegro)
+        if: matrix.os == 'ubuntu-latest' && matrix.backend == 'allegro'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y liballegro4-dev
+
+      - name: Install dependencies (Linux - SDL2)
+        if: matrix.os == 'ubuntu-latest' && matrix.backend == 'sdl2'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libinih-dev
+
+      # macOS dependencies
+      - name: Install dependencies (macOS - Allegro)
+        if: matrix.os == 'macos-latest' && matrix.backend == 'allegro'
+        run: |
+          brew install allegro@4
+
+      - name: Install dependencies (macOS - SDL2)
+        if: matrix.os == 'macos-latest' && matrix.backend == 'sdl2'
+        run: |
+          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih
+
+      # Windows dependencies
+      - name: Cache vcpkg packages (Windows - SDL2)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+          key: ${{ runner.os }}-vcpkg-sdl2-${{ hashFiles('.github/workflows/build.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-sdl2-
+            ${{ runner.os }}-vcpkg-
+
+      - name: Setup vcpkg (Windows - SDL2)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+        run: |
+          vcpkg integrate install
+          vcpkg install sdl2:x86-windows sdl2-image:x86-windows sdl2-mixer:x86-windows sdl2-ttf:x86-windows inih:x86-windows
+        shell: bash
+
+      - name: Install Allegro 4 manually (Windows)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
+        run: |
+          # Download Allegro 4.4.2 binary for Windows
+          curl -L -f https://master.dl.sourceforge.net/project/alleg/allegro-bin/4.2.2/allegro-mingw-4.2.2.zip?viasf=1 -o allegro.zip || {
+            echo "Failed to download Allegro 4. Please verify the download URL."
+            exit 1
+          }
+          # Create destination directory
+          mkdir -p C:/allegro
+          # Extract and organize files
+          7z x allegro.zip -oC:/allegro-temp
+          # Find the actual allegro directory and copy its contents
+          if [ -d "C:/allegro-temp/allegro-mingw-4.2.2" ]; then
+            cp -r C:/allegro-temp/allegro-mingw-4.2.2/* C:/allegro/
+          elif [ -d "C:/allegro-temp/allegro" ]; then
+            cp -r C:/allegro-temp/allegro/* C:/allegro/
+          else
+            # Fallback: just copy everything
+            cp -r C:/allegro-temp/* C:/allegro/
+          fi
+          # List contents for debugging
+          echo "Contents of C:/allegro:"
+          ls -la C:/allegro/
+          if [ -d "C:/allegro/include" ]; then
+            echo "Include directory found"
+            ls -la C:/allegro/include/
+          fi
+          if [ -d "C:/allegro/lib" ]; then
+            echo "Lib directory found"
+            ls -la C:/allegro/lib/
+          fi
+          # Set environment variables for CMake to find Allegro
+          echo "ALLEGRO_ROOT=C:/allegro" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=C:/allegro" >> $GITHUB_ENV
+        shell: bash
+
+      # Build with Allegro
+      - name: Build (Allegro)
+        if: matrix.backend == 'allegro'
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            # Use Win32 (x86) architecture for Windows Allegro builds
+            cmake -B build -A Win32 -DUSE_SDL2=OFF
+          else
+            cmake -B build -DUSE_SDL2=OFF
+          fi
+          cmake --build build --config Release
+        shell: bash
+
+      # Build with SDL2
+      - name: Build (SDL2)
+        if: matrix.backend == 'sdl2'
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            # Use Win32 (x86) architecture for Windows SDL2 builds to match vcpkg installation
+            cmake -B build -A Win32 -DUSE_SDL2=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          else
+            cmake -B build -DUSE_SDL2=ON
+          fi
+          cmake --build build --config Release
+        shell: bash
+
+      # Package artifacts
+      - name: Package artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable (CMake post-build copies to root, but check build dir first)
+          if [ -f "build/HAMOOPI" ]; then
+            cp build/HAMOOPI artifacts/
+          elif [ -f "HAMOOPI" ]; then
+            cp HAMOOPI artifacts/
+          else
+            echo "Error: Executable not found"
+            exit 1
+          fi
+          # Copy data files
+          cp -r data artifacts/
+          cp LICENSE artifacts/
+          cp README.md artifacts/
+          cp SETUP.ini artifacts/
+          # Create tarball
+          cd artifacts
+          tar czf ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz *
+        shell: bash
+
+      - name: Package artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable (check build dirs in order of likelihood)
+          if [ -f "build/Release/HAMOOPI.exe" ]; then
+            cp build/Release/HAMOOPI.exe artifacts/
+          elif [ -f "build/HAMOOPI.exe" ]; then
+            cp build/HAMOOPI.exe artifacts/
+          elif [ -f "HAMOOPI.exe" ]; then
+            cp HAMOOPI.exe artifacts/
+          else
+            echo "Error: Executable not found"
+            exit 1
+          fi
+          # Copy data files
+          cp -r data artifacts/
+          cp LICENSE artifacts/
+          cp README.md artifacts/
+          cp SETUP.ini artifacts/
+          # Create zip for Windows
+          cd artifacts
+          7z a -tzip ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip *
+        shell: bash
+
+      # Upload artifacts for all builds
+      - name: Upload artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}
+          path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz
+          retention-days: 30
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}
+          path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
+          retention-days: 30
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
