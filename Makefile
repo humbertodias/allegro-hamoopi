@@ -1,29 +1,21 @@
-TARGET=HAMOOPI
+# Project
+TARGET       := HAMOOPI
+BUILD_DIR    := build
+PLATFORM     := $(shell uname -s)-$(shell uname -m)
 
-# Platform detection
-ifeq ($(platform),)
-   platform = unix
-   ifeq ($(shell uname -a),)
-      platform = win
-   else ifneq ($(findstring MINGW,$(shell uname -a)),)
-      platform = win
-   else ifneq ($(findstring Darwin,$(shell uname -a)),)
-      platform = osx
-   else ifneq ($(findstring win,$(shell uname -a)),)
-      platform = win
-   endif
-endif
+# Options
+BUILD_TYPE   := Debug
+SDL2         := ON
+CMAKE_FLAGS  := -DUSE_SDL2=$(SDL2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+.PHONY: build clean zip
 
 build: clean
-	cmake -Bbuild
-	cmake --build build
-
-build/sdl2: clean
-	cmake -Bbuild -DCMAKE_BUILD_TYPE=Debug -DUSE_SDL2=1
-	cmake --build build
+	cmake -B $(BUILD_DIR) $(CMAKE_FLAGS)
+	cmake --build $(BUILD_DIR)
 
 clean:
-	rm -rf ${TARGET} *.exe *.o  *.so build
+	rm -rf $(BUILD_DIR) $(TARGET) $(TARGET).exe *.o *.so
 
 zip:
-	zip -r ${TARGET}-${platform}.zip data LICENSE README.md SETUP.ini ${TARGET} ${TARGET}.exe
+	zip -r $(TARGET)-$(PLATFORM).zip data LICENSE README.md SETUP.ini $(TARGET) $(TARGET).exe
