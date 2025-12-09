@@ -1,3 +1,7 @@
+[![Continuous Delivery](https://github.com/humbertodias/hamoopi/actions/workflows/build.yml/badge.svg)](https://github.com/humbertodias/hamoopi/actions/workflows/build.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/humbertodias/hamoopi)
+![GitHub all releases](https://img.shields.io/github/downloads/humbertodias/hamoopi/total)
+
 # HAMOOPI
  Free Fighting Game Engine
 
