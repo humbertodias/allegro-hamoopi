@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.7)
 project(HAMOOPI)
 
+# Add custom CMake modules path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Option to choose backend
 option(USE_SDL2 "Use SDL2 backend instead of Allegro 4" OFF)
 
