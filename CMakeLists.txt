@@ -18,10 +18,13 @@ if(USE_SDL2)
     find_package(SDL2_mixer REQUIRED)
     find_package(SDL2_ttf REQUIRED)
 
-    # inih
-    # sudo apt install libinih-dev
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(INIH REQUIRED inih)
+    # inih - configuration library
+    # Try custom Find module first, fallback to pkg-config
+    find_package(INIH QUIET)
+    if(NOT INIH_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(INIH REQUIRED inih)
+    endif()
 
     # Include directories for SDL2
     target_include_directories(HAMOOPI PRIVATE 
