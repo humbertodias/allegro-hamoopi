@@ -79,7 +79,7 @@ jobs:
         if: matrix.backend == 'sdl2'
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            cmake -B build -DUSE_SDL2=ON -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            cmake -B build -DUSE_SDL2=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           else
             cmake -B build -DUSE_SDL2=ON
           fi
@@ -91,13 +91,13 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p artifacts
-          # Copy executable
-          if [ -f "HAMOOPI" ]; then
-            cp HAMOOPI artifacts/
-          elif [ -f "build/HAMOOPI" ]; then
+          # Copy executable (CMake post-build copies to root, but check build dir first)
+          if [ -f "build/HAMOOPI" ]; then
             cp build/HAMOOPI artifacts/
+          elif [ -f "HAMOOPI" ]; then
+            cp HAMOOPI artifacts/
           else
-            echo "Warning: Executable not found"
+            echo "Error: Executable not found"
             exit 1
           fi
           # Copy data files
@@ -114,15 +114,15 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           mkdir -p artifacts
-          # Copy executable
-          if [ -f "HAMOOPI.exe" ]; then
-            cp HAMOOPI.exe artifacts/
-          elif [ -f "build/Release/HAMOOPI.exe" ]; then
+          # Copy executable (check build dirs in order of likelihood)
+          if [ -f "build/Release/HAMOOPI.exe" ]; then
             cp build/Release/HAMOOPI.exe artifacts/
           elif [ -f "build/HAMOOPI.exe" ]; then
             cp build/HAMOOPI.exe artifacts/
+          elif [ -f "HAMOOPI.exe" ]; then
+            cp HAMOOPI.exe artifacts/
           else
-            echo "Warning: Executable not found"
+            echo "Error: Executable not found"
             exit 1
           fi
           # Copy data files
@@ -153,13 +153,21 @@ jobs:
           retention-days: 30
 
       # Create release assets for tags
-      - name: Upload release assets
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Upload release assets (Linux/macOS)
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os != 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz
-            HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
+          files: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets (Windows)
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
           draft: false
           prerelease: false
         env:
