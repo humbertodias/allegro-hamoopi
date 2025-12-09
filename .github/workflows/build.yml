@@ -59,6 +59,17 @@ jobs:
           brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih
 
       # Windows dependencies
+      - name: Cache vcpkg packages (Windows - SDL2)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_INSTALLATION_ROOT }}/installed
+            ${{ env.VCPKG_INSTALLATION_ROOT }}/packages
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}-sdl2
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
       - name: Setup vcpkg (Windows - SDL2)
         if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
         run: |
@@ -152,22 +163,25 @@ jobs:
           path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
           retention-days: 30
 
-      # Create release assets for tags
-      - name: Upload release assets (Linux/macOS)
-        if: startsWith(github.ref, 'refs/tags/v') && matrix.os != 'windows-latest'
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+        
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload release assets (Windows)
-        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'windows-latest'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
+          files: artifacts/**/*
           draft: false
           prerelease: false
         env:
