@@ -64,10 +64,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ env.VCPKG_INSTALLATION_ROOT }}/installed
-            ${{ env.VCPKG_INSTALLATION_ROOT }}/packages
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}-sdl2
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+          key: ${{ runner.os }}-vcpkg-sdl2-${{ hashFiles('.github/workflows/build.yml') }}
           restore-keys: |
+            ${{ runner.os }}-vcpkg-sdl2-
             ${{ runner.os }}-vcpkg-
 
       - name: Setup vcpkg (Windows - SDL2)
@@ -181,7 +182,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: artifacts/*/*
           draft: false
           prerelease: false
         env:
