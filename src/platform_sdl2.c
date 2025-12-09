@@ -164,8 +164,10 @@ int platform_init(void) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");  // Nearest neighbor (faster)
     SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");  // Enable if available
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d,opengl,opengles2,software");  // Prefer hardware
-    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");  // Don't minimize on focus loss
-    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");  // Enable render batching for better performance
+    // Don't minimize window when focus is lost - better for multi-monitor setups
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+    // Enable render batching to group similar draw calls together for better performance
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
