@@ -28,9 +28,6 @@ jobs:
           - os: windows-latest
             platform_name: windows
         exclude:
-          # Exclude Windows + Allegro due to Allegro 4 availability issues
-          - os: windows-latest
-            backend: allegro
           # Exclude macOS + Allegro, only build SDL2 for macOS
           - os: macos-latest
             backend: allegro
@@ -81,6 +78,25 @@ jobs:
         run: |
           vcpkg integrate install
           vcpkg install sdl2:x64-windows sdl2-image:x64-windows sdl2-mixer:x64-windows sdl2-ttf:x64-windows inih:x64-windows
+        shell: bash
+
+      - name: Cache vcpkg packages (Windows - Allegro)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+          key: ${{ runner.os }}-vcpkg-allegro-${{ hashFiles('.github/workflows/build.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-allegro-
+            ${{ runner.os }}-vcpkg-
+
+      - name: Setup vcpkg (Windows - Allegro)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
+        run: |
+          vcpkg integrate install
+          vcpkg install allegro:x64-windows
         shell: bash
 
       # Build with Allegro
