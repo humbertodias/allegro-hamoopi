@@ -72,6 +72,11 @@ else()
     if(UNIX)
         target_link_libraries(HAMOOPI m)
     endif()
+    
+    # Disable SEH on MinGW to avoid conflicts with Allegro 4
+    if(MINGW)
+        target_link_options(HAMOOPI PRIVATE "-Wl,--no-seh")
+    endif()
 endif()
 
 # Copy executable to parent folder after build
