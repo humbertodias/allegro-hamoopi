@@ -207,7 +207,7 @@ int Round_Wins;
 int x;
 int y;
 int State;
-char State_s[3];
+char State_s[7];
 char State_chs[99];
 int TotalStates;
 int IndexAnim;
@@ -304,7 +304,7 @@ int p1_start, p2_start;
 
 int op_sound_volume=255;
 int op_sfx_volume=255;
-char IDIOMA[2];
+char IDIOMA[3];
 int IntroMode=1; int IntroTimer=0;
 float AnimIntroTimer=0; //animacao de intro timer
 float AnimTransTimer=-1; //animacao de transicao timer
@@ -594,13 +594,7 @@ install_int_ex(tempo, BPS_TO_TIMER(60)); //60fps
 set_window_title("HAMOOPI is Loading... Please wait :) ");
 set_close_button_callback( sair_allegro );
 
-//Valores de Referencia:
-//Genesis [320x224]
-//Snes [256x224]
-//CapcomCPS1 [384x224]
-//NeoGeo [320x224]
-BITMAP *bg_test = create_bitmap(1280,960); //tamanho max do cenario
-BITMAP *bg_hamoopi[9];
+
 
 //carrega os dados do setup.ini
 set_config_file("SETUP.ini");
@@ -633,6 +627,14 @@ if(ModoFullscreen==1) { set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, WindowResX, Wind
 if(ModoFullscreen==0) { set_gfx_mode(GFX_AUTODETECT_WINDOWED, WindowResX, WindowResY, 0, 0); }
 //opcao de framedata
 op_ShowFrameData = get_config_int ( "CONFIG" , "frame_data",  0 ) ;
+
+//Valores de Referencia:
+//Genesis [320x224]
+//Snes [256x224]
+//CapcomCPS1 [384x224]
+//NeoGeo [320x224]
+BITMAP *bg_test = create_bitmap(1280,960); //tamanho max do cenario
+BITMAP *bg_hamoopi[9];
 
 //carrega a lista de Cenarios instalados
 for(int ind=1;ind<=MAX_CHARS;ind++){
@@ -985,13 +987,13 @@ destroy_bitmap(MINIspr[ind]);
 
 //P1 miniatura da foto ingame
 strcpy(P[1].Name, (char *)get_config_string("CHARS", "char1", ""));
-char P1_1s[25]="";
-snprintf(P1_1s, sizeof(P1_1s),"data/chars/%s/000_01.pcx",P[1].Name);
+char P1_1s[40]="";
+sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
 BITMAP *P1_1 = load_bitmap(P1_1s, NULL);
 if (!P1_1) { P1_1=load_bitmap("data/system/000_01.pcx", NULL); }
 //P2 miniatura da foto ingame
 strcpy(P[2].Name, (char *)get_config_string("CHARS", "char2", ""));
-char P2_1s[25]="";
+char P2_1s[40]="";
 sprintf(P2_1s, "data/chars/%s/000_01.pcx", P[2].Name);
 BITMAP *P2_1 = load_bitmap(P2_1s, NULL);
 if (!P2_1) { P2_1=load_bitmap("data/system/000_01.pcx", NULL); }
@@ -2264,12 +2266,12 @@ if (GamePlayMode==1){
 if (timer_rounds==0) {
 desabilita_players=1; FadeCtr=255; FadeIN=0; FadeOUT=1;
 //P1 miniatura da foto ingame
-char P1_1s[25]="";
+char P1_1s[40]="";
 sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
 P1_1 = load_bitmap(P1_1s, NULL);
 if (!P1_1) { P1_1=load_bitmap("data/system/000_01.pcx", NULL); }
 //P2 miniatura da foto ingame
-char P2_1s[25]="";
+char P2_1s[40]="";
 sprintf(P2_1s, "data/chars/%s/000_01.pcx", P[2].Name);
 P2_1 = load_bitmap(P2_1s, NULL);
 if (!P2_1) { P2_1=load_bitmap("data/system/000_01.pcx", NULL); }
@@ -6320,8 +6322,8 @@ drawing_mode(DRAW_MODE_SOLID, 0, 0, 0);
 
 //draw char -ED-
 {
-char txt[3];
-char txt2[20];
+char txt[7];
+char txt2[40];
 if (ED_IndexAnim<10) { sprintf(txt, "%i_0%i", ED_State, ED_IndexAnim); }  // <10
 else { sprintf(txt,  "%i_%i", ED_State, ED_IndexAnim); } //>=10
 if (ED_IndexAnim<10) {
@@ -11650,13 +11652,13 @@ ED_Largura_100=0;
 //abastece MovPossiveis - Verifica a existencia de Movimentos (imgs nnn_00.pcx) na pasta do personagem
 int i=0; char txt[50]="";
 for(int ind=100;ind<=999; ind++){
-char indINTtoCHAR[3]="";
+char indINTtoCHAR[4]="";
 sprintf(indINTtoCHAR, "%d", ind);
 sprintf(txt, "data/chars/%s/%s_00.pcx", ED_Name, indINTtoCHAR ); if ( exists(txt)) { MovPossiveis[i]=ind; i++; }
 }
 
 //faz o carregamento inicial do char.ini
-char ED_State_s[3];
+char ED_State_s[4];
 char ED_Caminho[99];
 
 sprintf(ED_State_s, "%i", ED_State);
