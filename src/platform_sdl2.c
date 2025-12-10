@@ -38,15 +38,9 @@ static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
         if (elapsed_ticks >= g_timer_interval_ticks) {
             g_timer_callback();
             
-            // Advance by the appropriate number of intervals to prevent falling behind
-            // Check for overflow before multiplication
-            Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
-            if (intervals_elapsed <= UINT64_MAX / g_timer_interval_ticks) {
-                g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
-            } else {
-                // If overflow would occur, just advance to current time
-                g_timer_last_tick = current_tick;
-            }
+            // Always advance by exactly one interval to maintain consistent timer increments
+            // This ensures the game timer increments by 1 each callback, preventing stuttering
+            g_timer_last_tick += g_timer_interval_ticks;
         }
     }
     return interval;  // Continue timer with same interval
