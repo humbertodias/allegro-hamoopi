@@ -50,7 +50,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.backend == 'sdl2'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libinih-dev
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libinih-dev qt6-base-dev
 
       # macOS dependencies
       - name: Install dependencies (macOS - Allegro)
@@ -61,7 +61,7 @@ jobs:
       - name: Install dependencies (macOS - SDL2)
         if: matrix.os == 'macos-latest' && matrix.backend == 'sdl2'
         run: |
-          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih
+          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih qt@6
 
       # Windows dependencies
       - name: Cache vcpkg packages (Windows - SDL2)
@@ -82,6 +82,16 @@ jobs:
           vcpkg integrate install
           vcpkg install sdl2:x86-windows sdl2-image:x86-windows sdl2-mixer:x86-windows sdl2-ttf:x86-windows inih:x86-windows
         shell: bash
+
+      - name: Install Qt6 (Windows - SDL2)
+        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.*'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          cache: true
 
       - name: Install Allegro 4 manually (Windows)
         if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
@@ -139,9 +149,9 @@ jobs:
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             # Use Win32 (x86) architecture for Windows SDL2 builds to match vcpkg installation
-            cmake -B build -A Win32 -DUSE_SDL2=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+            cmake -B build -A Win32 -DUSE_SDL2=ON -DBUILD_TOOLS=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           else
-            cmake -B build -DUSE_SDL2=ON
+            cmake -B build -DUSE_SDL2=ON -DBUILD_TOOLS=ON
           fi
           cmake --build build --config Release
         shell: bash
@@ -160,6 +170,22 @@ jobs:
             echo "Error: Executable not found"
             exit 1
           fi
+          
+          # Copy tools if they were built
+          if [ "${{ matrix.backend }}" == "sdl2" ]; then
+            # Copy pallete-generator (SDL2 backend)
+            if [ -f "build/tools/pallete-generator/PALLETEGEN" ]; then
+              cp build/tools/pallete-generator/PALLETEGEN artifacts/
+              echo "Added PALLETEGEN to artifacts"
+            fi
+          
+            # Copy font-generator (Qt6 based)
+            if [ -f "build/tools/font-generator/TTF2PCX" ]; then
+              cp build/tools/font-generator/TTF2PCX artifacts/
+              echo "Added TTF2PCX to artifacts"
+            fi
+          fi
+          
           # Copy data files
           cp -r data artifacts/
           cp LICENSE artifacts/
@@ -170,7 +196,7 @@ jobs:
           if [ "${{ matrix.backend }}" == "sdl2" ]; then
             echo "Copying SDL2 shared libraries..."
             mkdir -p artifacts/lib
-            
+          
             if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
               # Linux: Copy shared libraries
               # Find and copy SDL2 libraries
@@ -183,7 +209,7 @@ jobs:
                   echo "Warning: $lib not found"
                 fi
               done
-              
+          
               # Create a launcher script that sets LD_LIBRARY_PATH
               {
                 echo '#!/bin/bash'
@@ -193,12 +219,12 @@ jobs:
               } > artifacts/HAMOOPI.sh
               chmod +x artifacts/HAMOOPI.sh
               echo "Created launcher script HAMOOPI.sh"
-              
+          
             elif [ "${{ matrix.os }}" == "macos-latest" ]; then
               # macOS: Copy dylibs from Homebrew
               BREW_PREFIX=$(brew --prefix)
               echo "Homebrew prefix: $BREW_PREFIX"
-              
+          
               # Copy SDL2 frameworks/dylibs
               for lib in libSDL2-2.0.0.dylib libSDL2_image-2.0.0.dylib libSDL2_mixer-2.0.0.dylib libSDL2_ttf-2.0.0.dylib libinih.0.dylib; do
                 if [ -f "$BREW_PREFIX/lib/$lib" ]; then
@@ -210,7 +236,7 @@ jobs:
                   echo "Warning: $lib not found in $BREW_PREFIX/lib/"
                 fi
               done
-              
+          
               # Update executable to use @rpath
               if [ -f "artifacts/HAMOOPI" ]; then
                 chmod +w artifacts/HAMOOPI
@@ -221,7 +247,7 @@ jobs:
                   install_name_tool -change "$BREW_PREFIX/lib/$lib" "@rpath/$lib" artifacts/HAMOOPI 2>/dev/null || true
                 done
               fi
-              
+          
               # Create a launcher script as fallback for systems with SIP restrictions
               {
                 echo '#!/bin/bash'
@@ -234,7 +260,7 @@ jobs:
               chmod +x artifacts/HAMOOPI.sh
               echo "Created launcher script HAMOOPI.sh"
             fi
-            
+          
             echo "Shared library files in artifacts/lib:"
             ls -la artifacts/lib/ 2>/dev/null || echo "No library files found"
           fi
@@ -259,6 +285,39 @@ jobs:
             echo "Error: Executable not found"
             exit 1
           fi
+          
+          # Copy tools if they were built (SDL2 backend only)
+          if [ "${{ matrix.backend }}" == "sdl2" ]; then
+            # Copy pallete-generator
+            if [ -f "build/tools/pallete-generator/Release/PALLETEGEN.exe" ]; then
+              cp build/tools/pallete-generator/Release/PALLETEGEN.exe artifacts/
+              echo "Added PALLETEGEN.exe to artifacts"
+            elif [ -f "build/tools/pallete-generator/PALLETEGEN.exe" ]; then
+              cp build/tools/pallete-generator/PALLETEGEN.exe artifacts/
+              echo "Added PALLETEGEN.exe to artifacts"
+            fi
+          
+            # Copy font-generator
+            if [ -f "build/tools/font-generator/Release/TTF2PCX.exe" ]; then
+              cp build/tools/font-generator/Release/TTF2PCX.exe artifacts/
+              echo "Added TTF2PCX.exe to artifacts"
+            elif [ -f "build/tools/font-generator/TTF2PCX.exe" ]; then
+              cp build/tools/font-generator/TTF2PCX.exe artifacts/
+              echo "Added TTF2PCX.exe to artifacts"
+            fi
+          
+            # Copy Qt6 DLLs for font-generator
+            QT_BIN="$IQTA_TOOLS/../bin"
+            if [ -d "$QT_BIN" ]; then
+              cp "$QT_BIN/Qt6Core.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Core.dll not found"
+              cp "$QT_BIN/Qt6Gui.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Gui.dll not found"
+              cp "$QT_BIN/Qt6Widgets.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Widgets.dll not found"
+              # Copy platform plugin
+              mkdir -p artifacts/platforms
+              cp "$QT_BIN/../plugins/platforms/qwindows.dll" artifacts/platforms/ 2>/dev/null || echo "Warning: qwindows.dll not found"
+            fi
+          fi
+          
           # Copy data files
           cp -r data artifacts/
           cp LICENSE artifacts/
@@ -332,16 +391,16 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v6
         with:
           path: artifacts
-          
+
       - name: Display structure of downloaded files
         run: ls -R artifacts
-        
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
