@@ -346,15 +346,15 @@ int main(int argc, char *argv[])
     SDL_Surface *EditorBackground = load_bitmap("data/system/EditorBackground.pcx");
     SDL_Surface *SlotVazio = load_bitmap("data/system/SlotVazio.pcx");
     SDL_Surface *StatusOK = load_bitmap("data/system/StatusOK.pcx");
-    SDL_Surface *StripPal0 = create_bitmap(32, 1); clear_to_color(StripPal0, makecol(255, 0, 255));
-    SDL_Surface *StripPal1 = create_bitmap(32, 1); clear_to_color(StripPal1, makecol(255, 0, 255));
-    SDL_Surface *StripPal2 = create_bitmap(32, 1); clear_to_color(StripPal2, makecol(255, 0, 255));
-    SDL_Surface *StripPal3 = create_bitmap(32, 1); clear_to_color(StripPal3, makecol(255, 0, 255));
-    SDL_Surface *StripPal4 = create_bitmap(32, 1); clear_to_color(StripPal4, makecol(255, 0, 255));
-    SDL_Surface *StripPal5 = create_bitmap(32, 1); clear_to_color(StripPal5, makecol(255, 0, 255));
-    SDL_Surface *StripPal6 = create_bitmap(32, 1); clear_to_color(StripPal6, makecol(255, 0, 255));
-    SDL_Surface *StripPal7 = create_bitmap(32, 1); clear_to_color(StripPal7, makecol(255, 0, 255));
-    SDL_Surface *StripPal8 = create_bitmap(32, 1); clear_to_color(StripPal8, makecol(255, 0, 255));
+    SDL_Surface *StripPal0 = create_bitmap(32, 1); clear_to_color(StripPal0, makecol(255, 0, 255)); SDL_SetColorKey(StripPal0, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal1 = create_bitmap(32, 1); clear_to_color(StripPal1, makecol(255, 0, 255)); SDL_SetColorKey(StripPal1, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal2 = create_bitmap(32, 1); clear_to_color(StripPal2, makecol(255, 0, 255)); SDL_SetColorKey(StripPal2, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal3 = create_bitmap(32, 1); clear_to_color(StripPal3, makecol(255, 0, 255)); SDL_SetColorKey(StripPal3, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal4 = create_bitmap(32, 1); clear_to_color(StripPal4, makecol(255, 0, 255)); SDL_SetColorKey(StripPal4, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal5 = create_bitmap(32, 1); clear_to_color(StripPal5, makecol(255, 0, 255)); SDL_SetColorKey(StripPal5, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal6 = create_bitmap(32, 1); clear_to_color(StripPal6, makecol(255, 0, 255)); SDL_SetColorKey(StripPal6, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal7 = create_bitmap(32, 1); clear_to_color(StripPal7, makecol(255, 0, 255)); SDL_SetColorKey(StripPal7, SDL_TRUE, makecol(255, 0, 255));
+    SDL_Surface *StripPal8 = create_bitmap(32, 1); clear_to_color(StripPal8, makecol(255, 0, 255)); SDL_SetColorKey(StripPal8, SDL_TRUE, makecol(255, 0, 255));
     SDL_Surface *Slot0 = load_bitmap("data/pal0.pcx"); if (!Slot0) { Pal0found = 0; }
     SDL_Surface *Slot1 = load_bitmap("data/pal1.pcx"); if (!Slot1) { Pal1found = 0; }
     SDL_Surface *Slot2 = load_bitmap("data/pal2.pcx"); if (!Slot2) { Pal2found = 0; }
