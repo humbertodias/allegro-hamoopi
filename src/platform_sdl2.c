@@ -1320,6 +1320,4 @@ void platform_solid_mode(void) { g_drawing_mode = PDRAW_MODE_SOLID; }
 void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) { platform_draw_sprite(dest, src, x, y); }
 
 void platform_present_screen(void) {
-    // Update the screen with renderer and texture
-    update_screen_with_renderer();
 }
