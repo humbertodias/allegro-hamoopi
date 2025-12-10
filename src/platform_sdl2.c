@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 #include "ini.h"
 
 
@@ -18,15 +19,52 @@ static PlatformBitmap *g_screen = NULL;
 static volatile Uint8 *g_sdl_key_state = NULL;
 static int g_key_state_size = 0;
 static void (*g_close_callback)(void) = NULL;
-static SDL_TimerID g_timer_id = 0;
 static void (*g_timer_callback)(void) = NULL;
+static Uint64 g_timer_last_tick = 0;
+static Uint64 g_timer_interval_ticks = 0;
+static SDL_TimerID g_timer_id = 0;
 
 // Drawing state
 static int g_drawing_mode = PDRAW_MODE_SOLID;
 static int g_trans_alpha = 255;
 
+// Timer callback wrapper - fires at regular intervals like Allegro's install_int_ex
+static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
+    if (g_timer_callback) {
+        g_timer_callback();
+    }
+    return interval;  // Continue timer with same interval
+}
+
+// Helper function to check and fire timer callback
+static void check_timer(void) {
+    if (g_timer_callback && g_timer_interval_ticks > 0) {
+        Uint64 current_tick = SDL_GetPerformanceCounter();
+        Uint64 elapsed_ticks = current_tick - g_timer_last_tick;
+
+        // If enough time has elapsed, call the callback once per check
+        // NOTE: This differs from SDL_AddTimer which would fire multiple times for
+        // multiple elapsed intervals. We fire once and skip ahead to maintain timing
+        // while preventing callback spam during lag spikes. This is intentional for
+        // compatibility with the game's frame timing logic (while(timer==delay){}).
+        if (elapsed_ticks >= g_timer_interval_ticks) {
+            g_timer_callback();
+
+            // Advance by the appropriate number of intervals to prevent falling behind
+            // If we've missed multiple intervals, skip ahead to the current time
+            Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
+            g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
+        }
+    }
+}
+
 // Helper function to update screen using renderer and texture
 static void update_screen_with_renderer(void) {
+    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
+    if (g_timer_id == 0) {
+        check_timer();
+    }
+
     if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
         // Update texture with screen surface data
         SDL_UpdateTexture(g_screen_texture, NULL,
@@ -127,14 +165,6 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_RCONTROL] = SDL_SCANCODE_RCTRL;
     platform_to_sdl_key[PKEY_ALT] = SDL_SCANCODE_LALT;
     platform_to_sdl_key[PKEY_ALTGR] = SDL_SCANCODE_RALT;
-}
-
-// Timer callback wrapper
-static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
-    if (g_timer_callback) {
-        g_timer_callback();
-    }
-    return interval;
 }
 
 char* replace_pcx_with_png(const char* filename) {
@@ -301,23 +331,57 @@ void platform_set_close_button_callback(void (*callback)(void)) {
 void platform_install_int_ex(void (*callback)(void), int interval_us) {
     g_timer_callback = callback;
 
+    // Validate interval
+    if (interval_us <= 0) {
+        g_timer_interval_ticks = 0;
+        if (g_timer_id) {
+            SDL_RemoveTimer(g_timer_id);
+            g_timer_id = 0;
+        }
+        return;
+    }
+
     // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
     // SDL_AddTimer expects milliseconds
     // Convert: milliseconds = microseconds / 1000
-
     Uint32 interval_ms = interval_us / 1000;
     if (interval_ms < 1) interval_ms = 1;
 
+    // Store interval for fallback check_timer() if needed
+    Uint64 freq = SDL_GetPerformanceFrequency();
+    if (freq > UINT64_MAX / (Uint64)interval_us) {
+        double interval_seconds = (double)interval_us / 1000000.0;
+        g_timer_interval_ticks = (Uint64)(interval_seconds * freq);
+    } else {
+        g_timer_interval_ticks = ((Uint64)interval_us * freq) / 1000000ULL;
+    }
+    if (g_timer_interval_ticks < 1) {
+        g_timer_interval_ticks = 1;
+    }
+    g_timer_last_tick = SDL_GetPerformanceCounter();
+
+    // Remove old timer if exists
     if (g_timer_id) {
         SDL_RemoveTimer(g_timer_id);
     }
 
+    // Install SDL timer - behaves like Allegro's install_int_ex
     g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
+    if (g_timer_id == 0) {
+        // Timer creation failed - log error
+        // check_timer() will be used as fallback in platform_get_key_state
+        fprintf(stderr, "Warning: SDL_AddTimer failed: %s\n", SDL_GetError());
+    }
 }
 
 volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
+
+    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
+    if (g_timer_id == 0) {
+        check_timer();
+    }
 
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
@@ -1256,6 +1320,4 @@ void platform_solid_mode(void) { g_drawing_mode = PDRAW_MODE_SOLID; }
 void platform_draw_trans_sprite(PlatformBitmap *dest, PlatformBitmap *src, int x, int y) { platform_draw_sprite(dest, src, x, y); }
 
 void platform_present_screen(void) {
-    // Update the screen with renderer and texture
-    update_screen_with_renderer();
 }
