@@ -39,8 +39,14 @@ static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
             g_timer_callback();
             
             // Advance by the appropriate number of intervals to prevent falling behind
+            // Check for overflow before multiplication
             Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
-            g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
+            if (intervals_elapsed <= UINT64_MAX / g_timer_interval_ticks) {
+                g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
+            } else {
+                // If overflow would occur, just advance to current time
+                g_timer_last_tick = current_tick;
+            }
         }
     }
     return interval;  // Continue timer with same interval
@@ -375,9 +381,9 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     // Initialize the last tick to current time
     g_timer_last_tick = SDL_GetPerformanceCounter();
     
-    // Convert to milliseconds for SDL_AddTimer
+    // Convert to milliseconds for SDL_AddTimer with proper rounding
     // This provides the background timing, while SDL_GetPerformanceCounter provides precision
-    Uint32 interval_ms = interval_us / 1000;
+    Uint32 interval_ms = (interval_us + 999) / 1000;  // Round up
     if (interval_ms < 1) interval_ms = 1;
     
     // Remove old timer if exists
@@ -387,6 +393,11 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     
     // Install SDL timer for reliable background execution
     g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
+    if (g_timer_id == 0) {
+        // Timer creation failed - log error or handle gracefully
+        // Fall back to polling-only mode by keeping check_timer() calls in place
+        fprintf(stderr, "Warning: SDL_AddTimer failed: %s\n", SDL_GetError());
+    }
 }
 
 volatile char* platform_get_key_state(void) {
