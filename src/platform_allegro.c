@@ -4,12 +4,27 @@
 #include <stdarg.h>
 #include <string.h>
 
+// Time tracking for platform_get_ticks()
+static volatile unsigned int allegro_tick_counter = 0;
+
+// Timer callback to increment tick counter every millisecond
+void allegro_tick_increment(void) {
+    allegro_tick_counter++;
+}
+END_OF_FUNCTION(allegro_tick_increment)
+
 // ============================================================================
 // INITIALIZATION & SYSTEM
 // ============================================================================
 
 int platform_init(void) {
-    return allegro_init();
+    int result = allegro_init();
+    if (result == 0) {
+        // Lock the timer function for use in interrupt
+        LOCK_VARIABLE(allegro_tick_counter);
+        LOCK_FUNCTION(allegro_tick_increment);
+    }
+    return result;
 }
 
 void platform_set_uformat(int format) {
@@ -18,7 +33,12 @@ void platform_set_uformat(int format) {
 }
 
 int platform_install_timer(void) {
-    return install_timer();
+    int result = install_timer();
+    if (result == 0) {
+        // Install 1ms timer for tick counting
+        install_int(allegro_tick_increment, 1);
+    }
+    return result;
 }
 
 int platform_install_keyboard(void) {
@@ -389,12 +409,8 @@ void platform_rest(int milliseconds) {
 }
 
 unsigned int platform_get_ticks(void) {
-    // Allegro 4 doesn't have SDL_GetTicks equivalent
-    // Use a static counter based on retrace_count (60Hz typically)
-    // This is approximate but works for frame timing
-    static volatile int tick_counter = 0;
-    tick_counter++;
-    return (unsigned int)(tick_counter * 16); // ~60Hz = 16.67ms per tick
+    // Return milliseconds since initialization
+    return allegro_tick_counter;
 }
 
 void platform_drawing_mode(int mode, void *pattern, int x_anchor, int y_anchor) {

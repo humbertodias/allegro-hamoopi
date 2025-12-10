@@ -7237,23 +7237,25 @@ stretch_blit(LayerHUDb, screen, 0, 0, LayerHUDb->w, LayerHUDb->h, 0, 0, screen->
 // Present the frame to screen (SDL optimization)
 platform_present_screen();
 
-// Efficient frame timing - calculate target frame time and sleep if we're ahead
-// This replaces the inefficient busy-wait loop with precise timing
+// Efficient frame timing using high-resolution timer
+// Calculate how long this frame should take
 frame_target_time = frame_start_time + (1000 / Ctrl_FPS);
 unsigned int current_time = platform_get_ticks();
+
+// If we finished early, wait for the target time
 if (current_time < frame_target_time) {
-    // Sleep for most of the remaining time, leaving a small margin
-    unsigned int sleep_time = frame_target_time - current_time;
-    if (sleep_time > 2) {
-        platform_rest(sleep_time - 1);
-    }
-    // Precise wait for the remaining time
-    while (platform_get_ticks() < frame_target_time) {
-        // Tight loop for sub-millisecond precision
+    unsigned int remaining_time = frame_target_time - current_time;
+    
+    // Sleep for most of the remaining time to save CPU
+    if (remaining_time > 2) {
+        platform_rest(remaining_time - 1);
+    } else if (remaining_time > 0) {
+        // For very short waits, just yield once
+        platform_rest(0);
     }
 }
 
-// Wait for timer to increment (maintains compatibility with existing timer logic)
+// Also wait for interrupt-based timer (maintains compatibility)
 while(timer==delay) {
     platform_rest(0); // yield CPU
 }
