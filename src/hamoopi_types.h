@@ -7,7 +7,7 @@
 // 
 // These structures depend on BITMAP type from platform_compat.h which provides
 // platform-independent type definitions. The BITMAP type is mapped to:
-// - Allegro 4: typedef BITMAP (native Allegro type)
+// - Allegro 4: BITMAP (native Allegro type, directly available)
 // - SDL2: struct PlatformBitmap wrapping SDL_Surface
 // - Other: Forward declared struct for future implementations
 //

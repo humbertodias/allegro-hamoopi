@@ -2,7 +2,7 @@
 
 ## Overview
 
-The HAMOOPI codebase has been organized into a modular structure to improve maintainability and code clarity. While the main game logic remains in `HAMOOPI.c` (11,738 lines), the code is now structured with clear header files that define the logical modules.
+The HAMOOPI codebase has been organized into a modular structure to improve maintainability and code clarity. While the main game logic remains in `HAMOOPI.c` (11,748 lines), the code is now structured with clear header files that define the logical modules.
 
 ## Module Structure
 
@@ -98,7 +98,7 @@ While the current organization improves code clarity through headers, future ref
 1. Extract functions into separate `.c` files with proper extern declarations
 2. Reduce global state by passing structures as parameters
 3. Create a proper game engine API with initialization/update/render functions
-4. Split the 11,738-line file into multiple implementation files
+4. Split the 11,748-line file into multiple implementation files
 
 ## Compilation
 
