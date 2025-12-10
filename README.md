@@ -19,3 +19,21 @@ PTBR
 **HAMOOPI** é um jogo de Luta Open Source feito em C++/Allegro/SDL. Seu nome é um acrônimo de **Half-Moon Punch** ou **Meia Lua Soco**, uma maneira muito brasileira e particular de se referir ao movimento de soltar um hadouken, movimento clássico e emblemático dos jogos de luta. Esta é uma Engine Brasileira, que está em fase ALPHA e EXPERIMENTAL de desenvolvimento. Este é um software livre, sob a licença GPL v2.
 
 Por favor leia os documentos da pasta [docs](docs) para maiores informações sobre o funcionamento da engine.
+
+## Code Organization / Organização do Código
+
+The codebase is organized into modular headers for better maintainability:
+
+O código está organizado em headers modulares para melhor manutenção:
+
+- **hamoopi_types.h** - Type definitions / Definições de tipos
+- **hamoopi_input.h** - Input handling / Controle de entrada
+- **hamoopi_collision.h** - Collision detection / Detecção de colisão  
+- **hamoopi_player.h** - Player management / Gerenciamento de jogadores
+- **hamoopi_editor.h** - Character editor / Editor de personagens
+- **hamoopi_core.h** - Central include / Include central
+
+See [docs/CODE_ORGANIZATION.md](docs/CODE_ORGANIZATION.md) for details.
+
+Veja [docs/CODE_ORGANIZATION.md](docs/CODE_ORGANIZATION.md) para detalhes.
+
