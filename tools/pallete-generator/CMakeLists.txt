@@ -4,6 +4,9 @@ project(PALLETEGEN)
 # Option to build Allegro version (OFF by default)
 option(USE_ALLEGRO "Build Allegro 4 version instead of SDL2" OFF)
 
+# Add custom CMake modules path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+
 if(USE_ALLEGRO)
     # Allegro 4 Version (legacy)
     add_executable(PALLETEGEN PalleteGenerator.c)
@@ -19,20 +22,19 @@ if(USE_ALLEGRO)
 else()
     # SDL2 Version (default)
     add_executable(PALLETEGEN PalleteGenerator_SDL2.c)
-    
-    # Use pkg-config to find SDL2 and SDL2_image
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SDL2 REQUIRED sdl2)
-    pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
-    
+
+    # Find SDL2 packages
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_image REQUIRED)
+
     # Include directories for SDL2
-    target_include_directories(PALLETEGEN PRIVATE 
+    target_include_directories(PALLETEGEN PRIVATE
         ${SDL2_INCLUDE_DIRS}
         ${SDL2_IMAGE_INCLUDE_DIRS}
     )
     
     # Link SDL2 libraries
-    target_link_libraries(PALLETEGEN 
+    target_link_libraries(PALLETEGEN
         ${SDL2_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
     )
