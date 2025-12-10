@@ -39,6 +39,7 @@
 extern int timer;
 extern float delay;
 extern int timermenus;
+extern float EndRoundSlowDown;
 
 // Player global arrays
 extern struct HitSparkDEF HitSpark[99];
