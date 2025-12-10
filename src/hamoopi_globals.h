@@ -198,6 +198,7 @@ extern int ED_Pause;
 extern int ED_DrawBlueMode, ED_DrawRedMode;
 extern int ED_CarregarDados;
 extern int ED_ShowMsgSaving;
+extern int ED_alertsave;
 extern int ED_bt_Null;
 extern int ED_Mx1, ED_My1, ED_Mx2, ED_My2;
 extern int Edtimer;
