@@ -325,9 +325,310 @@ jobs:
           path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
           retention-days: 30
 
+  build-pallete-generator:
+    name: Build pallete-generator on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform_name: linux
+          - os: macos-latest
+            platform_name: macos
+          - os: windows-latest
+            platform_name: windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Linux dependencies
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev cmake build-essential
+
+      # macOS dependencies
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install sdl2 sdl2_image cmake
+
+      # Windows dependencies
+      - name: Cache vcpkg packages (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+          key: ${{ runner.os }}-vcpkg-pallete-${{ hashFiles('.github/workflows/cd.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-pallete-
+            ${{ runner.os }}-vcpkg-
+
+      - name: Setup vcpkg (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          vcpkg integrate install
+          vcpkg install sdl2:x86-windows sdl2-image:x86-windows
+        shell: bash
+
+      # Build pallete-generator
+      - name: Build pallete-generator (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd tools/pallete-generator
+          mkdir -p build
+          cd build
+          cmake ..
+          cmake --build . --config Release
+        shell: bash
+
+      - name: Build pallete-generator (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd tools/pallete-generator
+          mkdir -p build
+          cd build
+          cmake .. -A Win32 -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build . --config Release
+        shell: bash
+
+      # Package artifacts
+      - name: Package artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable
+          if [ -f "tools/pallete-generator/build/PALLETEGEN" ]; then
+            cp tools/pallete-generator/build/PALLETEGEN artifacts/
+          elif [ -f "tools/pallete-generator/PALLETEGEN" ]; then
+            cp tools/pallete-generator/PALLETEGEN artifacts/
+          else
+            echo "Error: PALLETEGEN executable not found"
+            exit 1
+          fi
+          # Copy data files
+          if [ -d "tools/pallete-generator/data" ]; then
+            cp -r tools/pallete-generator/data artifacts/
+          fi
+          cp tools/pallete-generator/README.md artifacts/ 2>/dev/null || true
+          
+          # Create tarball
+          cd artifacts
+          tar czf ../pallete-generator-${{ matrix.platform_name }}.tar.gz *
+        shell: bash
+
+      - name: Package artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable
+          if [ -f "tools/pallete-generator/build/Release/PALLETEGEN.exe" ]; then
+            cp tools/pallete-generator/build/Release/PALLETEGEN.exe artifacts/
+          elif [ -f "tools/pallete-generator/build/PALLETEGEN.exe" ]; then
+            cp tools/pallete-generator/build/PALLETEGEN.exe artifacts/
+          elif [ -f "tools/pallete-generator/PALLETEGEN.exe" ]; then
+            cp tools/pallete-generator/PALLETEGEN.exe artifacts/
+          else
+            echo "Error: PALLETEGEN.exe not found"
+            exit 1
+          fi
+          # Copy data files
+          if [ -d "tools/pallete-generator/data" ]; then
+            cp -r tools/pallete-generator/data artifacts/
+          fi
+          cp tools/pallete-generator/README.md artifacts/ 2>/dev/null || true
+          
+          # Copy SDL2 DLLs
+          VCPKG_BIN="$VCPKG_INSTALLATION_ROOT/installed/x86-windows/bin"
+          if [ -d "$VCPKG_BIN" ]; then
+            cp "$VCPKG_BIN/SDL2.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2.dll not found"
+            cp "$VCPKG_BIN/SDL2_image.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_image.dll not found"
+            cp "$VCPKG_BIN/jpeg62.dll" artifacts/ 2>/dev/null || echo "Warning: jpeg62.dll not found"
+            cp "$VCPKG_BIN/libpng16.dll" artifacts/ 2>/dev/null || echo "Warning: libpng16.dll not found"
+            cp "$VCPKG_BIN/zlib1.dll" artifacts/ 2>/dev/null || echo "Warning: zlib1.dll not found"
+          fi
+          
+          # Create zip
+          cd artifacts
+          7z a -tzip ../pallete-generator-${{ matrix.platform_name }}.zip *
+        shell: bash
+
+      # Upload artifacts
+      - name: Upload artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-artifact@v5
+        with:
+          name: pallete-generator-${{ matrix.platform_name }}
+          path: pallete-generator-${{ matrix.platform_name }}.tar.gz
+          retention-days: 30
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v5
+        with:
+          name: pallete-generator-${{ matrix.platform_name }}
+          path: pallete-generator-${{ matrix.platform_name }}.zip
+          retention-days: 30
+
+  build-font-generator:
+    name: Build font-generator on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform_name: linux
+          - os: macos-latest
+            platform_name: macos
+          - os: windows-latest
+            platform_name: windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Linux dependencies
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-base-dev cmake build-essential
+
+      # macOS dependencies
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install qt@6 cmake
+
+      # Windows dependencies
+      - name: Install Qt6 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.*'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtbase'
+          cache: true
+
+      # Build font-generator
+      - name: Build font-generator (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd tools/font-generator
+          mkdir -p build
+          cd build
+          cmake ..
+          cmake --build . --config Release
+        shell: bash
+
+      - name: Build font-generator (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd tools/font-generator
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6) ..
+          cmake --build . --config Release
+        shell: bash
+
+      - name: Build font-generator (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd tools/font-generator
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="$IQTA_TOOLS/../" -G "Visual Studio 17 2022" -A x64
+          cmake --build . --config Release
+        shell: bash
+
+      # Package artifacts
+      - name: Package artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable
+          if [ -f "tools/font-generator/build/TTF2PCX" ]; then
+            cp tools/font-generator/build/TTF2PCX artifacts/
+          elif [ -f "tools/font-generator/TTF2PCX" ]; then
+            cp tools/font-generator/TTF2PCX artifacts/
+          else
+            echo "Error: TTF2PCX executable not found"
+            exit 1
+          fi
+          cp tools/font-generator/README.md artifacts/ 2>/dev/null || true
+          
+          # Create tarball
+          cd artifacts
+          tar czf ../font-generator-${{ matrix.platform_name }}.tar.gz *
+        shell: bash
+
+      - name: Package artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p artifacts
+          # Copy executable
+          if [ -f "tools/font-generator/build/Release/TTF2PCX.exe" ]; then
+            cp tools/font-generator/build/Release/TTF2PCX.exe artifacts/
+          elif [ -f "tools/font-generator/build/TTF2PCX.exe" ]; then
+            cp tools/font-generator/build/TTF2PCX.exe artifacts/
+          elif [ -f "tools/font-generator/TTF2PCX.exe" ]; then
+            cp tools/font-generator/TTF2PCX.exe artifacts/
+          else
+            echo "Error: TTF2PCX.exe not found"
+            exit 1
+          fi
+          cp tools/font-generator/README.md artifacts/ 2>/dev/null || true
+          
+          # Copy Qt6 DLLs
+          QT_BIN="$IQTA_TOOLS/../bin"
+          if [ -d "$QT_BIN" ]; then
+            cp "$QT_BIN/Qt6Core.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Core.dll not found"
+            cp "$QT_BIN/Qt6Gui.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Gui.dll not found"
+            cp "$QT_BIN/Qt6Widgets.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Widgets.dll not found"
+            # Copy platform plugin
+            mkdir -p artifacts/platforms
+            cp "$QT_BIN/../plugins/platforms/qwindows.dll" artifacts/platforms/ 2>/dev/null || echo "Warning: qwindows.dll not found"
+          fi
+          
+          # Create zip
+          cd artifacts
+          7z a -tzip ../font-generator-${{ matrix.platform_name }}.zip *
+        shell: bash
+
+      # Upload artifacts
+      - name: Upload artifacts (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-artifact@v5
+        with:
+          name: font-generator-${{ matrix.platform_name }}
+          path: font-generator-${{ matrix.platform_name }}.tar.gz
+          retention-days: 30
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v5
+        with:
+          name: font-generator-${{ matrix.platform_name }}
+          path: font-generator-${{ matrix.platform_name }}.zip
+          retention-days: 30
+
   release:
     name: Create Release
-    needs: build
+    needs: [build, build-pallete-generator, build-font-generator]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
