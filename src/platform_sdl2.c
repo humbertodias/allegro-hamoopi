@@ -301,8 +301,14 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     Uint64 freq = SDL_GetPerformanceFrequency();
     
     // Calculate interval in ticks: (interval_us / 1000000) * freq
-    // To avoid overflow, we do: (interval_us * freq) / 1000000
-    g_timer_interval_ticks = ((Uint64)interval_us * freq) / 1000000;
+    // To avoid overflow, use double precision for calculation
+    double interval_seconds = (double)interval_us / 1000000.0;
+    g_timer_interval_ticks = (Uint64)(interval_seconds * freq);
+    
+    // Ensure at least 1 tick for very small intervals
+    if (g_timer_interval_ticks < 1) {
+        g_timer_interval_ticks = 1;
+    }
     
     // Initialize the last tick to current time
     g_timer_last_tick = SDL_GetPerformanceCounter();
