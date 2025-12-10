@@ -36,6 +36,9 @@
 #include <stdio.h>
 #include <math.h>
 
+// Modular headers for organized code structure
+#include "hamoopi_core.h"
+
 #define P1_UP     ( key[ p1_up     ] )
 #define P1_DOWN   ( key[ p1_down   ] )
 #define P1_LEFT   ( key[ p1_left   ] )
@@ -85,6 +88,13 @@ int navAtlas=0; //utilizado para navegar no debug Atlas
 int contatofisico=0;
 
 //DECLARACAO DE FUNCOES
+// Function declarations are now organized in modular headers:
+// - hamoopi_input.h: check_keys_P1, check_keys_P2, MovSlots_P1, MovSlots_P2, zeraListaDeInputs
+// - hamoopi_collision.h: Checar_Colisao, Aplicar_HIT, Draw_CHBoxes_P1, Draw_CHBoxes_P2, Draw_CHBoxes_ED
+// - hamoopi_player.h: LOAD_PLAYERS, PLAYER_STATE, AddTableAtlas, New_Fireball, New_HitBox
+// - hamoopi_editor.h: ED_inicializar, ED_save_charini, ED_load_charini, ED_load_inputs
+// All included via hamoopi_core.h
+
 void check_keys_P1();
 void check_keys_P2();
 void Draw_CHBoxes_P1();
