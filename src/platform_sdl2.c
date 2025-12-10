@@ -18,8 +18,9 @@ static PlatformBitmap *g_screen = NULL;
 static volatile Uint8 *g_sdl_key_state = NULL;
 static int g_key_state_size = 0;
 static void (*g_close_callback)(void) = NULL;
-static SDL_TimerID g_timer_id = 0;
 static void (*g_timer_callback)(void) = NULL;
+static Uint64 g_timer_last_tick = 0;
+static Uint64 g_timer_interval_ticks = 0;
 
 // Drawing state
 static int g_drawing_mode = PDRAW_MODE_SOLID;
@@ -127,14 +128,6 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_RCONTROL] = SDL_SCANCODE_RCTRL;
     platform_to_sdl_key[PKEY_ALT] = SDL_SCANCODE_LALT;
     platform_to_sdl_key[PKEY_ALTGR] = SDL_SCANCODE_RALT;
-}
-
-// Timer callback wrapper
-static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
-    if (g_timer_callback) {
-        g_timer_callback();
-    }
-    return interval;
 }
 
 char* replace_pcx_with_png(const char* filename) {
@@ -302,22 +295,34 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     g_timer_callback = callback;
 
     // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
-    // SDL_AddTimer expects milliseconds
-    // Convert: milliseconds = microseconds / 1000
-
-    Uint32 interval_ms = interval_us / 1000;
-    if (interval_ms < 1) interval_ms = 1;
-
-    if (g_timer_id) {
-        SDL_RemoveTimer(g_timer_id);
-    }
-
-    g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
+    // SDL_GetPerformanceCounter returns ticks in performance counter frequency
+    // Convert microseconds to performance counter ticks
+    
+    Uint64 freq = SDL_GetPerformanceFrequency();
+    
+    // Calculate interval in ticks: (interval_us / 1000000) * freq
+    // To avoid overflow, we do: (interval_us * freq) / 1000000
+    g_timer_interval_ticks = ((Uint64)interval_us * freq) / 1000000;
+    
+    // Initialize the last tick to current time
+    g_timer_last_tick = SDL_GetPerformanceCounter();
 }
 
 volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
+
+    // Check timer using SDL_GetPerformanceCounter
+    if (g_timer_callback && g_timer_interval_ticks > 0) {
+        Uint64 current_tick = SDL_GetPerformanceCounter();
+        Uint64 elapsed_ticks = current_tick - g_timer_last_tick;
+        
+        // If enough time has elapsed, call the callback
+        if (elapsed_ticks >= g_timer_interval_ticks) {
+            g_timer_callback();
+            g_timer_last_tick = current_tick;
+        }
+    }
 
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
