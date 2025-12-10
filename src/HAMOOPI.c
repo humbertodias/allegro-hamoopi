@@ -76,6 +76,9 @@ int Ctrl_FPS=60;
 // High-resolution timing for efficient frame limiting
 unsigned int frame_start_time=0;
 unsigned int frame_target_time=0;
+// Threshold for switching between sleep and yield (in milliseconds)
+// Values > this use sleep, values <= this use yield for better precision
+#define FRAME_TIMING_PRECISION_THRESHOLD_MS 2
 int WindowResNumber = 2;
 int WindowResX = 640;
 int WindowResY = 480;
@@ -7247,7 +7250,7 @@ if (current_time < frame_target_time) {
     unsigned int remaining_time = frame_target_time - current_time;
     
     // Sleep for most of the remaining time to save CPU
-    if (remaining_time > 2) {
+    if (remaining_time > FRAME_TIMING_PRECISION_THRESHOLD_MS) {
         platform_rest(remaining_time - 1);
     } else if (remaining_time > 0) {
         // For very short waits, just yield once
@@ -7256,7 +7259,13 @@ if (current_time < frame_target_time) {
 }
 
 // Also wait for interrupt-based timer (maintains compatibility)
+// Add timeout to prevent infinite loop if timer fails
+unsigned int timer_wait_start = platform_get_ticks();
 while(timer==delay) {
+    // Safety timeout: if we've waited longer than 2 frame periods, break
+    if (platform_get_ticks() - timer_wait_start > (2000 / Ctrl_FPS)) {
+        break;
+    }
     platform_rest(0); // yield CPU
 }
 

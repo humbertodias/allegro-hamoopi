@@ -35,8 +35,8 @@ void platform_set_uformat(int format) {
 int platform_install_timer(void) {
     int result = install_timer();
     if (result == 0) {
-        // Install 1ms timer for tick counting
-        install_int(allegro_tick_increment, 1);
+        // Install timer for 1ms tick counting (1000 ticks per second)
+        install_int_ex(allegro_tick_increment, BPS_TO_TIMER(1000));
     }
     return result;
 }
