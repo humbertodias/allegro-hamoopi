@@ -154,6 +154,26 @@ extern BITMAP *P2_Pallete;
 extern int P1_ContadorDeCor;
 extern int P2_ContadorDeCor;
 
+// Player 1 color manipulation
+extern int P1_COR_ORIGINAL;
+extern int P1_COR_ORIGINAL_R;
+extern int P1_COR_ORIGINAL_G;
+extern int P1_COR_ORIGINAL_B;
+extern int P1_COR_ALTERNATIVA;
+extern int P1_COR_ALTERNATIVA_R;
+extern int P1_COR_ALTERNATIVA_G;
+extern int P1_COR_ALTERNATIVA_B;
+
+// Player 2 color manipulation
+extern int P2_COR_ORIGINAL;
+extern int P2_COR_ORIGINAL_R;
+extern int P2_COR_ORIGINAL_G;
+extern int P2_COR_ORIGINAL_B;
+extern int P2_COR_ALTERNATIVA;
+extern int P2_COR_ALTERNATIVA_R;
+extern int P2_COR_ALTERNATIVA_G;
+extern int P2_COR_ALTERNATIVA_B;
+
 // Editor variables
 extern char ED_Name[50];
 extern int ED_CharID;
