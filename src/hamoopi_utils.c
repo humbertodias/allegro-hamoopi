@@ -114,7 +114,7 @@ P[2].t_slot[1]  = 0;
 
 void zeraListaDeInputs(){
 int i;
-for(i=0;i<=17;i++){
+for(i=0;i<17;i++){  // Fixed: changed i<=17 to i<17 to avoid array out-of-bounds
 P[1].slot[i]=0;
 P[1].bt_slot[i]=0;
 P[1].t_slot[i]=0;
