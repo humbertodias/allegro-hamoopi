@@ -142,6 +142,8 @@ extern int ForcaDoGolpeP1, ForcaDoGolpeP2;
 extern int AHitP1, AHitP2;
 extern int P1HitPause, P2HitPause;
 extern int P1HitOn, P2HitOn;
+extern int ShakeDist;
+extern int contatofisico;
 
 // Editor variables
 extern char ED_Name[50];
