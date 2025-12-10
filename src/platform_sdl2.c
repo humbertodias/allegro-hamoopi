@@ -320,7 +320,8 @@ volatile char* platform_get_key_state(void) {
         // If enough time has elapsed, call the callback
         if (elapsed_ticks >= g_timer_interval_ticks) {
             g_timer_callback();
-            g_timer_last_tick = current_tick;
+            // Increment last_tick by interval to prevent drift
+            g_timer_last_tick += g_timer_interval_ticks;
         }
     }
 
