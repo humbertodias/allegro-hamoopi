@@ -338,10 +338,15 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
     // Convert to performance counter ticks
     Uint64 freq = SDL_GetPerformanceFrequency();
+    
+    // Check for potential overflow in multiplication before doing the calculation
+    // If freq * interval_us would overflow, use floating point instead
     if (freq > UINT64_MAX / (Uint64)interval_us) {
+        // Use floating point to avoid overflow, then convert to integer
         double interval_seconds = (double)interval_us / 1000000.0;
         g_timer_interval_ticks = (Uint64)(interval_seconds * freq);
     } else {
+        // Safe to use integer math for better precision
         g_timer_interval_ticks = ((Uint64)interval_us * freq) / 1000000ULL;
     }
     if (g_timer_interval_ticks < 1) {

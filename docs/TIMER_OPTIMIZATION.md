@@ -9,19 +9,18 @@ After testing with the threaded timer approach (SDL_AddTimer) and hybrid solutio
 
 ### Why Pure Polling?
 
-1. **No Thread Overhead**: SDL_AddTimer runs in a separate thread with synchronization overhead
-2. **Deterministic Timing**: Polling provides more predictable timing in the main thread
-3. **Better Performance**: Eliminates thread context switching and callback marshalling
+1. **No Thread Overhead**: SDL_AddTimer runs in a separate thread with context switching overhead
+2. **Deterministic Timing**: Polling in the main thread provides more predictable timing
+3. **Better Performance**: Eliminates thread management and callback marshalling overhead
 4. **Simpler Code**: Single timer path without fallback complexity
 
 ## Root Causes (Previous Issues)
 
 ### 1. SDL_AddTimer Thread Overhead
-Using SDL_AddTimer introduced threading overhead and potential synchronization issues:
-- Timer callback runs in separate thread
-- Requires thread-safe callback execution
-- Context switching adds latency
-- Unpredictable timing due to OS scheduling
+Using SDL_AddTimer introduced threading overhead:
+- Timer callback runs in separate thread, separate from game logic
+- Context switching between threads adds latency
+- Unpredictable timing due to OS thread scheduling
 
 ### 2. Critical Bug in check_timer() Function (Now Fixed)
 The polling function had a bug where it only called the callback ONCE even when multiple intervals had elapsed:
