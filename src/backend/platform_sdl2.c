@@ -22,14 +22,19 @@ static void (*g_close_callback)(void) = NULL;
 static void (*g_timer_callback)(void) = NULL;
 static Uint64 g_timer_last_tick = 0;
 static Uint64 g_timer_interval_ticks = 0;
-// SDL_AddTimer removed - using pure polling for better performance
+static SDL_TimerID g_timer_id = 0;
 
 // Drawing state
 static int g_drawing_mode = PDRAW_MODE_SOLID;
 static int g_trans_alpha = 255;
 
-// Maximum callbacks to fire per check to prevent runaway during extreme lag
-#define MAX_TIMER_CALLBACKS_PER_CHECK 10
+// Timer callback wrapper - fires at regular intervals like Allegro's install_int_ex
+static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
+    if (g_timer_callback) {
+        g_timer_callback();
+    }
+    return interval;  // Continue timer with same interval
+}
 
 // Helper function to check and fire timer callback
 static void check_timer(void) {
@@ -37,23 +42,17 @@ static void check_timer(void) {
         Uint64 current_tick = SDL_GetPerformanceCounter();
         Uint64 elapsed_ticks = current_tick - g_timer_last_tick;
 
-        // Fire callback for each elapsed interval to maintain accurate timing
-        // This ensures the timer increments correctly even if checks are infrequent
+        // If enough time has elapsed, call the callback once per check
+        // NOTE: This differs from SDL_AddTimer which would fire multiple times for
+        // multiple elapsed intervals. We fire once and skip ahead to maintain timing
+        // while preventing callback spam during lag spikes. This is intentional for
+        // compatibility with the game's frame timing logic (while(timer==delay){}).
         if (elapsed_ticks >= g_timer_interval_ticks) {
+            g_timer_callback();
+
+            // Advance by the appropriate number of intervals to prevent falling behind
+            // If we've missed multiple intervals, skip ahead to the current time
             Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
-            
-            // Call callback once for each elapsed interval
-            // Limit to prevent callback spam during extreme lag
-            Uint64 callbacks_to_fire = intervals_elapsed;
-            if (callbacks_to_fire > MAX_TIMER_CALLBACKS_PER_CHECK) {
-                callbacks_to_fire = MAX_TIMER_CALLBACKS_PER_CHECK;
-            }
-            
-            for (Uint64 i = 0; i < callbacks_to_fire; i++) {
-                g_timer_callback();
-            }
-            
-            // Advance by the actual number of intervals elapsed
             g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
         }
     }
@@ -61,6 +60,11 @@ static void check_timer(void) {
 
 // Helper function to update screen using renderer and texture
 static void update_screen_with_renderer(void) {
+    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
+    if (g_timer_id == 0) {
+        check_timer();
+    }
+
     if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
         // Update texture with screen surface data
         SDL_UpdateTexture(g_screen_texture, NULL,
@@ -275,7 +279,7 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
     }
 
     // Create renderer with hardware acceleration
-    // Note: Removed PRESENTVSYNC to avoid vsync limiting timer precision
+    // Note: PRESENTVSYNC removed - let game loop control frame timing
     g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
     if (!g_renderer) {
         fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
@@ -331,36 +335,54 @@ void platform_install_int_ex(void (*callback)(void), int interval_us) {
     // Validate interval
     if (interval_us <= 0) {
         g_timer_interval_ticks = 0;
+        if (g_timer_id) {
+            SDL_RemoveTimer(g_timer_id);
+            g_timer_id = 0;
+        }
         return;
     }
 
-    // Use pure polling-based timer for better performance and accuracy
     // interval_us is in microseconds (from PLATFORM_BPS_TO_TIMER macro)
-    // Convert to performance counter ticks
+    // SDL_AddTimer expects milliseconds
+    // Convert: milliseconds = microseconds / 1000
+    Uint32 interval_ms = interval_us / 1000;
+    if (interval_ms < 1) interval_ms = 1;
+
+    // Store interval for fallback check_timer() if needed
     Uint64 freq = SDL_GetPerformanceFrequency();
-    
-    // Check for potential overflow in multiplication before doing the calculation
-    // If freq * interval_us would overflow, use floating point instead
     if (freq > UINT64_MAX / (Uint64)interval_us) {
-        // Use floating point to avoid overflow, then convert to integer
         double interval_seconds = (double)interval_us / 1000000.0;
         g_timer_interval_ticks = (Uint64)(interval_seconds * freq);
     } else {
-        // Safe to use integer math for better precision
         g_timer_interval_ticks = ((Uint64)interval_us * freq) / 1000000ULL;
     }
     if (g_timer_interval_ticks < 1) {
         g_timer_interval_ticks = 1;
     }
     g_timer_last_tick = SDL_GetPerformanceCounter();
+
+    // Remove old timer if exists
+    if (g_timer_id) {
+        SDL_RemoveTimer(g_timer_id);
+    }
+
+    // Install SDL timer - behaves like Allegro's install_int_ex
+    g_timer_id = SDL_AddTimer(interval_ms, timer_callback_wrapper, NULL);
+    if (g_timer_id == 0) {
+        // Timer creation failed - log error
+        // check_timer() will be used as fallback in platform_get_key_state
+        fprintf(stderr, "Warning: SDL_AddTimer failed: %s\n", SDL_GetError());
+    }
 }
 
 volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
 
-    // Pure polling-based timer check for accurate 60 FPS timing
-    check_timer();
+    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
+    if (g_timer_id == 0) {
+        check_timer();
+    }
 
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
