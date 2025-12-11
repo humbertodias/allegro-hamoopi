@@ -14,7 +14,7 @@ if(USE_SDL2)
     # On Windows, SDL2 requires WIN32 executable type
     if(WIN32)
         add_executable(HAMOOPI WIN32 
-            src/HAMOOPI.c
+            src/main.c
                 src/modules/input.c
                 src/modules/collision.c
                 src/modules/player.c
@@ -22,7 +22,7 @@ if(USE_SDL2)
                 src/backend/platform_sdl2.c)
     else()
         add_executable(HAMOOPI 
-            src/HAMOOPI.c
+            src/main.c
                 src/modules/input.c
                 src/modules/collision.c
                 src/modules/player.c
@@ -73,7 +73,7 @@ else()
     # On Windows, Allegro 4 requires WIN32 executable type
     if(WIN32)
         add_executable(HAMOOPI WIN32 
-            src/HAMOOPI.c
+            src/main.c
                 src/modules/input.c
                 src/modules/collision.c
                 src/modules/player.c
@@ -81,7 +81,7 @@ else()
                 src/backend/platform_allegro.c)
     else()
         add_executable(HAMOOPI 
-            src/HAMOOPI.c
+            src/main.c
                 src/modules/input.c
                 src/modules/collision.c
                 src/modules/player.c
