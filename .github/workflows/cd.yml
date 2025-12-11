@@ -344,8 +344,10 @@ jobs:
               # SDL2_mixer dependencies
               cp "$VCPKG_BIN/libvorbis.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbis.dll not found"
               cp "$VCPKG_BIN/libvorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbisfile.dll not found"
+              cp "$VCPKG_BIN/vorbis.dll" artifacts/ 2>/dev/null || echo "Warning: vorbis.dll not found"
               cp "$VCPKG_BIN/vorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: vorbisfile.dll not found"
               cp "$VCPKG_BIN/libogg.dll" artifacts/ 2>/dev/null || echo "Warning: libogg.dll not found"
+              cp "$VCPKG_BIN/ogg.dll" artifacts/ 2>/dev/null || echo "Warning: ogg.dll not found"
               cp "$VCPKG_BIN/libmodplug.dll" artifacts/ 2>/dev/null || echo "Warning: libmodplug.dll not found"
               cp "$VCPKG_BIN/libmpg123.dll" artifacts/ 2>/dev/null || echo "Warning: libmpg123.dll not found"
               cp "$VCPKG_BIN/libopus.dll" artifacts/ 2>/dev/null || echo "Warning: libopus.dll not found"
