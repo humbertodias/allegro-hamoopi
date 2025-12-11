@@ -60,8 +60,11 @@ char versao[45] = "HAMOOPI v.001A";
 
 int sair = 0;
 void sair_allegro() { sair = 1; }
-int timer = 0;
-void tempo() { timer++; }
+// Frame timing variables for SDL2
+Uint64 frame_start_time = 0;
+Uint64 frame_target_time = 0;
+const int TARGET_FPS = 60;
+const Uint64 FRAME_TIME_MS = 1000 / TARGET_FPS; // ~16.67ms per frame at 60 FPS
 float delay = 0;
 int Horas = 0;
 int Minutos = 0;
@@ -887,7 +890,7 @@ void initialize_allegro_subsystems() {
     install_mouse();
     set_color_depth(32);
     install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
-    install_int_ex(tempo, BPS_TO_TIMER(60)); //60fps
+    // Timer callback no longer needed - using SDL2's efficient frame timing
     set_window_title("HAMOOPI is Loading... Please wait :) ");
     set_close_button_callback(sair_allegro);
 }
@@ -1617,11 +1620,20 @@ int main() {
     // LOOP DE JOGO -------------------------------------------------------[**03]
     /////////////////////////////////////////////////////////////////////////////
 
+    // Initialize frame timing for 60 FPS
+    frame_start_time = SDL_GetTicks64();
+    Uint64 frame_count = 0;
+
     while (sair == 0) {
+        // Start of frame timing
+        Uint64 frame_begin = SDL_GetTicks64();
+        
         check_keys_P1();
         check_keys_P2(); //verifica teclas key_press, key_hold, key_released
-        delay = timer;
-        Segundos = ((timer / 60) - Minutos * 60) - Horas * 3600;
+        
+        // Update frame-based timers using frame count instead of timer callback
+        frame_count++;
+        Segundos = ((frame_count / 60) - Minutos * 60) - Horas * 3600;
         if (Segundos >= 60) {
             Minutos++;
             Segundos = 0;
@@ -1769,7 +1781,14 @@ int main() {
         }
         //show_mouse(screen);
 
-        while (timer == delay) {
+        // Present the rendered frame to the screen
+        platform_present_screen();
+
+        // Frame timing - maintain 60 FPS
+        Uint64 frame_end = SDL_GetTicks64();
+        Uint64 frame_time = frame_end - frame_begin;
+        if (frame_time < FRAME_TIME_MS) {
+            SDL_Delay(FRAME_TIME_MS - frame_time);
         }
 
         clear(LayerHUD);

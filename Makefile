@@ -5,8 +5,7 @@ PLATFORM     := $(shell uname -s)-$(shell uname -m)
 
 # Options
 BUILD_TYPE   := Debug
-SDL2         := ON
-CMAKE_FLAGS  := -DUSE_SDL2=$(SDL2)
+CMAKE_FLAGS  :=
 
 .PHONY: build clean zip
 
