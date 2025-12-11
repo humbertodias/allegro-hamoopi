@@ -38,7 +38,7 @@ void GameLoop_DonationScreen() {
     if (strcmp(IDIOMA, "US") == 0) {
         textprintf_centre_ex(bufferx, font_19, 380, 40 + 15, makecol(000, 000, 000), -1, "Please donate any amount of");
         textprintf_centre_ex(bufferx, font_19, 380, 65 + 15, makecol(000, 000, 000), -1, "   to keep project alive");
-        textprintf_centre_ex(bufferx, font_19, 380, 65 + 15, makecol(000, 140, 010), -1,
+        textprintf_centre_ex(bufferx, font_19, 320, 65 + 15, makecol(000, 140, 010), -1,
                              "   BTC                        ");
         textprintf_centre_ex(bufferx, font_19, 320, 400, makecol(000, 000, 000), -1, "Thanks, Hamoopi Team");
     }
@@ -49,7 +49,7 @@ void GameLoop_DonationScreen() {
                              "doação de qualquer quantia de");
         textprintf_centre_ex(bufferx, font_19, 380, 80 + 10, makecol(000, 000, 000), -1,
                              "   para manter o projeto vivo");
-        textprintf_centre_ex(bufferx, font_19, 380, 80 + 10, makecol(000, 140, 010), -1,
+        textprintf_centre_ex(bufferx, font_19, 320, 80 + 10, makecol(000, 140, 010), -1,
                              "   BTC                            ");
         textprintf_centre_ex(bufferx, font_19, 320, 400, makecol(000, 000, 000), -1, "Obrigado, Equipe Hamoopi");
     }
