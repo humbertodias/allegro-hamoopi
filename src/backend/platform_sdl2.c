@@ -278,6 +278,11 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
 
+#ifdef __APPLE__
+    // On macOS, prefer Metal renderer for better performance
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+#endif
+
     // Create renderer with hardware acceleration
     // Note: PRESENTVSYNC removed - let game loop control frame timing
     g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
@@ -379,10 +384,15 @@ volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
 
-    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
+    // On macOS, SDL_AddTimer can have timing issues, so always poll as backup
+    // On other platforms, only poll if SDL_AddTimer failed
+#ifdef __APPLE__
+    check_timer();  // Always check on macOS for better timing
+#else
     if (g_timer_id == 0) {
-        check_timer();
+        check_timer();  // Only check as fallback on other platforms
     }
+#endif
 
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
