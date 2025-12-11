@@ -175,8 +175,11 @@ static BITMAP* load_png_to_bitmap(const char *filename) {
             int b = px[2];
             int a = px[3];
             
-            // If pixel is fully transparent or matches magenta color key (255, 0, 255),
-            // use Allegro's magic pink for transparency
+            // In Allegro and this game engine, magenta (255, 0, 255) is the standard
+            // color key for transparency. Convert fully transparent pixels or existing
+            // magenta pixels to this color key format. Note: This means solid magenta
+            // pixels in the PNG will also be transparent, which is the expected behavior
+            // for this game engine where magenta is reserved for transparency.
             if (a == 0 || (r == 255 && g == 0 && b == 255)) {
                 putpixel(bmp, x, y, makecol(255, 0, 255));
             } else {
@@ -210,9 +213,9 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
         return NULL;
     }
 
-    // Check if the file has a .png extension
+    // Check if the file has a .png extension (case-insensitive)
     const char *ext = strrchr(filename, '.');
-    if (ext && strcmp(ext, ".png") == 0) {
+    if (ext && (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)) {
         // Load PNG file and convert to Allegro bitmap in memory
         return load_png_to_bitmap(filename);
     }
