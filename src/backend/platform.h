@@ -1,6 +1,5 @@
 // platform.h - Platform abstraction layer for HAMOOPI
-// This abstracts graphics, audio, input, and system functions
-// allowing easy backend switching (Allegro 4 -> SDL2, etc.)
+// SDL2 implementation for graphics, audio, input, and system functions
 
 #ifndef PLATFORM_H
 #define PLATFORM_H
@@ -8,25 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Include backend-specific headers
-#ifdef USE_ALLEGRO4
-#include <allegro.h>
-#endif
-
-#ifdef USE_SDL2
+// Include SDL2 headers
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
-#endif
 
-// Platform-specific type definitions
-#ifdef USE_ALLEGRO4
-typedef BITMAP PlatformBitmap;
-typedef FONT PlatformFont;
-typedef SAMPLE PlatformSample;
-typedef MIDI PlatformMidi;
-#elif defined(USE_SDL2)
 // SDL2 structures with exposed w,h for compatibility
 struct PlatformBitmap {
     void *surface;  // SDL_Surface*
@@ -51,13 +37,6 @@ typedef struct PlatformBitmap PlatformBitmap;
 typedef struct PlatformFont PlatformFont;
 typedef struct PlatformSample PlatformSample;
 typedef struct PlatformMidi PlatformMidi;
-#else
-// Forward declarations for opaque types (for future implementations)
-typedef struct PlatformBitmap PlatformBitmap;
-typedef struct PlatformFont PlatformFont;
-typedef struct PlatformSample PlatformSample;
-typedef struct PlatformMidi PlatformMidi;
-#endif
 
 // Color type
 typedef unsigned int PlatformColor;

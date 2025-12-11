@@ -18,21 +18,21 @@ void GameLoop_EditMode() {
 
     if (key[KEY_F9]) {
         Ctrl_FPS = 1;
-        install_int_ex(tempo, BPS_TO_TIMER( 1));
+        //install_int_ex(tempo, BPS_TO_TIMER( 1));
     }
     if (key[KEY_F10]) {
         Ctrl_FPS += -1;
         if (Ctrl_FPS < 1) { Ctrl_FPS = 1; }
-        install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
+        //install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
     }
     if (key[KEY_F11]) {
         Ctrl_FPS += +1;
         if (Ctrl_FPS > 60) { Ctrl_FPS = 60; }
-        install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
+        //install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
     }
     if (key[KEY_F12]) {
         Ctrl_FPS = 60;
-        install_int_ex(tempo, BPS_TO_TIMER(60));
+        //install_int_ex(tempo, BPS_TO_TIMER(60));
     }
     //movimenta o player, dentro do editor
     if (ED_y > 50 / 2 && (P[1].key_W_status == 1 || P[1].key_W_status == 2)) { ED_y--; } //w

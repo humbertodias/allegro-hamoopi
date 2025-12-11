@@ -1016,7 +1016,7 @@ void New_HitBox(int Qtde_HitBoxes) {
         }
     }
 
-    HitSpark[Qtde_HitBoxes].StartFrame = timer;
+    HitSpark[Qtde_HitBoxes].StartFrame = frame_count;
     HitSpark[Qtde_HitBoxes].FrameTime = 1;
     HitSpark[Qtde_HitBoxes].TotalFrames = 5;
     HitSpark[Qtde_HitBoxes].IndexAnim = 0;

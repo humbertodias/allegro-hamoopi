@@ -5289,7 +5289,7 @@ void Aplicar_HIT() {
         //FSM
         if (strcmp(P[2].HitType_string, "Fall") == 0 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 550, 0, P[1].TotalDeFramesMov[550]);
             P1HitPause = HitPause3; //teste
             P2HitPause = HitPause3;
@@ -5300,7 +5300,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 1 && MomentoDoP2 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 511, 0, P[1].TotalDeFramesMov[511]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5308,7 +5308,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 1 && MomentoDoP2 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 512, 0, P[1].TotalDeFramesMov[512]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5316,7 +5316,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 1 && MomentoDoP2 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 513, 0, P[1].TotalDeFramesMov[513]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5324,7 +5324,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 1 && MomentoDoP2 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 511, 0, P[1].TotalDeFramesMov[511]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5332,7 +5332,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 1 && MomentoDoP2 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 512, 0, P[1].TotalDeFramesMov[512]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5340,7 +5340,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 1 && MomentoDoP2 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 513, 0, P[1].TotalDeFramesMov[513]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5348,7 +5348,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 501, 0, P[1].TotalDeFramesMov[501]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5356,7 +5356,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 502, 0, P[1].TotalDeFramesMov[502]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5364,7 +5364,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 503, 0, P[1].TotalDeFramesMov[503]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5372,7 +5372,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 504, 0, P[1].TotalDeFramesMov[504]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5380,7 +5380,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 505, 0, P[1].TotalDeFramesMov[505]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5388,7 +5388,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 2 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 506, 0, P[1].TotalDeFramesMov[506]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5397,7 +5397,7 @@ void Aplicar_HIT() {
         //reversao aerea do P1 Mov 507
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 507, 0, P[1].TotalDeFramesMov[507]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5405,7 +5405,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 507, 0, P[1].TotalDeFramesMov[507]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5413,7 +5413,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 3 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 507, 0, P[1].TotalDeFramesMov[507]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5422,7 +5422,7 @@ void Aplicar_HIT() {
         //fim das reversoes
         if (ForcaDoGolpeP2 == 51 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 501, 0, P[1].TotalDeFramesMov[501]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5430,7 +5430,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 51 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 502, 0, P[1].TotalDeFramesMov[502]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5438,7 +5438,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 51 && MomentoDoP1 == 1 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 503, 0, P[1].TotalDeFramesMov[503]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5446,7 +5446,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 51 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 501, 0, P[1].TotalDeFramesMov[501]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5454,7 +5454,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 51 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 502, 0, P[1].TotalDeFramesMov[502]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5462,7 +5462,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 51 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 503, 0, P[1].TotalDeFramesMov[503]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5470,7 +5470,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 52 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 504, 0, P[1].TotalDeFramesMov[504]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5478,7 +5478,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 52 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 505, 0, P[1].TotalDeFramesMov[505]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5486,7 +5486,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 52 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 506, 0, P[1].TotalDeFramesMov[506]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5494,7 +5494,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 1 && MomentoDoP1 == 53 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 550, 0, P[1].TotalDeFramesMov[550]);
             P2HitPause = HitPause1;
             P[1].Energy -= P2_DMG1;
@@ -5502,7 +5502,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 2 && MomentoDoP1 == 53 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 550, 0, P[1].TotalDeFramesMov[550]);
             P2HitPause = HitPause2;
             P[1].Energy -= P2_DMG2;
@@ -5510,7 +5510,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP2 == 3 && MomentoDoP1 == 53 && AHitP2 == 1) {
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 550, 0, P[1].TotalDeFramesMov[550]);
             P2HitPause = HitPause3;
             P[1].Energy -= P2_DMG3;
@@ -5540,7 +5540,7 @@ void Aplicar_HIT() {
             rest(HitPauseKO);
             EndRoundSlowDown = 1;
             AHitP2 = 0;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 570, 0, P[1].TotalDeFramesMov[570]);
             P2HitPause = HitPause3;
             P[1].Energy = 0;
@@ -5594,7 +5594,7 @@ void Aplicar_HIT() {
         //FSM
         if (strcmp(P[1].HitType_string, "Fall") == 0 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 550, 0, P[2].TotalDeFramesMov[550]);
             P2HitPause = HitPause3; //teste
             P1HitPause = HitPause3;
@@ -5605,7 +5605,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 1 && MomentoDoP1 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 511, 0, P[2].TotalDeFramesMov[511]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5613,7 +5613,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 1 && MomentoDoP1 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 512, 0, P[2].TotalDeFramesMov[512]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5621,7 +5621,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 1 && MomentoDoP1 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 513, 0, P[2].TotalDeFramesMov[513]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5629,7 +5629,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 1 && MomentoDoP1 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 511, 0, P[2].TotalDeFramesMov[511]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5637,7 +5637,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 1 && MomentoDoP1 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 512, 0, P[2].TotalDeFramesMov[512]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5645,7 +5645,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 1 && MomentoDoP1 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 513, 0, P[2].TotalDeFramesMov[513]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5653,7 +5653,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 501, 0, P[2].TotalDeFramesMov[501]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5661,7 +5661,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 502, 0, P[2].TotalDeFramesMov[502]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5669,7 +5669,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 503, 0, P[2].TotalDeFramesMov[503]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5677,7 +5677,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 504, 0, P[2].TotalDeFramesMov[504]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5685,7 +5685,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 505, 0, P[2].TotalDeFramesMov[505]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5693,7 +5693,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 2 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 506, 0, P[2].TotalDeFramesMov[506]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5702,7 +5702,7 @@ void Aplicar_HIT() {
         //reversao aerea do P2 Mov 507
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 507, 0, P[2].TotalDeFramesMov[507]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5710,7 +5710,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 507, 0, P[2].TotalDeFramesMov[507]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5718,7 +5718,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 3 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 507, 0, P[2].TotalDeFramesMov[507]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5727,7 +5727,7 @@ void Aplicar_HIT() {
         //fim das reversoes
         if (ForcaDoGolpeP1 == 51 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 501, 0, P[2].TotalDeFramesMov[501]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5735,7 +5735,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 51 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 502, 0, P[2].TotalDeFramesMov[502]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5743,7 +5743,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 51 && MomentoDoP2 == 1 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 503, 0, P[2].TotalDeFramesMov[503]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5751,7 +5751,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 51 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 501, 0, P[2].TotalDeFramesMov[501]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5759,7 +5759,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 51 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 502, 0, P[2].TotalDeFramesMov[502]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5767,7 +5767,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 51 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 503, 0, P[2].TotalDeFramesMov[503]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5775,7 +5775,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 52 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 504, 0, P[2].TotalDeFramesMov[504]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5783,7 +5783,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 52 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 505, 0, P[2].TotalDeFramesMov[505]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5791,7 +5791,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 52 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 506, 0, P[2].TotalDeFramesMov[506]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5799,7 +5799,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 1 && MomentoDoP2 == 53 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 550, 0, P[2].TotalDeFramesMov[550]);
             P1HitPause = HitPause1;
             P[2].Energy -= P1_DMG1;
@@ -5807,7 +5807,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 2 && MomentoDoP2 == 53 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 550, 0, P[2].TotalDeFramesMov[550]);
             P1HitPause = HitPause2;
             P[2].Energy -= P1_DMG2;
@@ -5815,7 +5815,7 @@ void Aplicar_HIT() {
         }
         if (ForcaDoGolpeP1 == 3 && MomentoDoP2 == 53 && AHitP1 == 1) {
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 550, 0, P[2].TotalDeFramesMov[550]);
             P1HitPause = HitPause3;
             P[2].Energy -= P1_DMG3;
@@ -5845,7 +5845,7 @@ void Aplicar_HIT() {
             rest(HitPauseKO);
             EndRoundSlowDown = 1;
             AHitP1 = 0;
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 570, 0, P[2].TotalDeFramesMov[570]);
             P1HitPause = HitPause3;
             P[2].Energy = 0;

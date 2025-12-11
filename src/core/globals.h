@@ -2,6 +2,7 @@
 #define HAMOOPI_GLOBALS_H
 
 #include "types.h"
+#include <SDL2/SDL.h>  // For Uint64 type
 
 // Global variable declarations for HAMOOPI game engine
 // These are defined in HAMOOPI.c and accessible to all modules
@@ -36,7 +37,7 @@
 #endif
 
 // Core timing variables
-extern int timer;
+extern Uint64 frame_count;  // Frame counter for SDL2 timing
 extern float delay;
 extern int timermenus;
 extern float EndRoundSlowDown;
@@ -285,9 +286,6 @@ extern FONT *font_debug, *font_10, *font_19, *font_20, *font_30;
 
 extern BITMAP *P1_Sombra, *P2_Sombra, *P1_Sombra_Aux, *P2_Sombra_Aux, *P1_energy_flip, *P1_energy_red_flip;
 extern BITMAP *HitSparkspr, *HitSpark_Aux;
-extern int timer;
-
-extern void tempo();
 
 extern float delay;
 extern int Horas, Minutos, Segundos;

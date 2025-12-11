@@ -45,7 +45,7 @@ void GameLoop_GamePlayMode() {
         if (timer_final_de_rounds > 50) { EndRoundSlowDown += 1; }
         if (EndRoundSlowDown > 60) { EndRoundSlowDown = 60; }
         Ctrl_FPS = floor(EndRoundSlowDown);
-        install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
+        //install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
     }
 
     if (timer_final_de_rounds >= EndRoundT) {
@@ -118,10 +118,10 @@ void GameLoop_GamePlayMode() {
             P[2].Visible = 1;
             P[1].RoomLimit = 1;
             P[2].RoomLimit = 1;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
             Draw_CHBoxes_P1();
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
             Draw_CHBoxes_P2();
         }
@@ -157,10 +157,10 @@ void GameLoop_GamePlayMode() {
         P[2].Visible = 1;
         P[1].RoomLimit = 1;
         P[2].RoomLimit = 1;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
@@ -170,7 +170,7 @@ void GameLoop_GamePlayMode() {
         if (key[KEY_ESC]) {
             play_sample(back, 255, 128, 1000, 0);
             Ctrl_FPS = 60;
-            install_int_ex(tempo, BPS_TO_TIMER(60));
+            //install_int_ex(tempo, BPS_TO_TIMER(60));
             desabilita_players = 0;
             timermenus = 0;
             timer_rounds = 0;
@@ -208,10 +208,10 @@ void GameLoop_GamePlayMode() {
             P[2].Visible = 1;
             P[1].RoomLimit = 1;
             P[2].RoomLimit = 1;
-            P[1].StartFrame = timer;
+            P[1].StartFrame = frame_count;
             PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
             Draw_CHBoxes_P1();
-            P[2].StartFrame = timer;
+            P[2].StartFrame = frame_count;
             PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
             Draw_CHBoxes_P2();
         }
@@ -245,21 +245,21 @@ void GameLoop_GamePlayMode() {
         }
         if (key[KEY_F9]) {
             Ctrl_FPS = 1;
-            install_int_ex(tempo, BPS_TO_TIMER( 1));
+            //install_int_ex(tempo, BPS_TO_TIMER( 1));
         }
         if (key[KEY_F10]) {
             Ctrl_FPS += -1;
             if (Ctrl_FPS < 1) { Ctrl_FPS = 1; }
-            install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
+            //install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
         }
         if (key[KEY_F11]) {
             Ctrl_FPS += +1;
             if (Ctrl_FPS > 60) { Ctrl_FPS = 60; }
-            install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
+            //install_int_ex(tempo, BPS_TO_TIMER(Ctrl_FPS));
         }
         if (key[KEY_F12]) {
             Ctrl_FPS = 60;
-            install_int_ex(tempo, BPS_TO_TIMER(60));
+            //install_int_ex(tempo, BPS_TO_TIMER(60));
         }
     }
 
@@ -560,11 +560,11 @@ void GameLoop_GamePlayMode() {
         if (AtivadorDeMagia == 1) {
             //inicializa a magia
             P[ind].QtdeMagias = 0;
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             PLAYER_STATE(ind, AtivadorDeMagiaNumeroDoEspecial, 0,
                          P[ind].TotalDeFramesMov[AtivadorDeMagiaNumeroDoEspecial]);
-            Fireball[ind].StartFrame = timer;
+            Fireball[ind].StartFrame = frame_count;
             New_Fireball(ind);
 
             //som da magia
@@ -588,7 +588,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT1_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[101] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 101;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -599,7 +599,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT2_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[102] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 102;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -610,7 +610,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT3_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[103] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 103;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -621,7 +621,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT4_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[104] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 104;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -632,7 +632,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT5_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[105] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 105;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -643,7 +643,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT6_pressed == 1)
             && (abs(P[1].x - P[2].x) >= 60)
             && (P[ind].TotalDeFramesMov[106] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 106;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -654,7 +654,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT1_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[151] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 151;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -662,7 +662,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[151] == -1
                 && P[ind].TotalDeFramesMov[101] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 101;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -674,7 +674,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT2_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[152] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 152;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -682,7 +682,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[152] == -1
                 && P[ind].TotalDeFramesMov[102] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 102;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -694,7 +694,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT3_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[153] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 153;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -702,7 +702,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[153] == -1
                 && P[ind].TotalDeFramesMov[103] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 103;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -714,7 +714,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT4_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[154] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 154;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -722,7 +722,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[154] == -1
                 && P[ind].TotalDeFramesMov[104] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 104;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -734,7 +734,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT5_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[155] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 155;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -742,7 +742,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[155] == -1
                 && P[ind].TotalDeFramesMov[105] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 105;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -754,7 +754,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_BT6_pressed == 1)
             && (abs(P[1].x - P[2].x) < 60)) {
             if (P[ind].TotalDeFramesMov[156] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 156;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -762,7 +762,7 @@ void GameLoop_GamePlayMode() {
             }
             if (P[ind].TotalDeFramesMov[156] == -1
                 && P[ind].TotalDeFramesMov[106] > -1) {
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 int set = 106;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -775,7 +775,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT1_pressed == 1
             && (P[ind].TotalDeFramesMov[211] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 211;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -787,7 +787,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT1_pressed == 1
             && (P[ind].TotalDeFramesMov[211] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 211;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -799,7 +799,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT2_pressed == 1
             && (P[ind].TotalDeFramesMov[212] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 212;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -811,7 +811,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT2_pressed == 1
             && (P[ind].TotalDeFramesMov[212] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 212;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -823,7 +823,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT3_pressed == 1
             && (P[ind].TotalDeFramesMov[213] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 213;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -835,7 +835,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT3_pressed == 1
             && (P[ind].TotalDeFramesMov[213] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 213;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -847,7 +847,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT4_pressed == 1
             && (P[ind].TotalDeFramesMov[214] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 214;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -859,7 +859,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT4_pressed == 1
             && (P[ind].TotalDeFramesMov[214] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 214;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -871,7 +871,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT5_pressed == 1
             && (P[ind].TotalDeFramesMov[215] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 215;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -883,7 +883,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT5_pressed == 1
             && (P[ind].TotalDeFramesMov[215] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 215;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -895,7 +895,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT6_pressed == 1
             && (P[ind].TotalDeFramesMov[216] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 216;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -907,7 +907,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT6_pressed == 1
             && (P[ind].TotalDeFramesMov[216] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 216;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -919,7 +919,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT1_pressed == 1
             && (P[ind].TotalDeFramesMov[221] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 221;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -931,7 +931,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT1_pressed == 1
             && (P[ind].TotalDeFramesMov[221] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 221;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -942,7 +942,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT2_pressed == 1 && (P[ind].TotalDeFramesMov[222] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 222;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -954,7 +954,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT2_pressed == 1
             && (P[ind].TotalDeFramesMov[222] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 222;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -966,7 +966,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT3_pressed == 1
             && (P[ind].TotalDeFramesMov[223] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 223;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -978,7 +978,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT3_pressed == 1
             && (P[ind].TotalDeFramesMov[223] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 223;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -990,7 +990,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT4_pressed == 1
             && (P[ind].TotalDeFramesMov[224] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 224;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1002,7 +1002,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT4_pressed == 1
             && (P[ind].TotalDeFramesMov[224] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 224;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1013,7 +1013,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT5_pressed == 1 && (P[ind].TotalDeFramesMov[225] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 225;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1025,7 +1025,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT5_pressed == 1
             && (P[ind].TotalDeFramesMov[225] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 225;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1037,7 +1037,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && P[ind].key_BT6_pressed == 1
             && (P[ind].TotalDeFramesMov[226] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 226;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1049,7 +1049,7 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && P[ind].key_BT6_pressed == 1
             && (P[ind].TotalDeFramesMov[226] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 226;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1059,7 +1059,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT1_pressed == 1
             && (P[ind].TotalDeFramesMov[201] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 201;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1069,7 +1069,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT2_pressed == 1
             && (P[ind].TotalDeFramesMov[202] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 202;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1079,7 +1079,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT3_pressed == 1
             && (P[ind].TotalDeFramesMov[203] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 203;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1089,7 +1089,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT4_pressed == 1
             && (P[ind].TotalDeFramesMov[204] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 204;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1099,7 +1099,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT5_pressed == 1
             && (P[ind].TotalDeFramesMov[205] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 205;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1109,7 +1109,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 200 || P[ind].State == 601)
             && P[ind].key_BT6_pressed == 1
             && (P[ind].TotalDeFramesMov[206] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 206;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1120,7 +1120,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && (P[ind].TotalDeFramesMov[210] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 210;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1129,7 +1129,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == -1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && (P[ind].TotalDeFramesMov[210] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 210;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1138,7 +1138,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && (P[ind].TotalDeFramesMov[220] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 220;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1147,7 +1147,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == -1
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && (P[ind].TotalDeFramesMov[220] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 220;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1156,7 +1156,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && (P[ind].TotalDeFramesMov[410] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 410;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1165,7 +1165,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == -1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && (P[ind].TotalDeFramesMov[410] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 410;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1174,7 +1174,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == 1
             && (P[ind].key_RIGHT_pressed == 1 || P[ind].key_RIGHT_hold == 1)
             && (P[ind].TotalDeFramesMov[420] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 420;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1183,7 +1183,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == -1
             && (P[ind].key_LEFT_pressed == 1 || P[ind].key_LEFT_hold == 1)
             && (P[ind].TotalDeFramesMov[420] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 420;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1192,7 +1192,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[606] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 606;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1201,7 +1201,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[100] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 100;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1210,7 +1210,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[550] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 551;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1219,7 +1219,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[551] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 552;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1228,7 +1228,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[570] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 571;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1237,7 +1237,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[571] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 572;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1245,7 +1245,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 100
             && (P[ind].key_DOWN_pressed == 1 || P[ind].key_DOWN_hold == 1)
             && (P[ind].TotalDeFramesMov[601] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 601;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1253,7 +1253,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 410
             && (P[ind].key_DOWN_pressed == 1 || P[ind].key_DOWN_hold == 1)
             && (P[ind].TotalDeFramesMov[601] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 601;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1261,7 +1261,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 420
             && (P[ind].key_DOWN_pressed == 1 || P[ind].key_DOWN_hold == 1)
             && (P[ind].TotalDeFramesMov[601] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 601;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1271,7 +1271,7 @@ void GameLoop_GamePlayMode() {
             if (a == 1 && P[ind].Lado == 1 && P[ind].x < MeioDaTela && (P[ind].TotalDeFramesMov[601] > -1)) {
                 a = 0;
                 AHitP1 = 1;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 601;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -1279,14 +1279,14 @@ void GameLoop_GamePlayMode() {
                 a = 0;
                 AHitP1 = 1;
                 P[ind].Lado = -1;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 608;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
             if (a == 1 && P[ind].Lado == -1 && P[ind].x > MeioDaTela && (P[ind].TotalDeFramesMov[601] > -1)) {
                 a = 0;
                 AHitP1 = 1;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 601;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -1294,7 +1294,7 @@ void GameLoop_GamePlayMode() {
                 a = 0;
                 AHitP1 = 1;
                 P[ind].Lado = 1;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 608;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -1303,7 +1303,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 200
             && (P[ind].key_DOWN_released == 1 || P[ind].key_DOWN_hold == 0)
             && (P[ind].TotalDeFramesMov[602] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 602;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1314,7 +1314,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_status > 0
             && P[ind].key_RIGHT_status == 0
             && (P[ind].TotalDeFramesMov[603] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 603;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1325,7 +1325,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_status == 0
             && P[ind].key_RIGHT_status > 0
             && (P[ind].TotalDeFramesMov[603] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 603;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1335,7 +1335,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_status == 0
             && P[ind].key_RIGHT_status == 0
             && (P[ind].TotalDeFramesMov[604] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 604;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1346,7 +1346,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_status > 0
             && P[ind].key_RIGHT_status == 0
             && (P[ind].TotalDeFramesMov[605] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 605;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1357,7 +1357,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_status == 0
             && P[ind].key_RIGHT_status > 0
             && (P[ind].TotalDeFramesMov[605] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 605;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1368,7 +1368,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[606] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 606;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1379,7 +1379,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[606] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 606;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1390,7 +1390,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].y == AlturaPiso
             && P[ind].Vspeed >= 0
             && (P[ind].TotalDeFramesMov[606] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 606;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1398,7 +1398,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT1_status == 1
             && (P[ind].TotalDeFramesMov[301] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 301;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1408,7 +1408,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT2_status == 1
             && (P[ind].TotalDeFramesMov[302] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 302;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1418,7 +1418,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT3_status == 1
             && (P[ind].TotalDeFramesMov[303] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 303;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1428,7 +1428,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT4_status == 1
             && (P[ind].TotalDeFramesMov[304] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 304;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1438,7 +1438,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT5_status == 1
             && (P[ind].TotalDeFramesMov[305] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 305;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1448,7 +1448,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 300
             && P[ind].key_BT6_status == 1
             && (P[ind].TotalDeFramesMov[306] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 306;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1458,7 +1458,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT1_status == 1
             && (P[ind].TotalDeFramesMov[321] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 321;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1468,7 +1468,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT2_status == 1
             && (P[ind].TotalDeFramesMov[322] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 322;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1478,7 +1478,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT3_status == 1
             && (P[ind].TotalDeFramesMov[323] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 323;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1488,7 +1488,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT4_status == 1
             && (P[ind].TotalDeFramesMov[324] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 324;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1498,7 +1498,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT5_status == 1
             && (P[ind].TotalDeFramesMov[325] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 325;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1508,7 +1508,7 @@ void GameLoop_GamePlayMode() {
         if ((P[ind].State == 310 || P[ind].State == 320)
             && P[ind].key_BT6_status == 1
             && (P[ind].TotalDeFramesMov[326] > -1)) {
-            P[ind].StartFrame = timer;
+            P[ind].StartFrame = frame_count;
             P[ind].MovStartFrame = P[ind].StartFrame;
             int set = 326;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
@@ -1520,7 +1520,7 @@ void GameLoop_GamePlayMode() {
                 && P[ind].Lado == 1)
             && (P[ind].TotalDeFramesMov[607] > -1)) {
             P[ind].Lado = -1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 607;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1530,7 +1530,7 @@ void GameLoop_GamePlayMode() {
                 && P[ind].Lado == -1)
             && (P[ind].TotalDeFramesMov[607] > -1)) {
             P[ind].Lado = 1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 607;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1540,7 +1540,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].x > MeioDaTela
             && (P[ind].TotalDeFramesMov[607] > -1)) {
             P[ind].Lado = -1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 607;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1550,7 +1550,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].x < MeioDaTela
             && (P[ind].TotalDeFramesMov[607] > -1)) {
             P[ind].Lado = 1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 607;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1560,7 +1560,7 @@ void GameLoop_GamePlayMode() {
                 && P[ind].Lado == 1)
             && (P[ind].TotalDeFramesMov[608] > -1)) {
             P[ind].Lado = -1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 608;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1570,7 +1570,7 @@ void GameLoop_GamePlayMode() {
                 && P[ind].Lado == -1)
             && (P[ind].TotalDeFramesMov[608] > -1)) {
             P[ind].Lado = 1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 608;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1580,7 +1580,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].x > MeioDaTela
             && (P[ind].TotalDeFramesMov[608] > -1)) {
             P[ind].Lado = -1;
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 608;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1589,7 +1589,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].Lado == -1
             && P[ind].x < MeioDaTela
             && (P[ind].TotalDeFramesMov[608] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 608;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1597,7 +1597,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 210
             && P[ind].key_LEFT_released == 1
             && (P[ind].TotalDeFramesMov[200] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 200;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1606,7 +1606,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_RIGHT_released == 1
             && P[ind].Lado == -1
             && (P[ind].TotalDeFramesMov[200] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 200;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1614,7 +1614,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 220
             && P[ind].key_RIGHT_released == 1
             && (P[ind].TotalDeFramesMov[200] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 200;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1623,7 +1623,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_released == 1
             && P[ind].Lado == -1
             && (P[ind].TotalDeFramesMov[200] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 200;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1632,14 +1632,14 @@ void GameLoop_GamePlayMode() {
             && (P[ind].key_DOWN_released == 1 || P[ind].key_DOWN_hold == 0)) {
             int set = 0;
             if (P[ind].TotalDeFramesMov[602] > -1) { set = 602; } else { set = 100; }
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
         /*100 Parado*/
         if (P[ind].State == 410
             && P[ind].key_LEFT_released == 1
             && (P[ind].TotalDeFramesMov[100] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 100;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1648,7 +1648,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_RIGHT_released == 1
             && P[ind].Lado == -1
             && (P[ind].TotalDeFramesMov[100] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 100;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1656,7 +1656,7 @@ void GameLoop_GamePlayMode() {
         if (P[ind].State == 420
             && P[ind].key_RIGHT_released == 1
             && (P[ind].TotalDeFramesMov[100] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 100;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1665,7 +1665,7 @@ void GameLoop_GamePlayMode() {
             && P[ind].key_LEFT_released == 1
             && P[ind].Lado == -1
             && (P[ind].TotalDeFramesMov[100] > -1)) {
-            P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+            P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
             int set = 100;
             PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
         }
@@ -1679,13 +1679,13 @@ void GameLoop_GamePlayMode() {
                 || P[other].State == 618 || P[other].State == 100)) {
             if (P[ind].TotalDeFramesMov[611] > -1) {
                 P[ind].Hspeed = 0;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 611;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
             if (P[ind].TotalDeFramesMov[611] == -1) {
                 P[ind].Hspeed = 0;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 100;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -1711,13 +1711,13 @@ void GameLoop_GamePlayMode() {
             && P[ind].Energy > 0) {
             if (P[ind].TotalDeFramesMov[616] > -1) {
                 P[ind].Hspeed = 0;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 616;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
             if (P[ind].TotalDeFramesMov[616] == -1) {
                 P[ind].Hspeed = 0;
-                P[ind].StartFrame = timer; //P[ind].MovStartFrame=P[ind].StartFrame;
+                P[ind].StartFrame = frame_count; //P[ind].MovStartFrame=P[ind].StartFrame;
                 int set = 100;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -1863,291 +1863,291 @@ void GameLoop_GamePlayMode() {
     if (P1HitPause == 0 && P2HitPause == 0) {
         int HitStackChange = 0;
         if (P[1].IndexAnim == 0) {
-            if (timer > P[1].StartFrame + P1_FrameTime_00) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_00) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_01;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 1) {
-            if (timer > P[1].StartFrame + P1_FrameTime_01) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_01) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_02;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 2) {
-            if (timer > P[1].StartFrame + P1_FrameTime_02) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_02) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_03;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 3) {
-            if (timer > P[1].StartFrame + P1_FrameTime_03) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_03) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_04;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 4) {
-            if (timer > P[1].StartFrame + P1_FrameTime_04) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_04) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_05;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 5) {
-            if (timer > P[1].StartFrame + P1_FrameTime_05) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_05) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_06;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 6) {
-            if (timer > P[1].StartFrame + P1_FrameTime_06) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_06) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_07;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 7) {
-            if (timer > P[1].StartFrame + P1_FrameTime_07) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_07) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_08;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 8) {
-            if (timer > P[1].StartFrame + P1_FrameTime_08) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_08) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_09;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 9) {
-            if (timer > P[1].StartFrame + P1_FrameTime_09) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_09) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_10;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 10) {
-            if (timer > P[1].StartFrame + P1_FrameTime_10) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_10) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_11;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 11) {
-            if (timer > P[1].StartFrame + P1_FrameTime_11) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_11) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_12;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 12) {
-            if (timer > P[1].StartFrame + P1_FrameTime_12) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_12) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_13;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 13) {
-            if (timer > P[1].StartFrame + P1_FrameTime_13) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_13) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_14;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 14) {
-            if (timer > P[1].StartFrame + P1_FrameTime_14) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_14) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_15;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 15) {
-            if (timer > P[1].StartFrame + P1_FrameTime_15) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_15) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_16;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 16) {
-            if (timer > P[1].StartFrame + P1_FrameTime_16) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_16) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_17;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 17) {
-            if (timer > P[1].StartFrame + P1_FrameTime_17) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_17) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_18;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 18) {
-            if (timer > P[1].StartFrame + P1_FrameTime_18) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_18) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_19;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 19) {
-            if (timer > P[1].StartFrame + P1_FrameTime_19) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_19) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_20;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 20) {
-            if (timer > P[1].StartFrame + P1_FrameTime_20) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_20) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_21;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 21) {
-            if (timer > P[1].StartFrame + P1_FrameTime_21) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_21) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_22;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 22) {
-            if (timer > P[1].StartFrame + P1_FrameTime_22) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_22) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_23;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 23) {
-            if (timer > P[1].StartFrame + P1_FrameTime_23) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_23) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_24;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 24) {
-            if (timer > P[1].StartFrame + P1_FrameTime_24) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_24) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_25;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 25) {
-            if (timer > P[1].StartFrame + P1_FrameTime_25) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_25) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_26;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 26) {
-            if (timer > P[1].StartFrame + P1_FrameTime_26) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_26) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_27;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 27) {
-            if (timer > P[1].StartFrame + P1_FrameTime_27) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_27) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_28;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[1].IndexAnim == 28) {
-            if (timer > P[1].StartFrame + P1_FrameTime_28) {
+            if (frame_count > P[1].StartFrame + P1_FrameTime_28) {
                 Atuador1 = 1;
                 P[1].IndexAnim++;
                 P1_FrameTime = P1_FrameTime_29;
-                P[1].StartFrame = timer;
+                P[1].StartFrame = frame_count;
                 Draw_CHBoxes_P1();
                 if (strcmp(P[1].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
@@ -2195,238 +2195,238 @@ void GameLoop_GamePlayMode() {
     {
         P[1].IndexAnim = 0;
         P1_FrameTime = P1_FrameTime_00;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         Draw_CHBoxes_P1();
     } //-loop
     /* <P1> Non Loops FSM! */
     //movimentos sem loop terminam e carregam outros movimentos, exemplo: final do soco fraco [101] carrega movimento parado [100]
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 101) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 102) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 103) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 104) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 105) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 106) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 151) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 152) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 153) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 154) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 155) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 156) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 201) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 202) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 203) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 204) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 205) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 206) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 501) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 502) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 503) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 504) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 505) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 506) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 511) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 512) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 513) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 601) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 552) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 602) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 603) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 310, 0, P[1].TotalDeFramesMov[310]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 604) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 300, 0, P[1].TotalDeFramesMov[300]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 605) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 320, 0, P[1].TotalDeFramesMov[320]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 606) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 607) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 608) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 200, 0, P[1].TotalDeFramesMov[200]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 700) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 710) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 720) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 730) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 740) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 750) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 760) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 770) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 780) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 790) {
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 100, 0, P[1].TotalDeFramesMov[100]);
         Draw_CHBoxes_P1();
     }
@@ -2435,111 +2435,111 @@ void GameLoop_GamePlayMode() {
     //if (P[1].IndexAnim>P[1].TotalFrames && P[1].State==300) {  }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 301) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 301, P[1].IndexAnim, P[1].TotalDeFramesMov[301]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 302) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 302, P[1].IndexAnim, P[1].TotalDeFramesMov[302]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 303) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 303, P[1].IndexAnim, P[1].TotalDeFramesMov[303]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 304) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 304, P[1].IndexAnim, P[1].TotalDeFramesMov[304]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 305) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 305, P[1].IndexAnim, P[1].TotalDeFramesMov[305]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 306) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 306, 0, P[1].TotalDeFramesMov[306]);
         Draw_CHBoxes_P1();
     }
     //if (P[1].IndexAnim>P[1].TotalFrames && P[1].State==310) {  }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 311) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 311, P[1].IndexAnim, P[1].TotalDeFramesMov[311]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 312) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 312, P[1].IndexAnim, P[1].TotalDeFramesMov[312]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 313) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 313, P[1].IndexAnim, P[1].TotalDeFramesMov[313]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 314) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 314, P[1].IndexAnim, P[1].TotalDeFramesMov[314]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 315) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 315, P[1].IndexAnim, P[1].TotalDeFramesMov[315]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 316) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 316, P[1].IndexAnim, P[1].TotalDeFramesMov[316]);
         Draw_CHBoxes_P1();
     }
     //if (P[1].IndexAnim>P[1].TotalFrames && P[1].State==320) {  }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 321) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 321, P[1].IndexAnim, P[1].TotalDeFramesMov[321]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 322) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 322, P[1].IndexAnim, P[1].TotalDeFramesMov[322]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 323) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 323, P[1].IndexAnim, P[1].TotalDeFramesMov[323]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 324) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 324, P[1].IndexAnim, P[1].TotalDeFramesMov[324]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 325) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 325, P[1].IndexAnim, P[1].TotalDeFramesMov[325]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 326) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 326, P[1].IndexAnim, P[1].TotalDeFramesMov[326]);
         Draw_CHBoxes_P1();
     }
@@ -2547,37 +2547,37 @@ void GameLoop_GamePlayMode() {
     //if (P[1].IndexAnim>P[1].TotalFrames && P[1].State==550) {  }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 611) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 611, P[1].IndexAnim, P[1].TotalDeFramesMov[611]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 612) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 612, P[1].IndexAnim, P[1].TotalDeFramesMov[612]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 613) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 613, P[1].IndexAnim, P[1].TotalDeFramesMov[613]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 616) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 616, P[1].IndexAnim, P[1].TotalDeFramesMov[616]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 617) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 617, P[1].IndexAnim, P[1].TotalDeFramesMov[617]);
         Draw_CHBoxes_P1();
     }
     if (P[1].IndexAnim > P[1].TotalFrames && P[1].State == 618) {
         P[1].IndexAnim--;
-        P[1].StartFrame = timer;
+        P[1].StartFrame = frame_count;
         PLAYER_STATE(1, 618, P[1].IndexAnim, P[1].TotalDeFramesMov[618]);
         Draw_CHBoxes_P1();
     }
@@ -2589,291 +2589,291 @@ void GameLoop_GamePlayMode() {
     if (P2HitPause == 0 && P1HitPause == 0) {
         int HitStackChange = 0;
         if (P[2].IndexAnim == 0) {
-            if (timer > P[2].StartFrame + P2_FrameTime_00) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_00) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_01;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 1) {
-            if (timer > P[2].StartFrame + P2_FrameTime_01) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_01) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_02;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 2) {
-            if (timer > P[2].StartFrame + P2_FrameTime_02) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_02) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_03;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 3) {
-            if (timer > P[2].StartFrame + P2_FrameTime_03) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_03) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_04;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 4) {
-            if (timer > P[2].StartFrame + P2_FrameTime_04) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_04) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_05;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 5) {
-            if (timer > P[2].StartFrame + P2_FrameTime_05) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_05) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_06;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 6) {
-            if (timer > P[2].StartFrame + P2_FrameTime_06) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_06) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_07;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 7) {
-            if (timer > P[2].StartFrame + P2_FrameTime_07) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_07) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_08;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 8) {
-            if (timer > P[2].StartFrame + P2_FrameTime_08) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_08) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_09;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 9) {
-            if (timer > P[2].StartFrame + P2_FrameTime_09) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_09) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_10;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 10) {
-            if (timer > P[2].StartFrame + P2_FrameTime_10) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_10) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_11;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 11) {
-            if (timer > P[2].StartFrame + P2_FrameTime_11) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_11) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_12;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 12) {
-            if (timer > P[2].StartFrame + P2_FrameTime_12) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_12) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_13;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 13) {
-            if (timer > P[2].StartFrame + P2_FrameTime_13) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_13) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_14;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 14) {
-            if (timer > P[2].StartFrame + P2_FrameTime_14) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_14) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_15;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 15) {
-            if (timer > P[2].StartFrame + P2_FrameTime_15) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_15) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_16;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 16) {
-            if (timer > P[2].StartFrame + P2_FrameTime_16) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_16) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_17;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 17) {
-            if (timer > P[2].StartFrame + P2_FrameTime_17) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_17) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_18;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 18) {
-            if (timer > P[2].StartFrame + P2_FrameTime_18) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_18) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_19;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 19) {
-            if (timer > P[2].StartFrame + P2_FrameTime_19) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_19) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_20;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 20) {
-            if (timer > P[2].StartFrame + P2_FrameTime_20) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_20) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_21;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 21) {
-            if (timer > P[2].StartFrame + P2_FrameTime_21) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_21) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_22;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 22) {
-            if (timer > P[2].StartFrame + P2_FrameTime_22) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_22) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_23;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 23) {
-            if (timer > P[2].StartFrame + P2_FrameTime_23) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_23) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_24;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 24) {
-            if (timer > P[2].StartFrame + P2_FrameTime_24) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_24) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_25;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 25) {
-            if (timer > P[2].StartFrame + P2_FrameTime_25) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_25) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_26;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 26) {
-            if (timer > P[2].StartFrame + P2_FrameTime_26) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_26) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_27;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 27) {
-            if (timer > P[2].StartFrame + P2_FrameTime_27) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_27) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_28;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
         }
         if (P[2].IndexAnim == 28) {
-            if (timer > P[2].StartFrame + P2_FrameTime_28) {
+            if (frame_count > P[2].StartFrame + P2_FrameTime_28) {
                 Atuador2 = 1;
                 P[2].IndexAnim++;
                 P2_FrameTime = P2_FrameTime_29;
-                P[2].StartFrame = timer;
+                P[2].StartFrame = frame_count;
                 Draw_CHBoxes_P2();
                 if (strcmp(P[2].HitStack, "Multi") == 0) { HitStackChange = 1; }
             }
@@ -2920,238 +2920,238 @@ void GameLoop_GamePlayMode() {
     {
         P[2].IndexAnim = 0;
         P2_FrameTime = P2_FrameTime_00;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         Draw_CHBoxes_P2();
     } //-loop
     /* <P2> Non Loops FSM! */
     //movimentos sem loop terminam e carregam outros movimentos, exemplo: final do soco fraco [101] carrega movimento parado [100]
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 101) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 102) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 103) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 104) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 105) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 106) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 151) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 152) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 153) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 154) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 155) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 156) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 201) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 202) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 203) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 204) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 205) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 206) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 501) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 502) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 503) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 504) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 505) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 506) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 511) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 512) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 513) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 601) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 552) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 602) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 603) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 310, 0, P[2].TotalDeFramesMov[310]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 604) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 300, 0, P[2].TotalDeFramesMov[300]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 605) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 320, 0, P[2].TotalDeFramesMov[320]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 606) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 607) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 608) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 200, 0, P[2].TotalDeFramesMov[200]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 700) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 710) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 720) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 730) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 740) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 750) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 760) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 770) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 780) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 790) {
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 100, 0, P[2].TotalDeFramesMov[100]);
         Draw_CHBoxes_P2();
     }
@@ -3160,111 +3160,111 @@ void GameLoop_GamePlayMode() {
     //if (P[2].IndexAnim>P[2].TotalFrames && P[2].State==300) {  }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 301) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 301, P[2].IndexAnim, P[2].TotalDeFramesMov[301]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 302) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 302, P[2].IndexAnim, P[2].TotalDeFramesMov[302]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 303) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 303, P[2].IndexAnim, P[2].TotalDeFramesMov[303]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 304) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 304, P[2].IndexAnim, P[2].TotalDeFramesMov[304]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 305) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 305, P[2].IndexAnim, P[2].TotalDeFramesMov[305]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 306) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(1, 306, 0, P[2].TotalDeFramesMov[306]);
         Draw_CHBoxes_P2();
     }
     //if (P[2].IndexAnim>P[2].TotalFrames && P[2].State==310) {  }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 311) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 311, P[2].IndexAnim, P[2].TotalDeFramesMov[311]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 312) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 312, P[2].IndexAnim, P[2].TotalDeFramesMov[312]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 313) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 313, P[2].IndexAnim, P[2].TotalDeFramesMov[313]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 314) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 314, P[2].IndexAnim, P[2].TotalDeFramesMov[314]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 315) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 315, P[2].IndexAnim, P[2].TotalDeFramesMov[315]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 316) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 316, P[2].IndexAnim, P[2].TotalDeFramesMov[316]);
         Draw_CHBoxes_P2();
     }
     //if (P[2].IndexAnim>P[2].TotalFrames && P[2].State==320) {  }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 321) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 321, P[2].IndexAnim, P[2].TotalDeFramesMov[321]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 322) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 322, P[2].IndexAnim, P[2].TotalDeFramesMov[322]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 323) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 323, P[2].IndexAnim, P[2].TotalDeFramesMov[323]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 324) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 324, P[2].IndexAnim, P[2].TotalDeFramesMov[324]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 325) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 325, P[2].IndexAnim, P[2].TotalDeFramesMov[325]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 326) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 326, P[2].IndexAnim, P[2].TotalDeFramesMov[326]);
         Draw_CHBoxes_P2();
     }
@@ -3272,37 +3272,37 @@ void GameLoop_GamePlayMode() {
     //if (P[2].IndexAnim>P[2].TotalFrames && P[2].State==550) {  }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 611) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 611, P[2].IndexAnim, P[2].TotalDeFramesMov[611]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 612) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 612, P[2].IndexAnim, P[2].TotalDeFramesMov[612]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 613) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 613, P[2].IndexAnim, P[2].TotalDeFramesMov[613]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 616) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 616, P[2].IndexAnim, P[2].TotalDeFramesMov[616]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 617) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 617, P[2].IndexAnim, P[2].TotalDeFramesMov[617]);
         Draw_CHBoxes_P2();
     }
     if (P[2].IndexAnim > P[2].TotalFrames && P[2].State == 618) {
         P[2].IndexAnim--;
-        P[2].StartFrame = timer;
+        P[2].StartFrame = frame_count;
         PLAYER_STATE(2, 618, P[2].IndexAnim, P[2].TotalDeFramesMov[618]);
         Draw_CHBoxes_P2();
     }
@@ -3403,7 +3403,7 @@ void GameLoop_GamePlayMode() {
             //ChangeState//
             if (P[ind].TableAtlas[line][17] != -5555) {
                 int set = P[ind].TableAtlas[line][17];
-                P[ind].StartFrame = timer;
+                P[ind].StartFrame = frame_count;
                 P[ind].MovStartFrame = P[ind].StartFrame;
                 PLAYER_STATE(ind, set, 0, P[ind].TotalDeFramesMov[set]);
             }
@@ -3888,73 +3888,73 @@ void GameLoop_GamePlayMode() {
         if (Fireball[ind].Ativa == 2) {
             //animacao da fireball /no momento limitada a 10frames! Preciso otimizar o codigo.
             if (Fireball[ind].IndexAnim == 0) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_00) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_00) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_01;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 1) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_01) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_01) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_02;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 2) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_02) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_02) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_03;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 3) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_03) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_03) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_04;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 4) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_04) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_04) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_05;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 5) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_05) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_05) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_05;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 6) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_06) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_06) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_06;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 7) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_07) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_07) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_07;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 8) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_08) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_08) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_08;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             if (Fireball[ind].IndexAnim == 9) {
-                if (timer > Fireball[ind].StartFrame + P1_Fireball_FrameTime_09) {
+                if (frame_count > Fireball[ind].StartFrame + P1_Fireball_FrameTime_09) {
                     Fireball[ind].IndexAnim++;
                     P1_Fireball_FrameTime = P1_Fireball_FrameTime_10;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
             }
             //loop
@@ -3962,7 +3962,7 @@ void GameLoop_GamePlayMode() {
                 if (Fireball[ind].State == 701) {
                     Fireball[ind].IndexAnim = 0;
                     P1_Fireball_FrameTime = P1_FrameTime_00;
-                    Fireball[ind].StartFrame = timer;
+                    Fireball[ind].StartFrame = frame_count;
                 }
                 if (Fireball[ind].State == 702) { Fireball[ind].Ativa = 0; }
             }
@@ -3974,39 +3974,39 @@ void GameLoop_GamePlayMode() {
     if (Qtde_HitBox > 0) {
         for (int ind = 1; ind <= Qtde_HitBox; ind++) {
             if (HitSpark[ind].IndexAnim == 0) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 1) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 2) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 3) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 4) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 5) {
-                if (timer > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
+                if (frame_count > HitSpark[ind].StartFrame + HitSpark[ind].FrameTime) {
                     HitSpark[ind].IndexAnim++;
-                    HitSpark[ind].StartFrame = timer;
+                    HitSpark[ind].StartFrame = frame_count;
                 }
             }
             if (HitSpark[ind].IndexAnim == 6) {
@@ -4660,11 +4660,11 @@ void GameLoop_GamePlayMode() {
         }
 
         //define o status do P1
-        if (timer - P[1].MovStartFrame < FD_P1_Startup) { FD_P1_Status = 1; }
-        if (((timer - P[1].MovStartFrame) >= FD_P1_Startup) && (
-                (timer - P[1].MovStartFrame) < FD_P1_MovFramesTot - FD_P1_Recovery)) { FD_P1_Status = 2; }
-        if (timer - P[1].MovStartFrame >= FD_P1_MovFramesTot - FD_P1_Recovery) { FD_P1_Status = 3; }
-        if (timer - P[1].MovStartFrame >= FD_P1_MovFramesTot) {
+        if (frame_count - P[1].MovStartFrame < FD_P1_Startup) { FD_P1_Status = 1; }
+        if (((frame_count - P[1].MovStartFrame) >= FD_P1_Startup) && (
+                (frame_count - P[1].MovStartFrame) < FD_P1_MovFramesTot - FD_P1_Recovery)) { FD_P1_Status = 2; }
+        if (frame_count - P[1].MovStartFrame >= FD_P1_MovFramesTot - FD_P1_Recovery) { FD_P1_Status = 3; }
+        if (frame_count - P[1].MovStartFrame >= FD_P1_MovFramesTot) {
             FD_P1_Status = 0;
             FD_P1_Startup = 0;
             FD_P1_Active = 0;
@@ -4674,7 +4674,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Startup P1
         if (FD_P1_Status == 1) {
             for (int ind = 0; ind <= FD_P1_Startup - 1; ind++) {
-                if ((timer - P[1].MovStartFrame) >= ind) {
+                if ((frame_count - P[1].MovStartFrame) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 50, 86+ 15+15*ind, 50+15, makecol(000,255,000)); //verde
                 }
                 if (ind < 9) {
@@ -4695,7 +4695,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Active P1
         if (FD_P1_Status == 2) {
             for (int ind = 0; ind <= FD_P1_Active - 1; ind++) {
-                if ((timer - P[1].MovStartFrame - FD_P1_Startup) >= ind) {
+                if ((frame_count - P[1].MovStartFrame - FD_P1_Startup) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 50, 86+ 15+15*ind, 50+15, makecol(255,000,000)); //vermelho
                 }
                 if (ind < 9) {
@@ -4716,7 +4716,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Recovery P1
         if (FD_P1_Status == 3) {
             for (int ind = 0; ind <= FD_P1_Recovery - 1; ind++) {
-                if ((timer - P[1].MovStartFrame - FD_P1_Startup - FD_P1_Active) >= ind) {
+                if ((frame_count - P[1].MovStartFrame - FD_P1_Startup - FD_P1_Active) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 50, 86+ 15+15*ind, 50+15, makecol(255,255,000)); //amarelo
                 }
                 if (ind < 9) {
@@ -4805,11 +4805,11 @@ void GameLoop_GamePlayMode() {
         }
 
         //define o status do P2
-        if (timer - P[2].MovStartFrame < FD_P2_Startup) { FD_P2_Status = 1; }
-        if (((timer - P[2].MovStartFrame) >= FD_P2_Startup) && (
-                (timer - P[2].MovStartFrame) < FD_P2_MovFramesTot - FD_P2_Recovery)) { FD_P2_Status = 2; }
-        if (timer - P[2].MovStartFrame >= FD_P2_MovFramesTot - FD_P2_Recovery) { FD_P2_Status = 3; }
-        if (timer - P[2].MovStartFrame >= FD_P2_MovFramesTot) {
+        if (frame_count - P[2].MovStartFrame < FD_P2_Startup) { FD_P2_Status = 1; }
+        if (((frame_count - P[2].MovStartFrame) >= FD_P2_Startup) && (
+                (frame_count - P[2].MovStartFrame) < FD_P2_MovFramesTot - FD_P2_Recovery)) { FD_P2_Status = 2; }
+        if (frame_count - P[2].MovStartFrame >= FD_P2_MovFramesTot - FD_P2_Recovery) { FD_P2_Status = 3; }
+        if (frame_count - P[2].MovStartFrame >= FD_P2_MovFramesTot) {
             FD_P2_Status = 0;
             FD_P2_Startup = 0;
             FD_P2_Active = 0;
@@ -4819,7 +4819,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Startup P2
         if (FD_P2_Status == 1) {
             for (int ind = 0; ind <= FD_P2_Startup - 1; ind++) {
-                if ((timer - P[2].MovStartFrame) >= ind) {
+                if ((frame_count - P[2].MovStartFrame) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 65, 86+ 15+15*ind, 65+15, makecol(000,255,000)); //verde
                 }
                 if (ind < 9) {
@@ -4840,7 +4840,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Active P2
         if (FD_P2_Status == 2) {
             for (int ind = 0; ind <= FD_P2_Active - 1; ind++) {
-                if ((timer - P[2].MovStartFrame - FD_P2_Startup) >= ind) {
+                if ((frame_count - P[2].MovStartFrame - FD_P2_Startup) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 65, 86+ 15+15*ind, 65+15, makecol(255,000,000)); //vermelho
                 }
                 if (ind < 9) {
@@ -4861,7 +4861,7 @@ void GameLoop_GamePlayMode() {
         //desenha retangulos: Recovery P2
         if (FD_P2_Status == 3) {
             for (int ind = 0; ind <= FD_P2_Recovery - 1; ind++) {
-                if ((timer - P[2].MovStartFrame - FD_P2_Startup - FD_P2_Active) >= ind) {
+                if ((frame_count - P[2].MovStartFrame - FD_P2_Startup - FD_P2_Active) >= ind) {
                     rectfill(LayerHUDa, 86+ 15*ind, 65, 86+ 15+15*ind, 65+15, makecol(255,255,000)); //amarelo
                 }
                 if (ind < 9) {
@@ -5356,9 +5356,9 @@ void GameLoop_GamePlayMode() {
         textprintf_centre_ex(LayerHUDa, font_debug, 320, 20 + 330, makecol(255, 255, 255), -1, "[F11] FPS+");
         textprintf_centre_ex(LayerHUDa, font_debug, 320, 20 + 350, makecol(255, 255, 255), -1, "[F12] FPS60");
         textprintf_centre_ex(LayerHUDa, font_debug, 321, 86, makecol(000, 000, 000), -1, "FPS[%d] [%d]", Ctrl_FPS,
-                             timer);
+                             frame_count);
         textprintf_centre_ex(LayerHUDa, font_debug, 320, 85, makecol(255, 255, 000), -1, "FPS[%d] [%d]", Ctrl_FPS,
-                             timer);
+                             frame_count);
         textprintf_right_ex(LayerHUDa, font_debug, 311, 436, makecol(000, 000, 000), -1,
                             "[P1] x:%i y:%i Vsp:%i Hsp:%i G.:%i TP:%i", P[1].x, P[1].y, abs(P[1].Vspeed),
                             abs(P[1].Hspeed), abs(P[1].Gravity), P[1].TempoPulo); //P1
@@ -5373,297 +5373,297 @@ void GameLoop_GamePlayMode() {
                       abs(P[2].Gravity), P[2].TempoPulo); //P2
 
         //-status do -P1- sombra
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 171, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
         //-status do -P2- sombra
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[%i/0%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 331, 455, makecol(000, 000, 000), -1, "[%i]-[0%i/0%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
 
         //-status do -P1-
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim >= 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames >= 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame >= 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[0%i/%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
-        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (timer - P[1].StartFrame < 10) && P1_FrameTime < 10) {
+        if (P[1].IndexAnim < 10 && P[1].TotalFrames < 10 && (frame_count - P[1].StartFrame < 10) && P1_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 170, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[0%i/0%i]",
-                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (timer - P[1].StartFrame) + 1,
+                          P[1].State, P[1].IndexAnim, P[1].TotalFrames, (frame_count - P[1].StartFrame) + 1,
                           P1_FrameTime + 1);
         }
         //-status do -P2-
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim >= 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[%i/0%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames >= 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame >= 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime >= 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[0%i/%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
-        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (timer - P[2].StartFrame < 10) && P2_FrameTime < 10) {
+        if (P[2].IndexAnim < 10 && P[2].TotalFrames < 10 && (frame_count - P[2].StartFrame < 10) && P2_FrameTime < 10) {
             textprintf_ex(LayerHUDa, font_debug, 330, 454, makecol(255, 255, 255), -1, "[%i]-[0%i/0%i]-[0%i/0%i]",
-                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, timer - P[2].StartFrame, P2_FrameTime);
+                          P[2].State, P[2].IndexAnim, P[2].TotalFrames, frame_count - P[2].StartFrame, P2_FrameTime);
         }
 
         //exibe relogio sombra

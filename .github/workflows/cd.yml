@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }} with ${{ matrix.backend }}
+    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -19,7 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        backend: [allegro, sdl2]
         include:
           - os: ubuntu-latest
             platform_name: linux
@@ -27,45 +26,27 @@ jobs:
             platform_name: macos
           - os: windows-latest
             platform_name: windows
-        exclude:
-          # Exclude macOS + Allegro, only build SDL2 for macOS
-          - os: macos-latest
-            backend: allegro
-          # Exclude Windows + Allegro
-          - os: windows-latest
-            backend: allegro
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
       # Linux dependencies
-      - name: Install dependencies (Linux - Allegro)
-        if: matrix.os == 'ubuntu-latest' && matrix.backend == 'allegro'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y liballegro4-dev libpng-dev
-
-      - name: Install dependencies (Linux - SDL2)
-        if: matrix.os == 'ubuntu-latest' && matrix.backend == 'sdl2'
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libinih-dev qt6-base-dev
 
       # macOS dependencies
-      - name: Install dependencies (macOS - Allegro)
-        if: matrix.os == 'macos-latest' && matrix.backend == 'allegro'
-        run: |
-          brew install allegro@4
-
-      - name: Install dependencies (macOS - SDL2)
-        if: matrix.os == 'macos-latest' && matrix.backend == 'sdl2'
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
         run: |
           brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih qt@6
 
       # Windows dependencies
-      - name: Cache vcpkg packages (Windows - SDL2)
-        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+      - name: Cache vcpkg packages (Windows)
+        if: matrix.os == 'windows-latest'
         uses: actions/cache@v4
         with:
           path: |
@@ -76,15 +57,15 @@ jobs:
             ${{ runner.os }}-vcpkg-sdl2-
             ${{ runner.os }}-vcpkg-
 
-      - name: Setup vcpkg (Windows - SDL2)
-        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+      - name: Setup vcpkg (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
           vcpkg integrate install
           vcpkg install sdl2:x86-windows sdl2-image:x86-windows sdl2-mixer:x86-windows sdl2-ttf:x86-windows inih:x86-windows
         shell: bash
 
-      - name: Install Qt6 (Windows - SDL2)
-        if: matrix.os == 'windows-latest' && matrix.backend == 'sdl2'
+      - name: Install Qt6 (Windows)
+        if: matrix.os == 'windows-latest'
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.7.*'
@@ -93,65 +74,14 @@ jobs:
           arch: 'win64_msvc2019_64'
           cache: true
 
-      - name: Install Allegro 4 manually (Windows)
-        if: matrix.os == 'windows-latest' && matrix.backend == 'allegro'
-        run: |
-          # Download Allegro 4.4.2 binary for Windows
-          curl -L -f https://master.dl.sourceforge.net/project/alleg/allegro-bin/4.2.2/allegro-mingw-4.2.2.zip?viasf=1 -o allegro.zip || {
-            echo "Failed to download Allegro 4. Please verify the download URL."
-            exit 1
-          }
-          # Create destination directory
-          mkdir -p C:/allegro
-          # Extract and organize files
-          7z x allegro.zip -oC:/allegro-temp
-          # Find the actual allegro directory and copy its contents
-          if [ -d "C:/allegro-temp/allegro-mingw-4.2.2" ]; then
-            cp -r C:/allegro-temp/allegro-mingw-4.2.2/* C:/allegro/
-          elif [ -d "C:/allegro-temp/allegro" ]; then
-            cp -r C:/allegro-temp/allegro/* C:/allegro/
-          else
-            # Fallback: just copy everything
-            cp -r C:/allegro-temp/* C:/allegro/
-          fi
-          # List contents for debugging
-          echo "Contents of C:/allegro:"
-          ls -la C:/allegro/
-          if [ -d "C:/allegro/include" ]; then
-            echo "Include directory found"
-            ls -la C:/allegro/include/
-          fi
-          if [ -d "C:/allegro/lib" ]; then
-            echo "Lib directory found"
-            ls -la C:/allegro/lib/
-          fi
-          # Set environment variables for CMake to find Allegro
-          echo "ALLEGRO_ROOT=C:/allegro" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=C:/allegro" >> $GITHUB_ENV
-        shell: bash
-
-      # Build with Allegro
-      - name: Build (Allegro)
-        if: matrix.backend == 'allegro'
-        run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Use Win32 (x86) architecture for Windows Allegro builds
-            cmake -B build -A Win32 -DUSE_SDL2=OFF
-          else
-            cmake -B build -DUSE_SDL2=OFF
-          fi
-          cmake --build build --config Release
-        shell: bash
-
       # Build with SDL2
-      - name: Build (SDL2)
-        if: matrix.backend == 'sdl2'
+      - name: Build
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            # Use Win32 (x86) architecture for Windows SDL2 builds to match vcpkg installation
-            cmake -B build -A Win32 -DUSE_SDL2=ON -DBUILD_TOOLS=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+            # Use Win32 (x86) architecture for Windows builds to match vcpkg installation
+            cmake -B build -A Win32 -DBUILD_TOOLS=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           else
-            cmake -B build -DUSE_SDL2=ON -DBUILD_TOOLS=ON
+            cmake -B build -DBUILD_TOOLS=ON
           fi
           cmake --build build --config Release
         shell: bash
@@ -171,19 +101,17 @@ jobs:
             exit 1
           fi
           
-          # Copy tools if they were built
-          if [ "${{ matrix.backend }}" == "sdl2" ]; then
-            # Copy pallete-generator (SDL2 backend)
-            if [ -f "build/tools/pallete-generator/PALLETEGEN" ]; then
-              cp build/tools/pallete-generator/PALLETEGEN artifacts/
-              echo "Added PALLETEGEN to artifacts"
-            fi
-          
-            # Copy font-generator (Qt6 based)
-            if [ -f "build/tools/font-generator/TTF2PCX" ]; then
-              cp build/tools/font-generator/TTF2PCX artifacts/
-              echo "Added TTF2PCX to artifacts"
-            fi
+          # Copy tools
+          # Copy pallete-generator
+          if [ -f "build/tools/pallete-generator/PALLETEGEN" ]; then
+            cp build/tools/pallete-generator/PALLETEGEN artifacts/
+            echo "Added PALLETEGEN to artifacts"
+          fi
+        
+          # Copy font-generator (Qt6 based)
+          if [ -f "build/tools/font-generator/TTF2PCX" ]; then
+            cp build/tools/font-generator/TTF2PCX artifacts/
+            echo "Added TTF2PCX to artifacts"
           fi
           
           # Copy data files
@@ -192,10 +120,9 @@ jobs:
           cp README.md artifacts/
           cp SETUP.ini artifacts/
           
-          # Copy shared libraries for SDL2 backend
-          if [ "${{ matrix.backend }}" == "sdl2" ]; then
-            echo "Copying SDL2 shared libraries..."
-            mkdir -p artifacts/lib
+          # Copy shared libraries
+          echo "Copying SDL2 shared libraries..."
+          mkdir -p artifacts/lib
           
             if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
               # Linux: Copy shared libraries
@@ -263,11 +190,10 @@ jobs:
           
             echo "Shared library files in artifacts/lib:"
             ls -la artifacts/lib/ 2>/dev/null || echo "No library files found"
-          fi
           
           # Create tarball
           cd artifacts
-          tar czf ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz *
+          tar czf ../HAMOOPI-${{ matrix.platform_name }}.tar.gz *
         shell: bash
 
       - name: Package artifacts (Windows)
@@ -286,36 +212,34 @@ jobs:
             exit 1
           fi
           
-          # Copy tools if they were built (SDL2 backend only)
-          if [ "${{ matrix.backend }}" == "sdl2" ]; then
-            # Copy pallete-generator
-            if [ -f "build/tools/pallete-generator/Release/PALLETEGEN.exe" ]; then
-              cp build/tools/pallete-generator/Release/PALLETEGEN.exe artifacts/
-              echo "Added PALLETEGEN.exe to artifacts"
-            elif [ -f "build/tools/pallete-generator/PALLETEGEN.exe" ]; then
-              cp build/tools/pallete-generator/PALLETEGEN.exe artifacts/
-              echo "Added PALLETEGEN.exe to artifacts"
-            fi
-          
-            # Copy font-generator
-            if [ -f "build/tools/font-generator/Release/TTF2PCX.exe" ]; then
-              cp build/tools/font-generator/Release/TTF2PCX.exe artifacts/
-              echo "Added TTF2PCX.exe to artifacts"
-            elif [ -f "build/tools/font-generator/TTF2PCX.exe" ]; then
-              cp build/tools/font-generator/TTF2PCX.exe artifacts/
-              echo "Added TTF2PCX.exe to artifacts"
-            fi
-          
-            # Copy Qt6 DLLs for font-generator
-            QT_BIN="$IQTA_TOOLS/../bin"
-            if [ -d "$QT_BIN" ]; then
-              cp "$QT_BIN/Qt6Core.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Core.dll not found"
-              cp "$QT_BIN/Qt6Gui.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Gui.dll not found"
-              cp "$QT_BIN/Qt6Widgets.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Widgets.dll not found"
-              # Copy platform plugin
-              mkdir -p artifacts/platforms
-              cp "$QT_BIN/../plugins/platforms/qwindows.dll" artifacts/platforms/ 2>/dev/null || echo "Warning: qwindows.dll not found"
-            fi
+          # Copy tools
+          # Copy pallete-generator
+          if [ -f "build/tools/pallete-generator/Release/PALLETEGEN.exe" ]; then
+            cp build/tools/pallete-generator/Release/PALLETEGEN.exe artifacts/
+            echo "Added PALLETEGEN.exe to artifacts"
+          elif [ -f "build/tools/pallete-generator/PALLETEGEN.exe" ]; then
+            cp build/tools/pallete-generator/PALLETEGEN.exe artifacts/
+            echo "Added PALLETEGEN.exe to artifacts"
+          fi
+        
+          # Copy font-generator
+          if [ -f "build/tools/font-generator/Release/TTF2PCX.exe" ]; then
+            cp build/tools/font-generator/Release/TTF2PCX.exe artifacts/
+            echo "Added TTF2PCX.exe to artifacts"
+          elif [ -f "build/tools/font-generator/TTF2PCX.exe" ]; then
+            cp build/tools/font-generator/TTF2PCX.exe artifacts/
+            echo "Added TTF2PCX.exe to artifacts"
+          fi
+        
+          # Copy Qt6 DLLs for font-generator
+          QT_BIN="$IQTA_TOOLS/../bin"
+          if [ -d "$QT_BIN" ]; then
+            cp "$QT_BIN/Qt6Core.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Core.dll not found"
+            cp "$QT_BIN/Qt6Gui.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Gui.dll not found"
+            cp "$QT_BIN/Qt6Widgets.dll" artifacts/ 2>/dev/null || echo "Warning: Qt6Widgets.dll not found"
+            # Copy platform plugin
+            mkdir -p artifacts/platforms
+            cp "$QT_BIN/../plugins/platforms/qwindows.dll" artifacts/platforms/ 2>/dev/null || echo "Warning: qwindows.dll not found"
           fi
           
           # Copy data files
@@ -324,51 +248,49 @@ jobs:
           cp README.md artifacts/
           cp SETUP.ini artifacts/
           
-          # Copy SDL2 shared libraries for SDL2 backend
-          if [ "${{ matrix.backend }}" == "sdl2" ]; then
-            echo "Copying SDL2 DLLs from vcpkg..."
-            # vcpkg installs DLLs in the installed/x86-windows/bin directory
-            VCPKG_BIN="$VCPKG_INSTALLATION_ROOT/installed/x86-windows/bin"
-            if [ -d "$VCPKG_BIN" ]; then
-              cp "$VCPKG_BIN/SDL2.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2.dll not found"
-              cp "$VCPKG_BIN/SDL2_image.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_image.dll not found"
-              cp "$VCPKG_BIN/SDL2_mixer.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_mixer.dll not found"
-              cp "$VCPKG_BIN/SDL2_ttf.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_ttf.dll not found"
-              cp "$VCPKG_BIN/inih.dll" artifacts/ 2>/dev/null || echo "Warning: inih.dll not found"
-              # SDL2_image dependencies
-              cp "$VCPKG_BIN/jpeg62.dll" artifacts/ 2>/dev/null || echo "Warning: jpeg62.dll not found"
-              cp "$VCPKG_BIN/libpng16.dll" artifacts/ 2>/dev/null || echo "Warning: libpng16.dll not found"
-              cp "$VCPKG_BIN/zlib1.dll" artifacts/ 2>/dev/null || echo "Warning: zlib1.dll not found"
-              cp "$VCPKG_BIN/tiff.dll" artifacts/ 2>/dev/null || echo "Warning: tiff.dll not found"
-              cp "$VCPKG_BIN/libwebp.dll" artifacts/ 2>/dev/null || echo "Warning: libwebp.dll not found"
-              # SDL2_mixer dependencies
-              cp "$VCPKG_BIN/libvorbis.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbis.dll not found"
-              cp "$VCPKG_BIN/libvorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbisfile.dll not found"
-              cp "$VCPKG_BIN/vorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: vorbisfile.dll not found"
-              cp "$VCPKG_BIN/libogg.dll" artifacts/ 2>/dev/null || echo "Warning: libogg.dll not found"
-              cp "$VCPKG_BIN/libmodplug.dll" artifacts/ 2>/dev/null || echo "Warning: libmodplug.dll not found"
-              cp "$VCPKG_BIN/libmpg123.dll" artifacts/ 2>/dev/null || echo "Warning: libmpg123.dll not found"
-              cp "$VCPKG_BIN/libopus.dll" artifacts/ 2>/dev/null || echo "Warning: libopus.dll not found"
-              cp "$VCPKG_BIN/libopusfile.dll" artifacts/ 2>/dev/null || echo "Warning: libopusfile.dll not found"
-              cp "$VCPKG_BIN/libFLAC.dll" artifacts/ 2>/dev/null || echo "Warning: libFLAC.dll not found"
-              cp "$VCPKG_BIN/wavpackdll.dll" artifacts/ 2>/dev/null || echo "Warning: wavpackdll.dll not found"
-              cp "$VCPKG_BIN/ogg.dll" artifacts/ 2>/dev/null || echo "Warning: ogg.dll not found"
-              cp "$VCPKG_BIN/vorbis.dll" artifacts/ 2>/dev/null || echo "Warning: vorbis.dll not found"
-              # SDL2_ttf dependencies
-              cp "$VCPKG_BIN/freetype.dll" artifacts/ 2>/dev/null || echo "Warning: freetype.dll not found"
-              cp "$VCPKG_BIN/bz2.dll" artifacts/ 2>/dev/null || echo "Warning: bz2.dll not found"
-              cp "$VCPKG_BIN/brotlicommon.dll" artifacts/ 2>/dev/null || echo "Warning: brotlicommon.dll not found"
-              cp "$VCPKG_BIN/brotlidec.dll" artifacts/ 2>/dev/null || echo "Warning: brotlidec.dll not found"
-              echo "DLL files in artifacts:"
-              ls -la artifacts/*.dll 2>/dev/null || echo "No DLL files found in artifacts"
-            else
-              echo "Warning: vcpkg bin directory not found at $VCPKG_BIN"
-            fi
+          # Copy SDL2 shared libraries
+          echo "Copying SDL2 DLLs from vcpkg..."
+          # vcpkg installs DLLs in the installed/x86-windows/bin directory
+          VCPKG_BIN="$VCPKG_INSTALLATION_ROOT/installed/x86-windows/bin"
+          if [ -d "$VCPKG_BIN" ]; then
+            cp "$VCPKG_BIN/SDL2.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2.dll not found"
+            cp "$VCPKG_BIN/SDL2_image.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_image.dll not found"
+            cp "$VCPKG_BIN/SDL2_mixer.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_mixer.dll not found"
+            cp "$VCPKG_BIN/SDL2_ttf.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_ttf.dll not found"
+            cp "$VCPKG_BIN/inih.dll" artifacts/ 2>/dev/null || echo "Warning: inih.dll not found"
+            # SDL2_image dependencies
+            cp "$VCPKG_BIN/jpeg62.dll" artifacts/ 2>/dev/null || echo "Warning: jpeg62.dll not found"
+            cp "$VCPKG_BIN/libpng16.dll" artifacts/ 2>/dev/null || echo "Warning: libpng16.dll not found"
+            cp "$VCPKG_BIN/zlib1.dll" artifacts/ 2>/dev/null || echo "Warning: zlib1.dll not found"
+            cp "$VCPKG_BIN/tiff.dll" artifacts/ 2>/dev/null || echo "Warning: tiff.dll not found"
+            cp "$VCPKG_BIN/libwebp.dll" artifacts/ 2>/dev/null || echo "Warning: libwebp.dll not found"
+            # SDL2_mixer dependencies
+            cp "$VCPKG_BIN/libvorbis.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbis.dll not found"
+            cp "$VCPKG_BIN/libvorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: libvorbisfile.dll not found"
+            cp "$VCPKG_BIN/vorbisfile.dll" artifacts/ 2>/dev/null || echo "Warning: vorbisfile.dll not found"
+            cp "$VCPKG_BIN/libogg.dll" artifacts/ 2>/dev/null || echo "Warning: libogg.dll not found"
+            cp "$VCPKG_BIN/libmodplug.dll" artifacts/ 2>/dev/null || echo "Warning: libmodplug.dll not found"
+            cp "$VCPKG_BIN/libmpg123.dll" artifacts/ 2>/dev/null || echo "Warning: libmpg123.dll not found"
+            cp "$VCPKG_BIN/libopus.dll" artifacts/ 2>/dev/null || echo "Warning: libopus.dll not found"
+            cp "$VCPKG_BIN/libopusfile.dll" artifacts/ 2>/dev/null || echo "Warning: libopusfile.dll not found"
+            cp "$VCPKG_BIN/libFLAC.dll" artifacts/ 2>/dev/null || echo "Warning: libFLAC.dll not found"
+            cp "$VCPKG_BIN/wavpackdll.dll" artifacts/ 2>/dev/null || echo "Warning: wavpackdll.dll not found"
+            cp "$VCPKG_BIN/ogg.dll" artifacts/ 2>/dev/null || echo "Warning: ogg.dll not found"
+            cp "$VCPKG_BIN/vorbis.dll" artifacts/ 2>/dev/null || echo "Warning: vorbis.dll not found"
+            # SDL2_ttf dependencies
+            cp "$VCPKG_BIN/freetype.dll" artifacts/ 2>/dev/null || echo "Warning: freetype.dll not found"
+            cp "$VCPKG_BIN/bz2.dll" artifacts/ 2>/dev/null || echo "Warning: bz2.dll not found"
+            cp "$VCPKG_BIN/brotlicommon.dll" artifacts/ 2>/dev/null || echo "Warning: brotlicommon.dll not found"
+            cp "$VCPKG_BIN/brotlidec.dll" artifacts/ 2>/dev/null || echo "Warning: brotlidec.dll not found"
+            echo "DLL files in artifacts:"
+            ls -la artifacts/*.dll 2>/dev/null || echo "No DLL files found in artifacts"
+          else
+            echo "Warning: vcpkg bin directory not found at $VCPKG_BIN"
           fi
           
           # Create zip for Windows
           cd artifacts
-          7z a -tzip ../HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip *
+          7z a -tzip ../HAMOOPI-${{ matrix.platform_name }}.zip *
         shell: bash
 
       # Upload artifacts for all builds
@@ -376,16 +298,16 @@ jobs:
         if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}
-          path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.tar.gz
+          name: HAMOOPI-${{ matrix.platform_name }}
+          path: HAMOOPI-${{ matrix.platform_name }}.tar.gz
           retention-days: 30
 
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}
-          path: HAMOOPI-${{ matrix.platform_name }}-${{ matrix.backend }}.zip
+          name: HAMOOPI-${{ matrix.platform_name }}
+          path: HAMOOPI-${{ matrix.platform_name }}.zip
           retention-days: 30
 
   release:
