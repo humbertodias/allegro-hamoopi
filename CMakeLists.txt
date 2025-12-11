@@ -127,12 +127,15 @@ else ()
 
     # Find Allegro 4 using custom Find module
     find_package(Allegro4 REQUIRED)
+    
+    # Find PNG library for PNG support in Allegro 4 backend
+    find_package(PNG REQUIRED)
 
     # Add directories to the include search path
-    target_include_directories(HAMOOPI PRIVATE ${ALLEGRO4_INCLUDE_DIRS})
+    target_include_directories(HAMOOPI PRIVATE ${ALLEGRO4_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
 
     # Link with dependencies
-    target_link_libraries(HAMOOPI ${ALLEGRO4_LIBRARIES})
+    target_link_libraries(HAMOOPI ${ALLEGRO4_LIBRARIES} ${PNG_LIBRARIES})
 
     # On Windows, disable SAFESEH for compatibility with Allegro 4
     # Allegro 4 was compiled without SAFESEH support
