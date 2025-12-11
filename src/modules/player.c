@@ -8,8 +8,8 @@ void LOAD_PLAYERS() {
         for (int indState = 100; indState <= 999; indState++) {
             P[indPlayer].TotalDeFramesMov[indState] = -1;
             for (int indAnim = 0; indAnim <= 29; indAnim++) {
-                if (indAnim < 10) { sprintf(txt, "data/chars/%s/%d_0%d.pcx", P[indPlayer].Name, indState, indAnim); }
-                if (indAnim >= 10) { sprintf(txt, "data/chars/%s/%d_%d.pcx", P[indPlayer].Name, indState, indAnim); }
+                if (indAnim < 10) { sprintf(txt, "data/chars/%s/%d_0%d.png", P[indPlayer].Name, indState, indAnim); }
+                if (indAnim >= 10) { sprintf(txt, "data/chars/%s/%d_%d.png", P[indPlayer].Name, indState, indAnim); }
                 if (exists(txt)) {
                     P[indPlayer].TotalDeFramesMov[indState]++; //contagem de numero de frames de cada State (Movimento)
                     P[indPlayer].TotalDeImagensUtilizadas++; //contagem total da quantidade de frames deste personagem
@@ -25,9 +25,9 @@ void LOAD_PLAYERS() {
                     BITMAP *P2_Pallete = create_bitmap(32, 10);
                     clear_to_color(P1_Pallete, makecol(255, 0, 255));
                     clear_to_color(P2_Pallete, makecol(255, 0, 255));
-                    sprintf(P1_Pallete_string, "data/chars/%s/pallete.pcx", P[1].Name);
+                    sprintf(P1_Pallete_string, "data/chars/%s/pallete.png", P[1].Name);
                     P1_Pallete = load_bitmap(P1_Pallete_string, NULL);
-                    sprintf(P2_Pallete_string, "data/chars/%s/pallete.pcx", P[2].Name);
+                    sprintf(P2_Pallete_string, "data/chars/%s/pallete.png", P[2].Name);
                     P2_Pallete = load_bitmap(P2_Pallete_string, NULL);
 
                     if (indPlayer == 1) {
@@ -169,7 +169,7 @@ void LOAD_PLAYERS() {
         if (P[ind].TotalDeImagensUtilizadas == -1) {
             P[ind].TotalDeImagensUtilizadas = 0;
             BITMAP *Spr_Aux = create_bitmap(480, 480);
-            Spr_Aux = load_bitmap("data/system/char_generic2x.pcx", NULL);
+            Spr_Aux = load_bitmap("data/system/char_generic2x.png", NULL);
             P[ind].SprAtlas[0]->w = Spr_Aux->w;
             P[ind].SprAtlas[0]->h = Spr_Aux->h;
             blit(Spr_Aux, P[ind].SprAtlas[0], 0, 0, 0, 0, Spr_Aux->w, Spr_Aux->h);

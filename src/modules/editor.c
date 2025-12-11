@@ -885,8 +885,8 @@ void ED_inicializar() {
     int ED_100_tot = -1;
     for (int i = 0; i <= 29; i++) {
         char txt[50] = "";
-        if (i < 10) { sprintf(txt, "data/chars/%s/100_0%i.pcx", ED_Name, i); }
-        if (i >= 10) { sprintf(txt, "data/chars/%s/100_%i.pcx", ED_Name, i); }
+        if (i < 10) { sprintf(txt, "data/chars/%s/100_0%i.png", ED_Name, i); }
+        if (i >= 10) { sprintf(txt, "data/chars/%s/100_%i.png", ED_Name, i); }
         if (exists(txt)) { ED_100_tot++; } else { i = 29; }
         ED_TotalFrames = ED_100_tot;
     }
@@ -907,7 +907,7 @@ void ED_inicializar() {
     for (int ind = 100; ind <= 999; ind++) {
         char indINTtoCHAR[4] = "";
         sprintf(indINTtoCHAR, "%d", ind);
-        sprintf(txt, "data/chars/%s/%s_00.pcx", ED_Name, indINTtoCHAR);
+        sprintf(txt, "data/chars/%s/%s_00.png", ED_Name, indINTtoCHAR);
         if (exists(txt)) {
             MovPossiveis[i] = ind;
             i++;

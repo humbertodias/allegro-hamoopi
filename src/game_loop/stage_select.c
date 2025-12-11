@@ -20,9 +20,9 @@ void GameLoop_ModoMapa() {
     if (ModoMapaTimerAnim > 5) { ModoMapaTimerAnim = 0; } //usado para animar elementos da tela
 
     //define qual imagem mostrar para o P2
-    sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", P[2].Name);
+    sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", P[2].Name);
     P2BIGDisplay = load_bitmap(P2BIGDisplaystring, NULL);
-    if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+    if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
 
     draw_sprite(bufferx, SELECT_CHARS, 0, 0); //bg
     textprintf_centre_ex(bufferx, font_20, 323, 5, makecol(000, 000, 000), -1, "Proximo Oponente");

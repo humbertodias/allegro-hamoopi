@@ -95,9 +95,9 @@ void GameLoop_EditMode() {
     if (EditModeTime == 0) {
         ED_inicializar();
         char ED_Caminho[99];
-        sprintf(ED_Caminho, "data/chars/%s/000_01.pcx", P[1].Name);
+        sprintf(ED_Caminho, "data/chars/%s/000_01.png", P[1].Name);
         ED_Mini = load_bitmap(ED_Caminho, NULL);
-        if (!ED_Mini) { ED_Mini = load_bitmap("data/system/000_01.pcx", NULL); }
+        if (!ED_Mini) { ED_Mini = load_bitmap("data/system/000_01.png", NULL); }
     }
 
     //botoes para alterar os STATES
@@ -162,8 +162,8 @@ void GameLoop_EditMode() {
                 ED_tot[ind] = -1;
                 for (int i = 0; i <= 29; i++) {
                     char txt[50] = "";
-                    if (i < 10) { sprintf(txt, "data/chars/%s/%i_0%i.pcx", ED_Name, ind, i); }
-                    if (i >= 10) { sprintf(txt, "data/chars/%s/%i_%i.pcx", ED_Name, ind, i); }
+                    if (i < 10) { sprintf(txt, "data/chars/%s/%i_0%i.png", ED_Name, ind, i); }
+                    if (i >= 10) { sprintf(txt, "data/chars/%s/%i_%i.png", ED_Name, ind, i); }
                     if (exists(txt)) { ED_tot[ind]++; } else { i = 29; }
                     ED_TotalFrames = ED_tot[ind];
                 }
@@ -945,18 +945,18 @@ void GameLoop_EditMode() {
         else { sprintf(txt, "%i_%i", ED_State, ED_IndexAnim); } //>=10
         if (ED_IndexAnim < 10) {
             if (ED_State != 603 && ED_State != 605) {
-                sprintf(txt2, "data/chars/%s/%i_0%i.pcx", ED_Name, ED_State, ED_IndexAnim);
+                sprintf(txt2, "data/chars/%s/%i_0%i.png", ED_Name, ED_State, ED_IndexAnim);
             } //<10
             if (ED_State == 603 || ED_State == 605) {
-                sprintf(txt2, "data/chars/%s/604_0%i.pcx", ED_Name, ED_IndexAnim);
+                sprintf(txt2, "data/chars/%s/604_0%i.png", ED_Name, ED_IndexAnim);
             }
         } //<10
         else {
             if (ED_State != 603 && ED_State != 605) {
-                sprintf(txt2, "data/chars/%s/%i_%i.pcx", ED_Name, ED_State, ED_IndexAnim);
+                sprintf(txt2, "data/chars/%s/%i_%i.png", ED_Name, ED_State, ED_IndexAnim);
             } //>=10
             if (ED_State == 603 || ED_State == 605) {
-                sprintf(txt2, "data/chars/%s/604_%i.pcx", ED_Name, ED_IndexAnim);
+                sprintf(txt2, "data/chars/%s/604_%i.png", ED_Name, ED_IndexAnim);
             }
         } //>=10
 
@@ -2238,9 +2238,9 @@ void GameLoop_EditMode() {
     if (deveinicializar == 1) {
         ED_inicializar();
         char ED_Caminho[99];
-        sprintf(ED_Caminho, "data/chars/%s/000_01.pcx", P[1].Name);
+        sprintf(ED_Caminho, "data/chars/%s/000_01.png", P[1].Name);
         ED_Mini = load_bitmap(ED_Caminho, NULL);
-        if (!ED_Mini) { ED_Mini = load_bitmap("data/system/000_01.pcx", NULL); }
+        if (!ED_Mini) { ED_Mini = load_bitmap("data/system/000_01.png", NULL); }
     }
 
     textprintf_ex(bufferx, font_debug, 13, 8 - 2, makecol(000, 000, 000), -1, "HAMOOPI EDITOR");

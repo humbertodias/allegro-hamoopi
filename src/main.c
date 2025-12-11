@@ -852,6 +852,7 @@ BITMAP *P2BIGDisplayInv ;
 
 int SelectBGID = 1;
 int ModoFullscreen = 0;
+char bg_choice[40] = "";
 
 ///////////////////////////////////////////////////////////////////////////////
 // GAME LOOP FUNCTIONS -------------------------------------------------------
@@ -931,9 +932,8 @@ int main() {
         strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
     }
     //abastece Atlas de cenario
-    char bg_choice[40] = "";
     for (int ind = 1; ind <= 8; ind++) {
-        snprintf(bg_choice, sizeof(bg_choice), "data/backgrounds/%s/000_00.pcx", Lista_de_Cenarios_Instalados[ind]);
+        sprintf(bg_choice, "data/backgrounds/%s/000_00.png", Lista_de_Cenarios_Instalados[ind]);
         bg_hamoopi[ind] = load_bitmap(bg_choice, NULL);
     }
 
@@ -972,392 +972,392 @@ int main() {
     clear_to_color(P2_Pallete, makecol(255, 0, 255));
 
     int HamoopiError = 0;
-    GAME_logo = load_bitmap("data/system/GAME_logo.pcx", NULL);
+    GAME_logo = load_bitmap("data/system/GAME_logo.png", NULL);
     if (!GAME_logo) { HamoopiError = 1; }
-    flag_BR = load_bitmap("data/system/flag_BR.pcx", NULL);
+    flag_BR = load_bitmap("data/system/flag_BR.png", NULL);
     if (!flag_BR) { HamoopiError = 1; }
-    sel_mark_p1 = load_bitmap("data/system/sel_mark_p1.pcx", NULL);
+    sel_mark_p1 = load_bitmap("data/system/sel_mark_p1.png", NULL);
     if (!sel_mark_p1) { HamoopiError = 1; }
-    sel_mark_p2 = load_bitmap("data/system/sel_mark_p2.pcx", NULL);
+    sel_mark_p2 = load_bitmap("data/system/sel_mark_p2.png", NULL);
     if (!sel_mark_p2) { HamoopiError = 1; }
-    flag_US = load_bitmap("data/system/flag_US.pcx", NULL);
+    flag_US = load_bitmap("data/system/flag_US.png", NULL);
     if (!flag_US) { HamoopiError = 1; }
-    SELECT_CHARS = load_bitmap("data/system/SELECT_CHARS.pcx", NULL);
+    SELECT_CHARS = load_bitmap("data/system/SELECT_CHARS.png", NULL);
     if (!SELECT_CHARS) { HamoopiError = 1; }
-    VS_SCREEN = load_bitmap("data/system/VS_SCREEN.pcx", NULL);
+    VS_SCREEN = load_bitmap("data/system/VS_SCREEN.png", NULL);
     if (!VS_SCREEN) { HamoopiError = 1; }
-    vs_icon = load_bitmap("data/system/vs_icon.pcx", NULL);
+    vs_icon = load_bitmap("data/system/vs_icon.png", NULL);
     if (!vs_icon) { HamoopiError = 1; }
-    SELECT_BG = load_bitmap("data/system/SELECT_BG.pcx", NULL);
+    SELECT_BG = load_bitmap("data/system/SELECT_BG.png", NULL);
     if (!SELECT_BG) { HamoopiError = 1; }
-    donation = load_bitmap("data/system/donation.pcx", NULL);
+    donation = load_bitmap("data/system/donation.png", NULL);
     if (!donation) { HamoopiError = 1; }
-    spr_p1_cursor = load_bitmap("data/system/spr_p1_cursor.pcx", NULL);
+    spr_p1_cursor = load_bitmap("data/system/spr_p1_cursor.png", NULL);
     if (!spr_p1_cursor) { HamoopiError = 1; }
-    spr_p2_cursor = load_bitmap("data/system/spr_p2_cursor.pcx", NULL);
+    spr_p2_cursor = load_bitmap("data/system/spr_p2_cursor.png", NULL);
     if (!spr_p2_cursor) { HamoopiError = 1; }
-    spr_cursor_historia = load_bitmap("data/system/spr_cursor_historia.pcx", NULL);
+    spr_cursor_historia = load_bitmap("data/system/spr_cursor_historia.png", NULL);
     if (!spr_cursor_historia) { HamoopiError = 1; }
-    spr_cursor_vazio = load_bitmap("data/system/spr_cursor_vazio.pcx", NULL);
+    spr_cursor_vazio = load_bitmap("data/system/spr_cursor_vazio.png", NULL);
     if (!spr_cursor_vazio) { HamoopiError = 1; }
-    spr_ponteiro = load_bitmap("data/system/spr_ponteiro.pcx", NULL);
+    spr_ponteiro = load_bitmap("data/system/spr_ponteiro.png", NULL);
     if (!spr_ponteiro) { HamoopiError = 1; }
-    spr_menu_icon = load_bitmap("data/system/spr_menu_icon.pcx", NULL);
+    spr_menu_icon = load_bitmap("data/system/spr_menu_icon.png", NULL);
     if (!spr_menu_icon) { HamoopiError = 1; }
-    GAME_intro = load_bitmap("data/system/GAME_intro.pcx", NULL);
+    GAME_intro = load_bitmap("data/system/GAME_intro.png", NULL);
     if (!GAME_intro) { HamoopiError = 1; }
-    GAME_options = load_bitmap("data/system/GAME_options.pcx", NULL);
+    GAME_options = load_bitmap("data/system/GAME_options.png", NULL);
     if (!GAME_options) { HamoopiError = 1; }
-    char_generic = load_bitmap("data/system/char_generic.pcx", NULL);
+    char_generic = load_bitmap("data/system/char_generic.png", NULL);
     if (!char_generic) { HamoopiError = 1; }
-    char_generic2x = load_bitmap("data/system/char_generic2x.pcx", NULL);
+    char_generic2x = load_bitmap("data/system/char_generic2x.png", NULL);
     if (!char_generic2x) { HamoopiError = 1; }
-    spr_mold_results = load_bitmap("data/system/spr_mold_results.pcx", NULL);
+    spr_mold_results = load_bitmap("data/system/spr_mold_results.png", NULL);
     if (!spr_mold_results) { HamoopiError = 1; }
-    spr_result_perfect = load_bitmap("data/system/spr_result_perfect.pcx", NULL);
+    spr_result_perfect = load_bitmap("data/system/spr_result_perfect.png", NULL);
     if (!spr_result_perfect) { HamoopiError = 1; }
-    spr_result_win = load_bitmap("data/system/spr_result_win.pcx", NULL);
+    spr_result_win = load_bitmap("data/system/spr_result_win.png", NULL);
     if (!spr_result_win) { HamoopiError = 1; }
-    spr_splash_round1 = load_bitmap("data/system/spr_splash_round1.pcx", NULL);
+    spr_splash_round1 = load_bitmap("data/system/spr_splash_round1.png", NULL);
     if (!spr_splash_round1) { HamoopiError = 1; }
-    spr_splash_round2 = load_bitmap("data/system/spr_splash_round2.pcx", NULL);
+    spr_splash_round2 = load_bitmap("data/system/spr_splash_round2.png", NULL);
     if (!spr_splash_round2) { HamoopiError = 1; }
-    spr_splash_round3 = load_bitmap("data/system/spr_splash_round3.pcx", NULL);
+    spr_splash_round3 = load_bitmap("data/system/spr_splash_round3.png", NULL);
     if (!spr_splash_round3) { HamoopiError = 1; }
-    spr_splash_round4 = load_bitmap("data/system/spr_splash_round4.pcx", NULL);
+    spr_splash_round4 = load_bitmap("data/system/spr_splash_round4.png", NULL);
     if (!spr_splash_round4) { HamoopiError = 1; }
-    spr_splash_round5 = load_bitmap("data/system/spr_splash_round5.pcx", NULL);
+    spr_splash_round5 = load_bitmap("data/system/spr_splash_round5.png", NULL);
     if (!spr_splash_round5) { HamoopiError = 1; }
-    spr_splash_fight = load_bitmap("data/system/spr_splash_fight.pcx", NULL);
+    spr_splash_fight = load_bitmap("data/system/spr_splash_fight.png", NULL);
     if (!spr_splash_fight) { HamoopiError = 1; }
-    spr_splash_youwin = load_bitmap("data/system/spr_splash_youwin.pcx", NULL);
+    spr_splash_youwin = load_bitmap("data/system/spr_splash_youwin.png", NULL);
     if (!spr_splash_youwin) { HamoopiError = 1; }
-    spr_splash_p1win = load_bitmap("data/system/spr_splash_p1win.pcx", NULL);
+    spr_splash_p1win = load_bitmap("data/system/spr_splash_p1win.png", NULL);
     if (!spr_splash_p1win) { HamoopiError = 1; }
-    spr_splash_p2win = load_bitmap("data/system/spr_splash_p2win.pcx", NULL);
+    spr_splash_p2win = load_bitmap("data/system/spr_splash_p2win.png", NULL);
     if (!spr_splash_p2win) { HamoopiError = 1; }
-    spr_splash_youlose = load_bitmap("data/system/spr_splash_youlose.pcx", NULL);
+    spr_splash_youlose = load_bitmap("data/system/spr_splash_youlose.png", NULL);
     if (!spr_splash_youlose) { HamoopiError = 1; }
-    spr_splash_ko = load_bitmap("data/system/spr_splash_ko.pcx", NULL);
+    spr_splash_ko = load_bitmap("data/system/spr_splash_ko.png", NULL);
     if (!spr_splash_ko) { HamoopiError = 1; }
-    spr_splash_perfect = load_bitmap("data/system/spr_splash_perfect.pcx", NULL);
+    spr_splash_perfect = load_bitmap("data/system/spr_splash_perfect.png", NULL);
     if (!spr_splash_perfect) { HamoopiError = 1; }
-    spr_splash_draw = load_bitmap("data/system/spr_splash_draw.pcx", NULL);
+    spr_splash_draw = load_bitmap("data/system/spr_splash_draw.png", NULL);
     if (!spr_splash_draw) { HamoopiError = 1; }
-    spr_splash_time_over = load_bitmap("data/system/spr_splash_time_over.pcx", NULL);
+    spr_splash_time_over = load_bitmap("data/system/spr_splash_time_over.png", NULL);
     if (!spr_splash_time_over) { HamoopiError = 1; }
-    bt_joystick = load_bitmap("data/system/bt_joystick.pcx", NULL);
+    bt_joystick = load_bitmap("data/system/bt_joystick.png", NULL);
     if (!bt_joystick) { HamoopiError = 1; }
-    ed_mode1_on = load_bitmap("data/system/ed_mode1_on.pcx", NULL);
+    ed_mode1_on = load_bitmap("data/system/ed_mode1_on.png", NULL);
     if (!ed_mode1_on) { HamoopiError = 1; }
-    ed_mode2_on = load_bitmap("data/system/ed_mode2_on.pcx", NULL);
+    ed_mode2_on = load_bitmap("data/system/ed_mode2_on.png", NULL);
     if (!ed_mode2_on) { HamoopiError = 1; }
-    ed_mode1_off = load_bitmap("data/system/ed_mode1_off.pcx", NULL);
+    ed_mode1_off = load_bitmap("data/system/ed_mode1_off.png", NULL);
     if (!ed_mode1_off) { HamoopiError = 1; }
-    ed_mode2_off = load_bitmap("data/system/ed_mode2_off.pcx", NULL);
+    ed_mode2_off = load_bitmap("data/system/ed_mode2_off.png", NULL);
     if (!ed_mode2_off) { HamoopiError = 1; }
-    bt_reset_input = load_bitmap("data/system/bt_reset_input.pcx", NULL);
+    bt_reset_input = load_bitmap("data/system/bt_reset_input.png", NULL);
     if (!bt_reset_input) { HamoopiError = 1; }
-    bt_up_1 = load_bitmap("data/system/bt_up_1.pcx", NULL);
+    bt_up_1 = load_bitmap("data/system/bt_up_1.png", NULL);
     if (!bt_up_1) { HamoopiError = 1; }
-    bt_up_2 = load_bitmap("data/system/bt_up_2.pcx", NULL);
+    bt_up_2 = load_bitmap("data/system/bt_up_2.png", NULL);
     if (!bt_up_2) { HamoopiError = 1; }
-    bt_up_3 = load_bitmap("data/system/bt_up_3.pcx", NULL);
+    bt_up_3 = load_bitmap("data/system/bt_up_3.png", NULL);
     if (!bt_up_3) { HamoopiError = 1; }
-    bt_down_1 = load_bitmap("data/system/bt_down_1.pcx", NULL);
+    bt_down_1 = load_bitmap("data/system/bt_down_1.png", NULL);
     if (!bt_down_1) { HamoopiError = 1; }
-    bt_down_2 = load_bitmap("data/system/bt_down_2.pcx", NULL);
+    bt_down_2 = load_bitmap("data/system/bt_down_2.png", NULL);
     if (!bt_down_2) { HamoopiError = 1; }
-    bt_down_3 = load_bitmap("data/system/bt_down_3.pcx", NULL);
+    bt_down_3 = load_bitmap("data/system/bt_down_3.png", NULL);
     if (!bt_down_3) { HamoopiError = 1; }
-    bt_left_1 = load_bitmap("data/system/bt_left_1.pcx", NULL);
+    bt_left_1 = load_bitmap("data/system/bt_left_1.png", NULL);
     if (!bt_left_1) { HamoopiError = 1; }
-    bt_left_2 = load_bitmap("data/system/bt_left_2.pcx", NULL);
+    bt_left_2 = load_bitmap("data/system/bt_left_2.png", NULL);
     if (!bt_left_2) { HamoopiError = 1; }
-    bt_left_3 = load_bitmap("data/system/bt_left_3.pcx", NULL);
+    bt_left_3 = load_bitmap("data/system/bt_left_3.png", NULL);
     if (!bt_left_3) { HamoopiError = 1; }
-    bt_right_1 = load_bitmap("data/system/bt_right_1.pcx", NULL);
+    bt_right_1 = load_bitmap("data/system/bt_right_1.png", NULL);
     if (!bt_right_1) { HamoopiError = 1; }
-    bt_right_2 = load_bitmap("data/system/bt_right_2.pcx", NULL);
+    bt_right_2 = load_bitmap("data/system/bt_right_2.png", NULL);
     if (!bt_right_2) { HamoopiError = 1; }
-    bt_right_3 = load_bitmap("data/system/bt_right_3.pcx", NULL);
+    bt_right_3 = load_bitmap("data/system/bt_right_3.png", NULL);
     if (!bt_right_3) { HamoopiError = 1; }
-    bt_1 = load_bitmap("data/system/bt_1.pcx", NULL);
+    bt_1 = load_bitmap("data/system/bt_1.png", NULL);
     if (!bt_1) { HamoopiError = 1; }
-    bt_2 = load_bitmap("data/system/bt_2.pcx", NULL);
+    bt_2 = load_bitmap("data/system/bt_2.png", NULL);
     if (!bt_2) { HamoopiError = 1; }
-    bt_3 = load_bitmap("data/system/bt_3.pcx", NULL);
+    bt_3 = load_bitmap("data/system/bt_3.png", NULL);
     if (!bt_3) { HamoopiError = 1; }
-    bt_ss_1 = load_bitmap("data/system/bt_ss_1.pcx", NULL);
+    bt_ss_1 = load_bitmap("data/system/bt_ss_1.png", NULL);
     if (!bt_ss_1) { HamoopiError = 1; }
-    bt_ss_2 = load_bitmap("data/system/bt_ss_2.pcx", NULL);
+    bt_ss_2 = load_bitmap("data/system/bt_ss_2.png", NULL);
     if (!bt_ss_2) { HamoopiError = 1; }
-    bt_ss_3 = load_bitmap("data/system/bt_ss_3.pcx", NULL);
+    bt_ss_3 = load_bitmap("data/system/bt_ss_3.png", NULL);
     if (!bt_ss_3) { HamoopiError = 1; }
-    spr_input_0 = load_bitmap("data/system/spr_input_0.pcx", NULL);
+    spr_input_0 = load_bitmap("data/system/spr_input_0.png", NULL);
     if (!spr_input_0) { HamoopiError = 1; }
-    spr_input_1 = load_bitmap("data/system/spr_input_1.pcx", NULL);
+    spr_input_1 = load_bitmap("data/system/spr_input_1.png", NULL);
     if (!spr_input_1) { HamoopiError = 1; }
-    spr_input_2 = load_bitmap("data/system/spr_input_2.pcx", NULL);
+    spr_input_2 = load_bitmap("data/system/spr_input_2.png", NULL);
     if (!spr_input_2) { HamoopiError = 1; }
-    spr_input_3 = load_bitmap("data/system/spr_input_3.pcx", NULL);
+    spr_input_3 = load_bitmap("data/system/spr_input_3.png", NULL);
     if (!spr_input_3) { HamoopiError = 1; }
-    spr_input_4 = load_bitmap("data/system/spr_input_4.pcx", NULL);
+    spr_input_4 = load_bitmap("data/system/spr_input_4.png", NULL);
     if (!spr_input_4) { HamoopiError = 1; }
-    spr_input_5 = load_bitmap("data/system/spr_input_5.pcx", NULL);
+    spr_input_5 = load_bitmap("data/system/spr_input_5.png", NULL);
     if (!spr_input_5) { HamoopiError = 1; }
-    spr_input_6 = load_bitmap("data/system/spr_input_6.pcx", NULL);
+    spr_input_6 = load_bitmap("data/system/spr_input_6.png", NULL);
     if (!spr_input_6) { HamoopiError = 1; }
-    spr_input_7 = load_bitmap("data/system/spr_input_7.pcx", NULL);
+    spr_input_7 = load_bitmap("data/system/spr_input_7.png", NULL);
     if (!spr_input_7) { HamoopiError = 1; }
-    spr_input_8 = load_bitmap("data/system/spr_input_8.pcx", NULL);
+    spr_input_8 = load_bitmap("data/system/spr_input_8.png", NULL);
     if (!spr_input_8) { HamoopiError = 1; }
-    spr_input_9 = load_bitmap("data/system/spr_input_9.pcx", NULL);
+    spr_input_9 = load_bitmap("data/system/spr_input_9.png", NULL);
     if (!spr_input_9) { HamoopiError = 1; }
-    spr_input_10 = load_bitmap("data/system/spr_input_10.pcx", NULL);
+    spr_input_10 = load_bitmap("data/system/spr_input_10.png", NULL);
     if (!spr_input_10) { HamoopiError = 1; }
-    spr_input_11 = load_bitmap("data/system/spr_input_11.pcx", NULL);
+    spr_input_11 = load_bitmap("data/system/spr_input_11.png", NULL);
     if (!spr_input_11) { HamoopiError = 1; }
-    spr_input_12 = load_bitmap("data/system/spr_input_12.pcx", NULL);
+    spr_input_12 = load_bitmap("data/system/spr_input_12.png", NULL);
     if (!spr_input_12) { HamoopiError = 1; }
-    spr_input_13 = load_bitmap("data/system/spr_input_13.pcx", NULL);
+    spr_input_13 = load_bitmap("data/system/spr_input_13.png", NULL);
     if (!spr_input_13) { HamoopiError = 1; }
-    spr_input_14 = load_bitmap("data/system/spr_input_14.pcx", NULL);
+    spr_input_14 = load_bitmap("data/system/spr_input_14.png", NULL);
     if (!spr_input_14) { HamoopiError = 1; }
-    spr_input_15 = load_bitmap("data/system/spr_input_15.pcx", NULL);
+    spr_input_15 = load_bitmap("data/system/spr_input_15.png", NULL);
     if (!spr_input_15) { HamoopiError = 1; }
-    spr_input_16 = load_bitmap("data/system/spr_input_16.pcx", NULL);
+    spr_input_16 = load_bitmap("data/system/spr_input_16.png", NULL);
     if (!spr_input_16) { HamoopiError = 1; }
-    spr_input_17 = load_bitmap("data/system/spr_input_17.pcx", NULL);
+    spr_input_17 = load_bitmap("data/system/spr_input_17.png", NULL);
     if (!spr_input_17) { HamoopiError = 1; }
-    spr_bg_bar = load_bitmap("data/system/spr_bg_bar.pcx", NULL);
+    spr_bg_bar = load_bitmap("data/system/spr_bg_bar.png", NULL);
     if (!spr_bg_bar) { HamoopiError = 1; }
-    spr_energy_bar = load_bitmap("data/system/spr_energy_bar.pcx", NULL);
+    spr_energy_bar = load_bitmap("data/system/spr_energy_bar.png", NULL);
     if (!spr_energy_bar) { HamoopiError = 1; }
-    spr_energy_bar_full = load_bitmap("data/system/spr_energy_bar_full.pcx", NULL);
+    spr_energy_bar_full = load_bitmap("data/system/spr_energy_bar_full.png", NULL);
     if (!spr_energy_bar_full) { HamoopiError = 1; }
-    spr_energy_red_bar = load_bitmap("data/system/spr_energy_red_bar.pcx", NULL);
+    spr_energy_red_bar = load_bitmap("data/system/spr_energy_red_bar.png", NULL);
     if (!spr_energy_red_bar) { HamoopiError = 1; }
-    spr_energy_red_bar_full = load_bitmap("data/system/spr_energy_red_bar_full.pcx", NULL);
+    spr_energy_red_bar_full = load_bitmap("data/system/spr_energy_red_bar_full.png", NULL);
     if (!spr_energy_red_bar_full) { HamoopiError = 1; }
-    spr_bg_bar_sp = load_bitmap("data/system/spr_bg_bar_sp.pcx", NULL);
+    spr_bg_bar_sp = load_bitmap("data/system/spr_bg_bar_sp.png", NULL);
     if (!spr_bg_bar_sp) { HamoopiError = 1; }
-    spr_bg_energy_bar_sp = load_bitmap("data/system/spr_bg_energy_bar_sp.pcx", NULL);
+    spr_bg_energy_bar_sp = load_bitmap("data/system/spr_bg_energy_bar_sp.png", NULL);
     if (!spr_bg_energy_bar_sp) { HamoopiError = 1; }
-    spr_num[0] = load_bitmap("data/system/spr_num_0.pcx", NULL);
+    spr_num[0] = load_bitmap("data/system/spr_num_0.png", NULL);
     if (!spr_num[0]) { HamoopiError = 1; }
-    spr_num[1] = load_bitmap("data/system/spr_num_1.pcx", NULL);
+    spr_num[1] = load_bitmap("data/system/spr_num_1.png", NULL);
     if (!spr_num[1]) { HamoopiError = 1; }
-    spr_num[2] = load_bitmap("data/system/spr_num_2.pcx", NULL);
+    spr_num[2] = load_bitmap("data/system/spr_num_2.png", NULL);
     if (!spr_num[2]) { HamoopiError = 1; }
-    spr_num[3] = load_bitmap("data/system/spr_num_3.pcx", NULL);
+    spr_num[3] = load_bitmap("data/system/spr_num_3.png", NULL);
     if (!spr_num[3]) { HamoopiError = 1; }
-    spr_num[4] = load_bitmap("data/system/spr_num_4.pcx", NULL);
+    spr_num[4] = load_bitmap("data/system/spr_num_4.png", NULL);
     if (!spr_num[4]) { HamoopiError = 1; }
-    spr_num[5] = load_bitmap("data/system/spr_num_5.pcx", NULL);
+    spr_num[5] = load_bitmap("data/system/spr_num_5.png", NULL);
     if (!spr_num[5]) { HamoopiError = 1; }
-    spr_num[6] = load_bitmap("data/system/spr_num_6.pcx", NULL);
+    spr_num[6] = load_bitmap("data/system/spr_num_6.png", NULL);
     if (!spr_num[6]) { HamoopiError = 1; }
-    spr_num[7] = load_bitmap("data/system/spr_num_7.pcx", NULL);
+    spr_num[7] = load_bitmap("data/system/spr_num_7.png", NULL);
     if (!spr_num[7]) { HamoopiError = 1; }
-    spr_num[8] = load_bitmap("data/system/spr_num_8.pcx", NULL);
+    spr_num[8] = load_bitmap("data/system/spr_num_8.png", NULL);
     if (!spr_num[8]) { HamoopiError = 1; }
-    spr_num[9] = load_bitmap("data/system/spr_num_9.pcx", NULL);
+    spr_num[9] = load_bitmap("data/system/spr_num_9.png", NULL);
     if (!spr_num[9]) { HamoopiError = 1; }
-    edit_bt_blue = load_bitmap("data/system/edit_bt_blue.pcx", NULL);
+    edit_bt_blue = load_bitmap("data/system/edit_bt_blue.png", NULL);
     if (!edit_bt_blue) { HamoopiError = 1; }
-    edit_bt_red = load_bitmap("data/system/edit_bt_red.pcx", NULL);
+    edit_bt_red = load_bitmap("data/system/edit_bt_red.png", NULL);
     if (!edit_bt_red) { HamoopiError = 1; }
-    edit_bt_null = load_bitmap("data/system/edit_bt_null.pcx", NULL);
+    edit_bt_null = load_bitmap("data/system/edit_bt_null.png", NULL);
     if (!edit_bt_null) { HamoopiError = 1; }
-    edit_bt_null0 = load_bitmap("data/system/edit_bt_null0.pcx", NULL);
+    edit_bt_null0 = load_bitmap("data/system/edit_bt_null0.png", NULL);
     if (!edit_bt_null0) { HamoopiError = 1; }
-    edit_prevst = load_bitmap("data/system/edit_prevst.pcx", NULL);
+    edit_prevst = load_bitmap("data/system/edit_prevst.png", NULL);
     if (!edit_prevst) { HamoopiError = 1; }
-    edit_nextst = load_bitmap("data/system/edit_nextst.pcx", NULL);
+    edit_nextst = load_bitmap("data/system/edit_nextst.png", NULL);
     if (!edit_nextst) { HamoopiError = 1; }
-    edit_prevchar = load_bitmap("data/system/edit_prevchar.pcx", NULL);
+    edit_prevchar = load_bitmap("data/system/edit_prevchar.png", NULL);
     if (!edit_prevchar) { HamoopiError = 1; }
-    edit_nextchar = load_bitmap("data/system/edit_nextchar.pcx", NULL);
+    edit_nextchar = load_bitmap("data/system/edit_nextchar.png", NULL);
     if (!edit_nextchar) { HamoopiError = 1; }
-    edit_firstchar = load_bitmap("data/system/edit_firstchar.pcx", NULL);
+    edit_firstchar = load_bitmap("data/system/edit_firstchar.png", NULL);
     if (!edit_firstchar) { HamoopiError = 1; }
-    edit_lastchar = load_bitmap("data/system/edit_lastchar.pcx", NULL);
+    edit_lastchar = load_bitmap("data/system/edit_lastchar.png", NULL);
     if (!edit_lastchar) { HamoopiError = 1; }
-    spr_nao_implementado = load_bitmap("data/system/spr_nao_implementado.pcx", NULL);
+    spr_nao_implementado = load_bitmap("data/system/spr_nao_implementado.png", NULL);
     if (!spr_nao_implementado) { HamoopiError = 1; }
-    edit_playback = load_bitmap("data/system/edit_playback.pcx", NULL);
+    edit_playback = load_bitmap("data/system/edit_playback.png", NULL);
     if (!edit_playback) { HamoopiError = 1; }
-    edit_pause = load_bitmap("data/system/edit_pause.pcx", NULL);
+    edit_pause = load_bitmap("data/system/edit_pause.png", NULL);
     if (!edit_pause) { HamoopiError = 1; }
-    edit_bt_FrameTime = load_bitmap("data/system/edit_bt_FrameTime.pcx", NULL);
+    edit_bt_FrameTime = load_bitmap("data/system/edit_bt_FrameTime.png", NULL);
     if (!edit_bt_FrameTime) { HamoopiError = 1; }
-    edit_bt_plus = load_bitmap("data/system/edit_bt_plus.pcx", NULL);
+    edit_bt_plus = load_bitmap("data/system/edit_bt_plus.png", NULL);
     if (!edit_bt_plus) { HamoopiError = 1; }
-    edit_bt_minus = load_bitmap("data/system/edit_bt_minus.pcx", NULL);
+    edit_bt_minus = load_bitmap("data/system/edit_bt_minus.png", NULL);
     if (!edit_bt_minus) { HamoopiError = 1; }
-    mouse = load_bitmap("data/system/mouse.pcx", NULL);
+    mouse = load_bitmap("data/system/mouse.png", NULL);
     if (!mouse) { HamoopiError = 1; }
-    mouse2 = load_bitmap("data/system/mouse2.pcx", NULL);
+    mouse2 = load_bitmap("data/system/mouse2.png", NULL);
     if (!mouse2) { HamoopiError = 1; }
-    save_file = load_bitmap("data/system/save_file.pcx", NULL);
+    save_file = load_bitmap("data/system/save_file.png", NULL);
     if (!save_file) { HamoopiError = 1; }
-    bt_pivot = load_bitmap("data/system/bt_pivot.pcx", NULL);
+    bt_pivot = load_bitmap("data/system/bt_pivot.png", NULL);
     if (!bt_pivot) { HamoopiError = 1; }
-    spr000_00 = load_bitmap("data/system/000_00.pcx", NULL);
+    spr000_00 = load_bitmap("data/system/000_00.png", NULL);
     if (!spr000_00) { HamoopiError = 1; }
-    spr000_01 = load_bitmap("data/system/000_01.pcx", NULL);
+    spr000_01 = load_bitmap("data/system/000_01.png", NULL);
     if (!spr000_01) { HamoopiError = 1; }
-    spr991_00 = load_bitmap("data/system/991_00.pcx", NULL);
+    spr991_00 = load_bitmap("data/system/991_00.png", NULL);
     if (!spr991_00) { HamoopiError = 1; }
-    spr991_01 = load_bitmap("data/system/991_01.pcx", NULL);
+    spr991_01 = load_bitmap("data/system/991_01.png", NULL);
     if (!spr991_01) { HamoopiError = 1; }
-    spr991_02 = load_bitmap("data/system/991_02.pcx", NULL);
+    spr991_02 = load_bitmap("data/system/991_02.png", NULL);
     if (!spr991_02) { HamoopiError = 1; }
-    spr991_03 = load_bitmap("data/system/991_03.pcx", NULL);
+    spr991_03 = load_bitmap("data/system/991_03.png", NULL);
     if (!spr991_03) { HamoopiError = 1; }
-    spr991_04 = load_bitmap("data/system/991_04.pcx", NULL);
+    spr991_04 = load_bitmap("data/system/991_04.png", NULL);
     if (!spr991_04) { HamoopiError = 1; }
-    spr991_05 = load_bitmap("data/system/991_05.pcx", NULL);
+    spr991_05 = load_bitmap("data/system/991_05.png", NULL);
     if (!spr991_05) { HamoopiError = 1; }
-    spr992_00 = load_bitmap("data/system/992_00.pcx", NULL);
+    spr992_00 = load_bitmap("data/system/992_00.png", NULL);
     if (!spr992_00) { HamoopiError = 1; }
-    spr992_01 = load_bitmap("data/system/992_01.pcx", NULL);
+    spr992_01 = load_bitmap("data/system/992_01.png", NULL);
     if (!spr992_01) { HamoopiError = 1; }
-    spr992_02 = load_bitmap("data/system/992_02.pcx", NULL);
+    spr992_02 = load_bitmap("data/system/992_02.png", NULL);
     if (!spr992_02) { HamoopiError = 1; }
-    spr992_03 = load_bitmap("data/system/992_03.pcx", NULL);
+    spr992_03 = load_bitmap("data/system/992_03.png", NULL);
     if (!spr992_03) { HamoopiError = 1; }
-    spr992_04 = load_bitmap("data/system/992_04.pcx", NULL);
+    spr992_04 = load_bitmap("data/system/992_04.png", NULL);
     if (!spr992_04) { HamoopiError = 1; }
-    spr992_05 = load_bitmap("data/system/992_05.pcx", NULL);
+    spr992_05 = load_bitmap("data/system/992_05.png", NULL);
     if (!spr992_05) { HamoopiError = 1; }
-    spr993_00 = load_bitmap("data/system/993_00.pcx", NULL);
+    spr993_00 = load_bitmap("data/system/993_00.png", NULL);
     if (!spr993_00) { HamoopiError = 1; }
-    spr993_01 = load_bitmap("data/system/993_01.pcx", NULL);
+    spr993_01 = load_bitmap("data/system/993_01.png", NULL);
     if (!spr993_01) { HamoopiError = 1; }
-    spr993_02 = load_bitmap("data/system/993_02.pcx", NULL);
+    spr993_02 = load_bitmap("data/system/993_02.png", NULL);
     if (!spr993_02) { HamoopiError = 1; }
-    spr993_03 = load_bitmap("data/system/993_03.pcx", NULL);
+    spr993_03 = load_bitmap("data/system/993_03.png", NULL);
     if (!spr993_03) { HamoopiError = 1; }
-    spr993_04 = load_bitmap("data/system/993_04.pcx", NULL);
+    spr993_04 = load_bitmap("data/system/993_04.png", NULL);
     if (!spr993_04) { HamoopiError = 1; }
-    spr993_05 = load_bitmap("data/system/993_05.pcx", NULL);
+    spr993_05 = load_bitmap("data/system/993_05.png", NULL);
     if (!spr993_05) { HamoopiError = 1; }
-    spr994_00 = load_bitmap("data/system/994_00.pcx", NULL);
+    spr994_00 = load_bitmap("data/system/994_00.png", NULL);
     if (!spr994_00) { HamoopiError = 1; }
-    spr994_01 = load_bitmap("data/system/994_01.pcx", NULL);
+    spr994_01 = load_bitmap("data/system/994_01.png", NULL);
     if (!spr994_01) { HamoopiError = 1; }
-    spr994_02 = load_bitmap("data/system/994_02.pcx", NULL);
+    spr994_02 = load_bitmap("data/system/994_02.png", NULL);
     if (!spr994_02) { HamoopiError = 1; }
-    spr994_03 = load_bitmap("data/system/994_03.pcx", NULL);
+    spr994_03 = load_bitmap("data/system/994_03.png", NULL);
     if (!spr994_03) { HamoopiError = 1; }
-    spr994_04 = load_bitmap("data/system/994_04.pcx", NULL);
+    spr994_04 = load_bitmap("data/system/994_04.png", NULL);
     if (!spr994_04) { HamoopiError = 1; }
-    spr994_05 = load_bitmap("data/system/994_05.pcx", NULL);
+    spr994_05 = load_bitmap("data/system/994_05.png", NULL);
     if (!spr994_05) { HamoopiError = 1; }
     //defesa - nao implementada ainda :)
-    //BITMAP *spr995_00            = load_bitmap("data/system/995_00.pcx", NULL);               if (!spr995_00)            { HamoopiError=1; }
-    //BITMAP *spr995_01            = load_bitmap("data/system/995_01.pcx", NULL);               if (!spr995_01)            { HamoopiError=1; }
-    //BITMAP *spr995_02            = load_bitmap("data/system/995_02.pcx", NULL);               if (!spr995_02)            { HamoopiError=1; }
-    //BITMAP *spr995_03            = load_bitmap("data/system/995_03.pcx", NULL);               if (!spr995_03)            { HamoopiError=1; }
-    //BITMAP *spr995_04            = load_bitmap("data/system/995_04.pcx", NULL);               if (!spr995_04)            { HamoopiError=1; }
-    //BITMAP *spr995_05            = load_bitmap("data/system/995_05.pcx", NULL);               if (!spr995_05)            { HamoopiError=1; }
-    AnimTrans[0] = load_bitmap("data/system/AnimTrans00.pcx", NULL);
+    //BITMAP *spr995_00            = load_bitmap("data/system/995_00.png", NULL);               if (!spr995_00)            { HamoopiError=1; }
+    //BITMAP *spr995_01            = load_bitmap("data/system/995_01.png", NULL);               if (!spr995_01)            { HamoopiError=1; }
+    //BITMAP *spr995_02            = load_bitmap("data/system/995_02.png", NULL);               if (!spr995_02)            { HamoopiError=1; }
+    //BITMAP *spr995_03            = load_bitmap("data/system/995_03.png", NULL);               if (!spr995_03)            { HamoopiError=1; }
+    //BITMAP *spr995_04            = load_bitmap("data/system/995_04.png", NULL);               if (!spr995_04)            { HamoopiError=1; }
+    //BITMAP *spr995_05            = load_bitmap("data/system/995_05.png", NULL);               if (!spr995_05)            { HamoopiError=1; }
+    AnimTrans[0] = load_bitmap("data/system/AnimTrans00.png", NULL);
     if (!AnimTrans[0]) { CtrlAnimTrans[0] = 0; } else { CtrlAnimTrans[0] = 1; }
-    AnimTrans[1] = load_bitmap("data/system/AnimTrans01.pcx", NULL);
+    AnimTrans[1] = load_bitmap("data/system/AnimTrans01.png", NULL);
     if (!AnimTrans[1]) { CtrlAnimTrans[1] = 0; } else { CtrlAnimTrans[1] = 1; }
-    AnimTrans[2] = load_bitmap("data/system/AnimTrans02.pcx", NULL);
+    AnimTrans[2] = load_bitmap("data/system/AnimTrans02.png", NULL);
     if (!AnimTrans[2]) { CtrlAnimTrans[2] = 0; } else { CtrlAnimTrans[2] = 1; }
-    AnimTrans[3] = load_bitmap("data/system/AnimTrans03.pcx", NULL);
+    AnimTrans[3] = load_bitmap("data/system/AnimTrans03.png", NULL);
     if (!AnimTrans[3]) { CtrlAnimTrans[3] = 0; } else { CtrlAnimTrans[3] = 1; }
-    AnimTrans[4] = load_bitmap("data/system/AnimTrans04.pcx", NULL);
+    AnimTrans[4] = load_bitmap("data/system/AnimTrans04.png", NULL);
     if (!AnimTrans[4]) { CtrlAnimTrans[4] = 0; } else { CtrlAnimTrans[4] = 1; }
-    AnimTrans[5] = load_bitmap("data/system/AnimTrans05.pcx", NULL);
+    AnimTrans[5] = load_bitmap("data/system/AnimTrans05.png", NULL);
     if (!AnimTrans[5]) { CtrlAnimTrans[5] = 0; } else { CtrlAnimTrans[5] = 1; }
-    AnimTrans[6] = load_bitmap("data/system/AnimTrans06.pcx", NULL);
+    AnimTrans[6] = load_bitmap("data/system/AnimTrans06.png", NULL);
     if (!AnimTrans[6]) { CtrlAnimTrans[6] = 0; } else { CtrlAnimTrans[6] = 1; }
-    AnimTrans[7] = load_bitmap("data/system/AnimTrans07.pcx", NULL);
+    AnimTrans[7] = load_bitmap("data/system/AnimTrans07.png", NULL);
     if (!AnimTrans[7]) { CtrlAnimTrans[7] = 0; } else { CtrlAnimTrans[7] = 1; }
-    AnimTrans[8] = load_bitmap("data/system/AnimTrans08.pcx", NULL);
+    AnimTrans[8] = load_bitmap("data/system/AnimTrans08.png", NULL);
     if (!AnimTrans[8]) { CtrlAnimTrans[8] = 0; } else { CtrlAnimTrans[8] = 1; }
-    AnimTrans[9] = load_bitmap("data/system/AnimTrans09.pcx", NULL);
+    AnimTrans[9] = load_bitmap("data/system/AnimTrans09.png", NULL);
     if (!AnimTrans[9]) { CtrlAnimTrans[9] = 0; } else { CtrlAnimTrans[9] = 1; }
-    AnimTrans[10] = load_bitmap("data/system/AnimTrans10.pcx", NULL);
+    AnimTrans[10] = load_bitmap("data/system/AnimTrans10.png", NULL);
     if (!AnimTrans[10]) { CtrlAnimTrans[10] = 0; } else { CtrlAnimTrans[10] = 1; }
-    AnimTrans[11] = load_bitmap("data/system/AnimTrans11.pcx", NULL);
+    AnimTrans[11] = load_bitmap("data/system/AnimTrans11.png", NULL);
     if (!AnimTrans[11]) { CtrlAnimTrans[11] = 0; } else { CtrlAnimTrans[11] = 1; }
-    AnimTrans[12] = load_bitmap("data/system/AnimTrans12.pcx", NULL);
+    AnimTrans[12] = load_bitmap("data/system/AnimTrans12.png", NULL);
     if (!AnimTrans[12]) { CtrlAnimTrans[12] = 0; } else { CtrlAnimTrans[12] = 1; }
-    AnimTrans[13] = load_bitmap("data/system/AnimTrans13.pcx", NULL);
+    AnimTrans[13] = load_bitmap("data/system/AnimTrans13.png", NULL);
     if (!AnimTrans[13]) { CtrlAnimTrans[13] = 0; } else { CtrlAnimTrans[13] = 1; }
-    AnimTrans[14] = load_bitmap("data/system/AnimTrans14.pcx", NULL);
+    AnimTrans[14] = load_bitmap("data/system/AnimTrans14.png", NULL);
     if (!AnimTrans[14]) { CtrlAnimTrans[14] = 0; } else { CtrlAnimTrans[14] = 1; }
-    AnimTrans[15] = load_bitmap("data/system/AnimTrans15.pcx", NULL);
+    AnimTrans[15] = load_bitmap("data/system/AnimTrans15.png", NULL);
     if (!AnimTrans[15]) { CtrlAnimTrans[15] = 0; } else { CtrlAnimTrans[15] = 1; }
-    AnimTrans[16] = load_bitmap("data/system/AnimTrans16.pcx", NULL);
+    AnimTrans[16] = load_bitmap("data/system/AnimTrans16.png", NULL);
     if (!AnimTrans[16]) { CtrlAnimTrans[16] = 0; } else { CtrlAnimTrans[16] = 1; }
-    AnimTrans[17] = load_bitmap("data/system/AnimTrans17.pcx", NULL);
+    AnimTrans[17] = load_bitmap("data/system/AnimTrans17.png", NULL);
     if (!AnimTrans[17]) { CtrlAnimTrans[17] = 0; } else { CtrlAnimTrans[17] = 1; }
-    AnimTrans[18] = load_bitmap("data/system/AnimTrans18.pcx", NULL);
+    AnimTrans[18] = load_bitmap("data/system/AnimTrans18.png", NULL);
     if (!AnimTrans[18]) { CtrlAnimTrans[18] = 0; } else { CtrlAnimTrans[18] = 1; }
-    AnimTrans[19] = load_bitmap("data/system/AnimTrans19.pcx", NULL);
+    AnimTrans[19] = load_bitmap("data/system/AnimTrans19.png", NULL);
     if (!AnimTrans[19]) { CtrlAnimTrans[19] = 0; } else { CtrlAnimTrans[19] = 1; }
-    AnimTrans[20] = load_bitmap("data/system/AnimTrans20.pcx", NULL);
+    AnimTrans[20] = load_bitmap("data/system/AnimTrans20.png", NULL);
     if (!AnimTrans[20]) { CtrlAnimTrans[20] = 0; } else { CtrlAnimTrans[20] = 1; }
-    AnimTrans[21] = load_bitmap("data/system/AnimTrans21.pcx", NULL);
+    AnimTrans[21] = load_bitmap("data/system/AnimTrans21.png", NULL);
     if (!AnimTrans[21]) { CtrlAnimTrans[21] = 0; } else { CtrlAnimTrans[21] = 1; }
-    AnimTrans[22] = load_bitmap("data/system/AnimTrans22.pcx", NULL);
+    AnimTrans[22] = load_bitmap("data/system/AnimTrans22.png", NULL);
     if (!AnimTrans[22]) { CtrlAnimTrans[22] = 0; } else { CtrlAnimTrans[22] = 1; }
-    AnimTrans[23] = load_bitmap("data/system/AnimTrans23.pcx", NULL);
+    AnimTrans[23] = load_bitmap("data/system/AnimTrans23.png", NULL);
     if (!AnimTrans[23]) { CtrlAnimTrans[23] = 0; } else { CtrlAnimTrans[23] = 1; }
-    AnimTrans[24] = load_bitmap("data/system/AnimTrans24.pcx", NULL);
+    AnimTrans[24] = load_bitmap("data/system/AnimTrans24.png", NULL);
     if (!AnimTrans[24]) { CtrlAnimTrans[24] = 0; } else { CtrlAnimTrans[24] = 1; }
-    AnimTrans[25] = load_bitmap("data/system/AnimTrans25.pcx", NULL);
+    AnimTrans[25] = load_bitmap("data/system/AnimTrans25.png", NULL);
     if (!AnimTrans[25]) { CtrlAnimTrans[25] = 0; } else { CtrlAnimTrans[25] = 1; }
-    AnimTrans[26] = load_bitmap("data/system/AnimTrans26.pcx", NULL);
+    AnimTrans[26] = load_bitmap("data/system/AnimTrans26.png", NULL);
     if (!AnimTrans[26]) { CtrlAnimTrans[26] = 0; } else { CtrlAnimTrans[26] = 1; }
-    AnimTrans[27] = load_bitmap("data/system/AnimTrans27.pcx", NULL);
+    AnimTrans[27] = load_bitmap("data/system/AnimTrans27.png", NULL);
     if (!AnimTrans[27]) { CtrlAnimTrans[27] = 0; } else { CtrlAnimTrans[27] = 1; }
-    AnimTrans[28] = load_bitmap("data/system/AnimTrans28.pcx", NULL);
+    AnimTrans[28] = load_bitmap("data/system/AnimTrans28.png", NULL);
     if (!AnimTrans[28]) { CtrlAnimTrans[28] = 0; } else { CtrlAnimTrans[28] = 1; }
-    AnimTrans[29] = load_bitmap("data/system/AnimTrans29.pcx", NULL);
+    AnimTrans[29] = load_bitmap("data/system/AnimTrans29.png", NULL);
     if (!AnimTrans[29]) { CtrlAnimTrans[29] = 0; } else { CtrlAnimTrans[29] = 1; }
     BITMAP *AnimIntro[16];
-    AnimIntro[0] = load_bitmap("data/system/AnimIntro00.pcx", NULL);
+    AnimIntro[0] = load_bitmap("data/system/AnimIntro00.png", NULL);
     if (!AnimIntro[0]) { CtrlAnimIntro[0] = 0; } else { CtrlAnimIntro[0] = 1; }
-    AnimIntro[1] = load_bitmap("data/system/AnimIntro01.pcx", NULL);
+    AnimIntro[1] = load_bitmap("data/system/AnimIntro01.png", NULL);
     if (!AnimIntro[1]) { CtrlAnimIntro[1] = 0; } else { CtrlAnimIntro[1] = 1; }
-    AnimIntro[2] = load_bitmap("data/system/AnimIntro02.pcx", NULL);
+    AnimIntro[2] = load_bitmap("data/system/AnimIntro02.png", NULL);
     if (!AnimIntro[2]) { CtrlAnimIntro[2] = 0; } else { CtrlAnimIntro[2] = 1; }
-    AnimIntro[3] = load_bitmap("data/system/AnimIntro03.pcx", NULL);
+    AnimIntro[3] = load_bitmap("data/system/AnimIntro03.png", NULL);
     if (!AnimIntro[3]) { CtrlAnimIntro[3] = 0; } else { CtrlAnimIntro[3] = 1; }
-    AnimIntro[4] = load_bitmap("data/system/AnimIntro04.pcx", NULL);
+    AnimIntro[4] = load_bitmap("data/system/AnimIntro04.png", NULL);
     if (!AnimIntro[4]) { CtrlAnimIntro[4] = 0; } else { CtrlAnimIntro[4] = 1; }
-    AnimIntro[5] = load_bitmap("data/system/AnimIntro05.pcx", NULL);
+    AnimIntro[5] = load_bitmap("data/system/AnimIntro05.png", NULL);
     if (!AnimIntro[5]) { CtrlAnimIntro[5] = 0; } else { CtrlAnimIntro[5] = 1; }
-    AnimIntro[6] = load_bitmap("data/system/AnimIntro06.pcx", NULL);
+    AnimIntro[6] = load_bitmap("data/system/AnimIntro06.png", NULL);
     if (!AnimIntro[6]) { CtrlAnimIntro[6] = 0; } else { CtrlAnimIntro[6] = 1; }
-    AnimIntro[7] = load_bitmap("data/system/AnimIntro07.pcx", NULL);
+    AnimIntro[7] = load_bitmap("data/system/AnimIntro07.png", NULL);
     if (!AnimIntro[7]) { CtrlAnimIntro[7] = 0; } else { CtrlAnimIntro[7] = 1; }
-    AnimIntro[8] = load_bitmap("data/system/AnimIntro08.pcx", NULL);
+    AnimIntro[8] = load_bitmap("data/system/AnimIntro08.png", NULL);
     if (!AnimIntro[8]) { CtrlAnimIntro[8] = 0; } else { CtrlAnimIntro[8] = 1; }
-    AnimIntro[9] = load_bitmap("data/system/AnimIntro09.pcx", NULL);
+    AnimIntro[9] = load_bitmap("data/system/AnimIntro09.png", NULL);
     if (!AnimIntro[9]) { CtrlAnimIntro[9] = 0; } else { CtrlAnimIntro[9] = 1; }
-    AnimIntro[10] = load_bitmap("data/system/AnimIntro10.pcx", NULL);
+    AnimIntro[10] = load_bitmap("data/system/AnimIntro10.png", NULL);
     if (!AnimIntro[10]) { CtrlAnimIntro[10] = 0; } else { CtrlAnimIntro[10] = 1; }
-    AnimIntro[11] = load_bitmap("data/system/AnimIntro11.pcx", NULL);
+    AnimIntro[11] = load_bitmap("data/system/AnimIntro11.png", NULL);
     if (!AnimIntro[11]) { CtrlAnimIntro[11] = 0; } else { CtrlAnimIntro[11] = 1; }
-    AnimIntro[12] = load_bitmap("data/system/AnimIntro12.pcx", NULL);
+    AnimIntro[12] = load_bitmap("data/system/AnimIntro12.png", NULL);
     if (!AnimIntro[12]) { CtrlAnimIntro[12] = 0; } else { CtrlAnimIntro[12] = 1; }
-    AnimIntro[13] = load_bitmap("data/system/AnimIntro13.pcx", NULL);
+    AnimIntro[13] = load_bitmap("data/system/AnimIntro13.png", NULL);
     if (!AnimIntro[13]) { CtrlAnimIntro[13] = 0; } else { CtrlAnimIntro[13] = 1; }
-    AnimIntro[14] = load_bitmap("data/system/AnimIntro14.pcx", NULL);
+    AnimIntro[14] = load_bitmap("data/system/AnimIntro14.png", NULL);
     if (!AnimIntro[14]) { CtrlAnimIntro[14] = 0; } else { CtrlAnimIntro[14] = 1; }
-    AnimIntro[15] = load_bitmap("data/system/AnimIntro15.pcx", NULL);
+    AnimIntro[15] = load_bitmap("data/system/AnimIntro15.png", NULL);
     if (!AnimIntro[15]) { CtrlAnimIntro[15] = 0; } else { CtrlAnimIntro[15] = 1; }
 
-    MINIspr[0] = load_bitmap("data/system/000_01.pcx", NULL);
+    MINIspr[0] = load_bitmap("data/system/000_01.png", NULL);
     if (!MINIspr[0]) { HamoopiError = 1; }
     MINIspr[1] = create_bitmap(32, 32);
     MINIspr[2] = create_bitmap(32, 32);
@@ -1447,9 +1447,9 @@ int main() {
     for (int ind = 1; ind <= MAX_CHARS; ind++) {
         if (Qtde_Personagens_Instalados >= ind) {
             char MINIstring[99] = "";
-            sprintf(MINIstring, "data/chars/%s/000_01.pcx", Lista_de_Personagens_Instalados[ind]);
-            MINIspr[ind] = load_bitmap(MINIstring, NULL);
-            if (!MINIspr[ind]) { MINIspr[ind] = load_bitmap("data/system/000_01.pcx", NULL); }
+            sprintf(MINIstring, "data/chars/%s/000_01.png", Lista_de_Personagens_Instalados[ind]);
+            MINIspr[ind] = platform_load_bitmap(MINIstring, NULL);
+            if (!MINIspr[ind]) { MINIspr[ind] = load_bitmap("data/system/000_01.png", NULL); }
             stretch_blit(MINIspr[ind], MINIsprDisplay[ind], 0, 0, MINIspr[ind]->w, MINIspr[ind]->h, 0, 0,
                          MINIsprDisplay[1]->w, MINIsprDisplay[1]->h);
             destroy_bitmap(MINIspr[ind]);
@@ -1460,9 +1460,9 @@ int main() {
     for (int ind = 1; ind <= 8; ind++) {
         if (Qtde_Personagens_Instalados >= ind) {
             char MINIstring[99] = "";
-            sprintf(MINIstring, "data/chars/%s/000_01.pcx", Lista_de_Personagens_ArcadeMode[ind]);
-            MINIspr[ind] = load_bitmap(MINIstring, NULL);
-            if (!MINIspr[ind]) { MINIspr[ind] = load_bitmap("data/system/000_01.pcx", NULL); }
+            sprintf(MINIstring, "data/chars/%s/000_01.png", Lista_de_Personagens_ArcadeMode[ind]);
+            MINIspr[ind] = platform_load_bitmap(MINIstring, NULL);
+            if (!MINIspr[ind]) { MINIspr[ind] = load_bitmap("data/system/000_01.png", NULL); }
             stretch_blit(MINIspr[ind], MINIsprDisplayArcadeMode[ind], 0, 0, MINIspr[ind]->w, MINIspr[ind]->h, 0, 0,
                          MINIsprDisplay[1]->w, MINIsprDisplay[1]->h);
             destroy_bitmap(MINIspr[ind]);
@@ -1472,15 +1472,15 @@ int main() {
     //P1 miniatura da foto ingame
     strcpy(P[1].Name, (char *)get_config_string("CHARS", "char1", ""));
     char P1_1s[40] = "";
-    sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
+    sprintf(P1_1s, "data/chars/%s/000_01.png", P[1].Name);
     P1_1 = load_bitmap(P1_1s, NULL);
-    if (!P1_1) { P1_1 = load_bitmap("data/system/000_01.pcx", NULL); }
+    if (!P1_1) { P1_1 = load_bitmap("data/system/000_01.png", NULL); }
     //P2 miniatura da foto ingame
     strcpy(P[2].Name, (char *)get_config_string("CHARS", "char2", ""));
     char P2_1s[40] = "";
-    sprintf(P2_1s, "data/chars/%s/000_01.pcx", P[2].Name);
+    sprintf(P2_1s, "data/chars/%s/000_01.png", P[2].Name);
     P2_1 = load_bitmap(P2_1s, NULL);
-    if (!P2_1) { P2_1 = load_bitmap("data/system/000_01.pcx", NULL); }
+    if (!P2_1) { P2_1 = load_bitmap("data/system/000_01.png", NULL); }
 
     //propriedades de round
     RoundTime = get_config_int("CONFIG", "time", 99);

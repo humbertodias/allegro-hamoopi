@@ -9,14 +9,14 @@ void GameLoop_GamePlayMode() {
         FadeOUT = 1;
         //P1 miniatura da foto ingame
         char P1_1s[40] = "";
-        sprintf(P1_1s, "data/chars/%s/000_01.pcx", P[1].Name);
+        sprintf(P1_1s, "data/chars/%s/000_01.png", P[1].Name);
         P1_1 = load_bitmap(P1_1s, NULL);
-        if (!P1_1) { P1_1 = load_bitmap("data/system/000_01.pcx", NULL); }
+        if (!P1_1) { P1_1 = load_bitmap("data/system/000_01.png", NULL); }
         //P2 miniatura da foto ingame
         char P2_1s[40] = "";
-        sprintf(P2_1s, "data/chars/%s/000_01.pcx", P[2].Name);
+        sprintf(P2_1s, "data/chars/%s/000_01.png", P[2].Name);
         P2_1 = load_bitmap(P2_1s, NULL);
-        if (!P2_1) { P2_1 = load_bitmap("data/system/000_01.pcx", NULL); }
+        if (!P2_1) { P2_1 = load_bitmap("data/system/000_01.png", NULL); }
     }
 
     //timer_rounds é um contador de frames crescente utilizado em animacoes

@@ -13,37 +13,37 @@ void GameLoop_SelectCharMode()
             NumPersonagensEscolhidos = 1;
         }
         //BIG P1
-        sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+        sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
         P1BIGDisplay = load_bitmap(P1BIGDisplaystring, NULL);
-        if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+        if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         //BIG P2
         if (strcmp(ChoiceP2, "-P2CPU-") != 0) {
             if (SelectCharP2ID == 1) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
             }
             if (SelectCharP2ID == 2) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[2]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[2]);
             }
             if (SelectCharP2ID == 3) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[3]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[3]);
             }
             if (SelectCharP2ID == 4) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[4]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[4]);
             }
             if (SelectCharP2ID == 5) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[5]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[5]);
             }
             if (SelectCharP2ID == 6) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[6]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[6]);
             }
             if (SelectCharP2ID == 7) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[7]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[7]);
             }
             if (SelectCharP2ID == 8) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[8]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[8]);
             }
             P2BIGDisplay = load_bitmap(P2BIGDisplaystring, NULL);
-            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         }
     }
 
@@ -71,61 +71,61 @@ void GameLoop_SelectCharMode()
             play_sample(cursor, 255, 128, 1000, 0);
             if (SelectCharP1ID > Qtde_Personagens_Instalados) SelectCharP1ID = 1;
             if (SelectCharP1ID == 1) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
             }
             if (SelectCharP1ID == 2) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[2]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[2]);
             }
             if (SelectCharP1ID == 3) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[3]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[3]);
             }
             if (SelectCharP1ID == 4) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[4]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[4]);
             }
             if (SelectCharP1ID == 5) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[5]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[5]);
             }
             if (SelectCharP1ID == 6) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[6]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[6]);
             }
             if (SelectCharP1ID == 7) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[7]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[7]);
             }
             if (SelectCharP1ID == 8) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[8]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[8]);
             }
             P1BIGDisplay = load_bitmap(P1BIGDisplaystring, NULL);
-            if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+            if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         }
         if (P[1].key_LEFT_pressed == 1 && (strcmp(ChoiceP1, "") == 0)) {
             play_sample(cursor, 255, 128, 1000, 0);
             if (SelectCharP1ID < 1) SelectCharP1ID = Qtde_Personagens_Instalados;
             if (SelectCharP1ID == 8) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[8]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[8]);
             }
             if (SelectCharP1ID == 7) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[7]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[7]);
             }
             if (SelectCharP1ID == 6) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[6]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[6]);
             }
             if (SelectCharP1ID == 5) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[5]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[5]);
             }
             if (SelectCharP1ID == 4) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[4]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[4]);
             }
             if (SelectCharP1ID == 3) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[3]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[3]);
             }
             if (SelectCharP1ID == 2) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[2]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[2]);
             }
             if (SelectCharP1ID == 1) {
-                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+                sprintf(P1BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
             }
             P1BIGDisplay = load_bitmap(P1BIGDisplaystring, NULL);
-            if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+            if (!P1BIGDisplay) { P1BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         }
 
         //seleciona o personagem P2
@@ -135,61 +135,61 @@ void GameLoop_SelectCharMode()
             play_sample(cursor, 255, 128, 1000, 0);
             if (SelectCharP2ID > Qtde_Personagens_Instalados) SelectCharP2ID = 1;
             if (SelectCharP2ID == 1) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
             }
             if (SelectCharP2ID == 2) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[2]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[2]);
             }
             if (SelectCharP2ID == 3) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[3]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[3]);
             }
             if (SelectCharP2ID == 4) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[4]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[4]);
             }
             if (SelectCharP2ID == 5) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[5]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[5]);
             }
             if (SelectCharP2ID == 6) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[6]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[6]);
             }
             if (SelectCharP2ID == 7) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[7]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[7]);
             }
             if (SelectCharP2ID == 8) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[8]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[8]);
             }
             P2BIGDisplay = load_bitmap(P2BIGDisplaystring, NULL);
-            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         }
         if (P[2].key_LEFT_pressed == 1 && (strcmp(ChoiceP2, "") == 0)) {
             play_sample(cursor, 255, 128, 1000, 0);
             if (SelectCharP2ID < 1) SelectCharP2ID = Qtde_Personagens_Instalados;
             if (SelectCharP2ID == 8) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[8]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[8]);
             }
             if (SelectCharP2ID == 7) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[7]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[7]);
             }
             if (SelectCharP2ID == 6) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[6]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[6]);
             }
             if (SelectCharP2ID == 5) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[5]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[5]);
             }
             if (SelectCharP2ID == 4) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[4]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[4]);
             }
             if (SelectCharP2ID == 3) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[3]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[3]);
             }
             if (SelectCharP2ID == 2) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[2]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[2]);
             }
             if (SelectCharP2ID == 1) {
-                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.pcx", Lista_de_Personagens_Instalados[1]);
+                sprintf(P2BIGDisplaystring, "data/chars/%s/000_00.png", Lista_de_Personagens_Instalados[1]);
             }
             P2BIGDisplay = load_bitmap(P2BIGDisplaystring, NULL);
-            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.pcx", NULL); }
+            if (!P2BIGDisplay) { P2BIGDisplay = load_bitmap("data/system/000_00.png", NULL); }
         }
     }
 
@@ -345,7 +345,7 @@ void GameLoop_SelectCharMode()
         set_config_file(SelectCharP1Caminho);
         P[1].Type = get_config_int("Info", "Type", 1);
         //verifica se o personagem possui paleta de cores
-        sprintf(P1_Pallete_string, "data/chars/%s/pallete.pcx", ChoiceP1);
+        sprintf(P1_Pallete_string, "data/chars/%s/pallete.png", ChoiceP1);
         P1_Pallete = load_bitmap(P1_Pallete_string, NULL);
         if (!P1_Pallete) { P[1].PossuiPaletaDeCor = 0; } else { P[1].PossuiPaletaDeCor = 1; }
         //define a cor do personagem, se ele tiver paleta de cores
@@ -488,7 +488,7 @@ void GameLoop_SelectCharMode()
         set_config_file(SelectCharP2Caminho);
         P[2].Type = get_config_int("Info", "Type", 1);
         //verifica se o personagem possui paleta de cores
-        sprintf(P2_Pallete_string, "data/chars/%s/pallete.pcx", ChoiceP2);
+        sprintf(P2_Pallete_string, "data/chars/%s/pallete.png", ChoiceP2);
         P2_Pallete = load_bitmap(P2_Pallete_string, NULL);
         if (!P2_Pallete) { P[2].PossuiPaletaDeCor = 0; } else { P[2].PossuiPaletaDeCor = 1; }
         //define a cor do personagem, se ele tiver paleta de cores
