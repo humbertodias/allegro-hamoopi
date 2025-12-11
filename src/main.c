@@ -849,6 +849,8 @@ BITMAP *MINIsprDisplayArcadeMode[9];
 BITMAP *P1BIGDisplay;
 BITMAP *P2BIGDisplay;
 BITMAP *P2BIGDisplayInv ;
+BITMAP *AnimIntro[16];
+
 
 int SelectBGID = 1;
 int ModoFullscreen = 0;
@@ -858,34 +860,53 @@ char bg_choice[40] = "";
 // GAME LOOP FUNCTIONS -------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-// Forward declarations for game loop functions
+// Forward declarations for game loop and initialization functions
 void dispose_game_elements();
+void initialize_allegro_subsystems();
+void load_fonts();
+void load_configuration();
+void create_render_buffers();
+int load_system_bitmaps();
+void load_animation_frames();
+void load_audio_resources();
+void initialize_character_and_stage_lists();
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // INICIALIZACAO ALLEGRO ------------------------------------------------[**02]
 ///////////////////////////////////////////////////////////////////////////////
 
-
-int main() {
+/**
+ * Initialize Allegro/SDL subsystems
+ */
+void initialize_allegro_subsystems() {
     set_uformat(U_UTF8); //permite usar acentuação no jogo (diacríticos)
     allegro_init();
     install_timer();
     install_keyboard();
     install_mouse();
     set_color_depth(32);
-    //set_gfx_mode() é declarado logo abaixo, apos carregar dados do SETUP.INI
     install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
     install_int_ex(tempo, BPS_TO_TIMER(60)); //60fps
     set_window_title("HAMOOPI is Loading... Please wait :) ");
     set_close_button_callback(sair_allegro);
+}
 
+/**
+ * Load all font resources
+ */
+void load_fonts() {
     font_debug = load_font("data/system/font_debug.pcx", NULL, NULL);
     font_10 = load_font("data/system/font_10.pcx", NULL, NULL);
     font_19 = load_font("data/system/font_19.pcx", NULL, NULL);
     font_20 = load_font("data/system/font_20.pcx", NULL, NULL);
     font_30 = load_font("data/system/font_30.pcx", NULL, NULL);
+}
 
+/**
+ * Load configuration from SETUP.ini and initialize game settings
+ */
+void load_configuration() {
     //carrega os dados do setup.ini
     set_config_file("SETUP.ini");
 
@@ -918,24 +939,61 @@ int main() {
     //opcao de framedata
     op_ShowFrameData = get_config_int("CONFIG", "frame_data", 0);
 
+    //idioma do jogo
+    const char *lang = get_config_string("CONFIG", "language", "BR");
+    snprintf(IDIOMA, sizeof(IDIOMA), "%s", lang);
+
+    //define centro do mapa
+    MapCenterX = get_config_int("TEMPLATE", "MapCenterX", 320);
+    MapCenterY = get_config_int("TEMPLATE", "MapCenterY", 118);
+    difficulty = get_config_int("CONFIG", "difficulty", 3);
+
+    //propriedades de round
+    RoundTime = get_config_int("CONFIG", "time", 99);
+    RoundTime = RoundTime * 60 + 59;
+    RoundTotal = get_config_int("CONFIG", "rounds", 3);
+
+    //inputs dos jogadores
+    p1_up = get_config_int("P1_CONTROL", "P1_UP", 84);
+    p1_down = get_config_int("P1_CONTROL", "P1_DOWN", 85);
+    p1_left = get_config_int("P1_CONTROL", "P1_LEFT", 82);
+    p1_right = get_config_int("P1_CONTROL", "P1_RIGHT", 83);
+    p1_bt1 = get_config_int("P1_CONTROL", "P1_BT1", 1);
+    p1_bt2 = get_config_int("P1_CONTROL", "P1_BT2", 19);
+    p1_bt3 = get_config_int("P1_CONTROL", "P1_BT3", 4);
+    p1_bt4 = get_config_int("P1_CONTROL", "P1_BT4", 26);
+    p1_bt5 = get_config_int("P1_CONTROL", "P1_BT5", 24);
+    p1_bt6 = get_config_int("P1_CONTROL", "P1_BT6", 3);
+    p1_select = get_config_int("P1_CONTROL", "P1_SELECT", 75);
+    p1_start = get_config_int("P1_CONTROL", "P1_START", 67);
+    p2_up = get_config_int("P2_CONTROL", "P2_UP", 9);
+    p2_down = get_config_int("P2_CONTROL", "P2_DOWN", 11);
+    p2_left = get_config_int("P2_CONTROL", "P2_LEFT", 10);
+    p2_right = get_config_int("P2_CONTROL", "P2_RIGHT", 12);
+    p2_bt1 = get_config_int("P2_CONTROL", "P2_BT1", 6);
+    p2_bt2 = get_config_int("P2_CONTROL", "P2_BT2", 7);
+    p2_bt3 = get_config_int("P2_CONTROL", "P2_BT3", 8);
+    p2_bt4 = get_config_int("P2_CONTROL", "P2_BT4", 22);
+    p2_bt5 = get_config_int("P2_CONTROL", "P2_BT5", 2);
+    p2_bt6 = get_config_int("P2_CONTROL", "P2_BT6", 14);
+    p2_select = get_config_int("P2_CONTROL", "P2_SELECT", 18);
+    p2_start = get_config_int("P2_CONTROL", "P2_START", 20);
+
+    //propriedades da paleta de cor
+    P[1].DefineCorDaPaleta = 0;
+    P[2].DefineCorDaPaleta = 0;
+}
+
+/**
+ * Create all render buffers and sprite atlases
+ */
+void create_render_buffers() {
     //Valores de Referencia:
     //Genesis [320x224]
     //Snes [256x224]
     //CapcomCPS1 [384x224]
     //NeoGeo [320x224]
     bg_test = create_bitmap(1280, 960); //tamanho max do cenario
-
-    //carrega a lista de Cenarios instalados
-    for (int ind = 1; ind <= MAX_CHARS; ind++) {
-        char strtemp[9] = "";
-        sprintf(strtemp, "bg%i", ind);
-        strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
-    }
-    //abastece Atlas de cenario
-    for (int ind = 1; ind <= 8; ind++) {
-        sprintf(bg_choice, "data/backgrounds/%s/000_00.png", Lista_de_Cenarios_Instalados[ind]);
-        bg_hamoopi[ind] = load_bitmap(bg_choice, NULL);
-    }
 
     bufferx = create_bitmap(2560, 1920); //layer do cenario e personagens escalonados
     LayerHUD = create_bitmap(WindowResX, WindowResY); //layer das barras de energia
@@ -970,8 +1028,15 @@ int main() {
     clear_to_color(HitSpark_Aux, makecol(255, 0, 255));
     clear_to_color(P1_Pallete, makecol(255, 0, 255));
     clear_to_color(P2_Pallete, makecol(255, 0, 255));
+}
 
+/**
+ * Load all system bitmaps (UI elements, sprites, etc.)
+ * Returns 0 on success, -1 if critical resources are missing
+ */
+int load_system_bitmaps() {
     int HamoopiError = 0;
+
     GAME_logo = load_bitmap("data/system/GAME_logo.png", NULL);
     if (!GAME_logo) { HamoopiError = 1; }
     flag_BR = load_bitmap("data/system/flag_BR.png", NULL);
@@ -1263,6 +1328,28 @@ int main() {
     //BITMAP *spr995_03            = load_bitmap("data/system/995_03.png", NULL);               if (!spr995_03)            { HamoopiError=1; }
     //BITMAP *spr995_04            = load_bitmap("data/system/995_04.png", NULL);               if (!spr995_04)            { HamoopiError=1; }
     //BITMAP *spr995_05            = load_bitmap("data/system/995_05.png", NULL);               if (!spr995_05)            { HamoopiError=1; }
+
+    MINIspr[0] = load_bitmap("data/system/000_01.png", NULL);
+    if (!MINIspr[0]) { HamoopiError = 1; }
+
+    // Display error message if resources failed to load
+    if (HamoopiError == 1) {
+        if (strcmp(IDIOMA, "BR") == 0) {
+            allegro_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS.");
+        }
+        if (strcmp(IDIOMA, "US") == 0) {
+            allegro_message("FILES OR DIRECTORIES NOT FOUND.");
+        }
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Load animation frames for transitions and intro
+ */
+void load_animation_frames() {
     AnimTrans[0] = load_bitmap("data/system/AnimTrans00.png", NULL);
     if (!AnimTrans[0]) { CtrlAnimTrans[0] = 0; } else { CtrlAnimTrans[0] = 1; }
     AnimTrans[1] = load_bitmap("data/system/AnimTrans01.png", NULL);
@@ -1323,7 +1410,7 @@ int main() {
     if (!AnimTrans[28]) { CtrlAnimTrans[28] = 0; } else { CtrlAnimTrans[28] = 1; }
     AnimTrans[29] = load_bitmap("data/system/AnimTrans29.png", NULL);
     if (!AnimTrans[29]) { CtrlAnimTrans[29] = 0; } else { CtrlAnimTrans[29] = 1; }
-    BITMAP *AnimIntro[16];
+
     AnimIntro[0] = load_bitmap("data/system/AnimIntro00.png", NULL);
     if (!AnimIntro[0]) { CtrlAnimIntro[0] = 0; } else { CtrlAnimIntro[0] = 1; }
     AnimIntro[1] = load_bitmap("data/system/AnimIntro01.png", NULL);
@@ -1356,9 +1443,40 @@ int main() {
     if (!AnimIntro[14]) { CtrlAnimIntro[14] = 0; } else { CtrlAnimIntro[14] = 1; }
     AnimIntro[15] = load_bitmap("data/system/AnimIntro15.png", NULL);
     if (!AnimIntro[15]) { CtrlAnimIntro[15] = 0; } else { CtrlAnimIntro[15] = 1; }
+}
 
-    MINIspr[0] = load_bitmap("data/system/000_01.png", NULL);
-    if (!MINIspr[0]) { HamoopiError = 1; }
+/**
+ * Load all audio resources (sounds and music)
+ */
+void load_audio_resources() {
+    intro = load_sample("data/sounds/intro.wav");
+    round1 = load_sample("data/sounds/round1.wav");
+    round2 = load_sample("data/sounds/round2.wav");
+    round3 = load_sample("data/sounds/round3.wav");
+    fight = load_sample("data/sounds/fight.wav");
+    ko = load_sample("data/sounds/ko.wav");
+    perfect = load_sample("data/sounds/perfect.wav");
+    back = load_sample("data/sounds/back.wav");
+    choice = load_sample("data/sounds/choice.wav");
+    confirm = load_sample("data/sounds/confirm.wav");
+    cursor = load_sample("data/sounds/cursor.wav");
+    attacklvl1 = load_sample("data/sounds/attacklvl1.wav");
+    attacklvl2 = load_sample("data/sounds/attacklvl2.wav");
+    attacklvl3 = load_sample("data/sounds/attacklvl3.wav");
+    hitlvl1 = load_sample("data/sounds/hitlvl1.wav");
+    hitlvl2 = load_sample("data/sounds/hitlvl2.wav");
+    hitlvl3 = load_sample("data/sounds/hitlvl3.wav");
+    bgm_apresentacao = load_midi("data/sounds/bgm_apresentacao.mid");
+    bgm_continue = load_midi("data/sounds/bgm_continue.mid");
+    bgm_select_screen = load_midi("data/sounds/bgm_select_screen.mid");
+    bgm_versus_mode = load_midi("data/sounds/bgm_versus_mode.mid");
+}
+
+/**
+ * Initialize character and stage lists from configuration
+ */
+void initialize_character_and_stage_lists() {
+    // Create miniature display bitmaps
     MINIspr[1] = create_bitmap(32, 32);
     MINIspr[2] = create_bitmap(32, 32);
     MINIspr[3] = create_bitmap(32, 32);
@@ -1392,24 +1510,6 @@ int main() {
     P2BIGDisplay = create_bitmap(128, 128);
     P2BIGDisplayInv = create_bitmap(128, 128);
 
-    //idioma do jogo
-    const char *lang = get_config_string("CONFIG", "language", "BR");
-    snprintf(IDIOMA, sizeof(IDIOMA), "%s", lang);
-    if (strcmp(IDIOMA, "BR") == 0) {
-        if (HamoopiError == 1)
-            allegro_message("ARQUIVOS OU DIRETORIOS NAO ENCONTRADOS.");
-    }
-    if (strcmp(IDIOMA, "US") == 0) {
-        if (HamoopiError == 1)
-            allegro_message("FILES OR DIRECTORIES NOT FOUND.");
-    }
-
-    //define centro do mapa
-    MapCenterX = get_config_int("TEMPLATE", "MapCenterX", 320);
-    MapCenterY = get_config_int("TEMPLATE", "MapCenterY", 118);
-    difficulty = get_config_int("CONFIG", "difficulty", 3);
-
-    //modo historia
     //carrega a lista de personagens instalados
     for (int ind = 1; ind <= MAX_CHARS; ind++) {
         char strtemp[9] = "";
@@ -1481,64 +1581,35 @@ int main() {
     sprintf(P2_1s, "data/chars/%s/000_01.png", P[2].Name);
     P2_1 = load_bitmap(P2_1s, NULL);
     if (!P2_1) { P2_1 = load_bitmap("data/system/000_01.png", NULL); }
+}
 
-    //propriedades de round
-    RoundTime = get_config_int("CONFIG", "time", 99);
-    RoundTime = RoundTime * 60 + 59;
-    RoundTotal = get_config_int("CONFIG", "rounds", 3);
 
-    //inputs dos jogadores
-    p1_up = get_config_int("P1_CONTROL", "P1_UP", 84);
-    p1_down = get_config_int("P1_CONTROL", "P1_DOWN", 85);
-    p1_left = get_config_int("P1_CONTROL", "P1_LEFT", 82);
-    p1_right = get_config_int("P1_CONTROL", "P1_RIGHT", 83);
-    p1_bt1 = get_config_int("P1_CONTROL", "P1_BT1", 1);
-    p1_bt2 = get_config_int("P1_CONTROL", "P1_BT2", 19);
-    p1_bt3 = get_config_int("P1_CONTROL", "P1_BT3", 4);
-    p1_bt4 = get_config_int("P1_CONTROL", "P1_BT4", 26);
-    p1_bt5 = get_config_int("P1_CONTROL", "P1_BT5", 24);
-    p1_bt6 = get_config_int("P1_CONTROL", "P1_BT6", 3);
-    p1_select = get_config_int("P1_CONTROL", "P1_SELECT", 75);
-    p1_start = get_config_int("P1_CONTROL", "P1_START", 67);
-    p2_up = get_config_int("P2_CONTROL", "P2_UP", 9);
-    p2_down = get_config_int("P2_CONTROL", "P2_DOWN", 11);
-    p2_left = get_config_int("P2_CONTROL", "P2_LEFT", 10);
-    p2_right = get_config_int("P2_CONTROL", "P2_RIGHT", 12);
-    p2_bt1 = get_config_int("P2_CONTROL", "P2_BT1", 6);
-    p2_bt2 = get_config_int("P2_CONTROL", "P2_BT2", 7);
-    p2_bt3 = get_config_int("P2_CONTROL", "P2_BT3", 8);
-    p2_bt4 = get_config_int("P2_CONTROL", "P2_BT4", 22);
-    p2_bt5 = get_config_int("P2_CONTROL", "P2_BT5", 2);
-    p2_bt6 = get_config_int("P2_CONTROL", "P2_BT6", 14);
-    p2_select = get_config_int("P2_CONTROL", "P2_SELECT", 18);
-    p2_start = get_config_int("P2_CONTROL", "P2_START", 20);
+int main() {
+    initialize_allegro_subsystems();
+    load_fonts();
+    load_configuration();
 
-    //propriedades da paleta de cor
-    P[1].DefineCorDaPaleta = 0;
-    P[2].DefineCorDaPaleta = 0;
+    //carrega a lista de Cenarios instalados
+    for (int ind = 1; ind <= MAX_CHARS; ind++) {
+        char strtemp[9] = "";
+        sprintf(strtemp, "bg%i", ind);
+        strcpy(Lista_de_Cenarios_Instalados[ind], (char *)get_config_string("BACKGROUNDS", strtemp, ""));
+    }
+    //abastece Atlas de cenario
+    for (int ind = 1; ind <= 8; ind++) {
+        sprintf(bg_choice, "data/backgrounds/%s/000_00.png", Lista_de_Cenarios_Instalados[ind]);
+        bg_hamoopi[ind] = load_bitmap(bg_choice, NULL);
+    }
 
-    //musicas e efeitos
-    intro = load_sample("data/sounds/intro.wav");
-    round1 = load_sample("data/sounds/round1.wav");
-    round2 = load_sample("data/sounds/round2.wav");
-    round3 = load_sample("data/sounds/round3.wav");
-    fight = load_sample("data/sounds/fight.wav");
-    ko = load_sample("data/sounds/ko.wav");
-    perfect = load_sample("data/sounds/perfect.wav");
-    back = load_sample("data/sounds/back.wav");
-    choice = load_sample("data/sounds/choice.wav");
-    confirm = load_sample("data/sounds/confirm.wav");
-    cursor = load_sample("data/sounds/cursor.wav");
-    attacklvl1 = load_sample("data/sounds/attacklvl1.wav");
-    attacklvl2 = load_sample("data/sounds/attacklvl2.wav");
-    attacklvl3 = load_sample("data/sounds/attacklvl3.wav");
-    hitlvl1 = load_sample("data/sounds/hitlvl1.wav");
-    hitlvl2 = load_sample("data/sounds/hitlvl2.wav");
-    hitlvl3 = load_sample("data/sounds/hitlvl3.wav");
-    bgm_apresentacao = load_midi("data/sounds/bgm_apresentacao.mid");
-    bgm_continue = load_midi("data/sounds/bgm_continue.mid");
-    bgm_select_screen = load_midi("data/sounds/bgm_select_screen.mid");
-    bgm_versus_mode = load_midi("data/sounds/bgm_versus_mode.mid");
+    create_render_buffers();
+
+    if (load_system_bitmaps() != 0) {
+        return 1; // Exit if critical resources failed to load
+    }
+
+    load_animation_frames();
+    initialize_character_and_stage_lists();
+    load_audio_resources();
 
     set_window_title(versao);
 
