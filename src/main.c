@@ -1580,7 +1580,7 @@ int main() {
         }
 
         if (DonationScreen == 1) {
-            GameLoop_DonationScreen(font_19, donation, bufferx);
+            GameLoop_DonationScreen();
         }
 
         if (ApresentacaoMode == 1) {
@@ -1709,8 +1709,7 @@ int main() {
     } //(while sair==0)
 
     //limpa a memoria, destroi imagens e audios utilizados no jogo
-    dispose_game_elements(AnimTrans, MINIsprDisplay, MINIsprDisplayArcadeMode, P1BIGDisplay, P2BIGDisplay,
-                          P2BIGDisplayInv);
+    dispose_game_elements();
     return 0;
 } //main()
 
