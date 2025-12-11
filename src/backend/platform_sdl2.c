@@ -60,11 +60,6 @@ static void check_timer(void) {
 
 // Helper function to update screen using renderer and texture
 static void update_screen_with_renderer(void) {
-    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
-    if (g_timer_id == 0) {
-        check_timer();
-    }
-
     if (g_screen && g_screen->surface && g_renderer && g_screen_texture) {
         // Update texture with screen surface data
         SDL_UpdateTexture(g_screen_texture, NULL,
@@ -278,8 +273,9 @@ int platform_set_gfx_mode(int mode, int width, int height, int v_width, int v_he
         return -1;
     }
 
-    // Create renderer with hardware acceleration for better macOS compatibility
-    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // Create renderer with hardware acceleration
+    // Note: Removed PRESENTVSYNC to avoid vsync limiting timer precision
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
     if (!g_renderer) {
         fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
         SDL_DestroyWindow(g_window);
