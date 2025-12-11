@@ -897,11 +897,11 @@ void initialize_allegro_subsystems() {
  * Load all font resources
  */
 void load_fonts() {
-    font_debug = load_font("data/system/font_debug.pcx", NULL, NULL);
-    font_10 = load_font("data/system/font_10.pcx", NULL, NULL);
-    font_19 = load_font("data/system/font_19.pcx", NULL, NULL);
-    font_20 = load_font("data/system/font_20.pcx", NULL, NULL);
-    font_30 = load_font("data/system/font_30.pcx", NULL, NULL);
+    font_debug = load_font("data/system/font_debug.ttf", NULL, NULL);
+    font_10 = load_font("data/system/font_10.ttf", NULL, NULL);
+    font_19 = load_font("data/system/font_19.ttf", NULL, NULL);
+    font_20 = load_font("data/system/font_20.ttf", NULL, NULL);
+    font_30 = load_font("data/system/font_30.ttf", NULL, NULL);
 }
 
 /**

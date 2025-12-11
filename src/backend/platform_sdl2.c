@@ -128,22 +128,6 @@ static void init_key_mapping(void) {
     platform_to_sdl_key[PKEY_ALTGR] = SDL_SCANCODE_RALT;
 }
 
-char* replace_pcx_with_png(const char* filename) {
-    if (!filename) return NULL;
-
-    // Allocate new string
-    char *new_filename = malloc(strlen(filename) + 1);
-    if (!new_filename) return NULL;
-    strcpy(new_filename, filename);
-
-    // Find last dot
-    char *ext = strrchr(new_filename, '.');
-    if (ext && strcmp(ext, ".pcx") == 0) {
-        strcpy(ext, ".png");  // replace extension
-    }
-
-    return new_filename;
-}
 
 // ============================================================================
 // INITIALIZATION & SYSTEM
@@ -371,30 +355,38 @@ void platform_destroy_bitmap(PlatformBitmap *bitmap) {
 
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
 
-    char *realfile = replace_pcx_with_png(filename);  // allocate new name
-    if (!realfile) return NULL;
+    SDL_Log("platform_load_bitmap(): loading bitmap '%s' ...", filename);
 
-    SDL_Surface *loaded = IMG_Load(realfile);
-    free(realfile);  // <-- IMPORTANT: avoid memory leak
-
+    SDL_Surface *loaded = IMG_Load(filename);
     if (!loaded) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "IMG_Load failed for '%s': %s",
+                     filename, IMG_GetError());
         return NULL;
     }
 
-    // Convert to ARGB8888 — required for transparency and blits
+    SDL_Log("platform_load_bitmap(): '%s' loaded. Converting to ARGB8888...", filename);
+
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(loaded);
 
     if (!surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "SDL_ConvertSurfaceFormat failed for '%s': %s",
+                     filename, SDL_GetError());
         return NULL;
     }
 
-    // Enable transparency using color key (magenta)
+    // Enable transparency (magenta)
     Uint32 colorkey = SDL_MapRGB(surface->format, 255, 0, 255);
     SDL_SetColorKey(surface, SDL_TRUE, colorkey);
 
+    SDL_Log("platform_load_bitmap(): colorkey applied: RGB(255,0,255)");
+
     PlatformBitmap *pb = malloc(sizeof(PlatformBitmap));
     if (!pb) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "malloc() failed allocating PlatformBitmap for '%s'", filename);
         SDL_FreeSurface(surface);
         return NULL;
     }
@@ -403,8 +395,11 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
     pb->w = surface->w;
     pb->h = surface->h;
 
+    SDL_Log("platform_load_bitmap(): success! %dx%d bitmap loaded.", pb->w, pb->h);
+
     return pb;
 }
+
 
 
 void platform_clear_bitmap(PlatformBitmap *bitmap) {
@@ -727,38 +722,39 @@ int platform_bitmap_height(PlatformBitmap *bitmap) {
 // GRAPHICS - TEXT
 // ============================================================================
 
+
 PlatformFont* platform_load_font(const char *filename, void *palette, void *param) {
-    // Try to load as TTF, with fallback size
+    SDL_Log("platform_load_font(): loading font '%s' ...", filename);
+
     int size = 16;  // Default size
-
-    TTF_Font *font = TTF_OpenFont(replace_pcx_with_png(filename), size);
-    if (!font) {
-        // Try alternate extension
-        char alt_filename[512];
-        strncpy(alt_filename, filename, sizeof(alt_filename) - 5);
-        alt_filename[sizeof(alt_filename) - 5] = '\0';
-
-        char *ext = strrchr(alt_filename, '.');
-        if (ext) {
-            strcpy(ext, ".ttf");
-            font = TTF_OpenFont(alt_filename, size);
-        }
-    }
+    TTF_Font *font = TTF_OpenFont(filename, size);
 
     if (!font) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "TTF_OpenFont failed for '%s': %s",
+                     filename, TTF_GetError());
         return NULL;
     }
 
+    SDL_Log("platform_load_font(): font '%s' loaded successfully (size=%d).",
+            filename, size);
+
     PlatformFont *pf = (PlatformFont*)malloc(sizeof(PlatformFont));
-    if (pf) {
-        pf->font = font;
-        pf->size = size;
-    } else {
+    if (!pf) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "malloc() failed when allocating PlatformFont.");
         TTF_CloseFont(font);
+        return NULL;
     }
+
+    pf->font = font;
+    pf->size = size;
+
+    SDL_Log("platform_load_font(): PlatformFont struct created.");
 
     return pf;
 }
+
 
 void platform_destroy_font(PlatformFont *font) {
     if (font) {
