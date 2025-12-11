@@ -42,17 +42,23 @@ static void check_timer(void) {
         Uint64 current_tick = SDL_GetPerformanceCounter();
         Uint64 elapsed_ticks = current_tick - g_timer_last_tick;
 
-        // If enough time has elapsed, call the callback once per check
-        // NOTE: This differs from SDL_AddTimer which would fire multiple times for
-        // multiple elapsed intervals. We fire once and skip ahead to maintain timing
-        // while preventing callback spam during lag spikes. This is intentional for
-        // compatibility with the game's frame timing logic (while(timer==delay){}).
+        // Fire callback for each elapsed interval to maintain accurate timing
+        // This ensures the timer increments correctly even if checks are infrequent
         if (elapsed_ticks >= g_timer_interval_ticks) {
-            g_timer_callback();
-
-            // Advance by the appropriate number of intervals to prevent falling behind
-            // If we've missed multiple intervals, skip ahead to the current time
             Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
+            
+            // Call callback once for each elapsed interval
+            // Limit to prevent callback spam during extreme lag
+            Uint64 callbacks_to_fire = intervals_elapsed;
+            if (callbacks_to_fire > 10) {
+                callbacks_to_fire = 10;  // Cap at 10 to prevent runaway
+            }
+            
+            for (Uint64 i = 0; i < callbacks_to_fire; i++) {
+                g_timer_callback();
+            }
+            
+            // Advance by the actual number of intervals elapsed
             g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
         }
     }
@@ -374,10 +380,9 @@ volatile char* platform_get_key_state(void) {
     // Update SDL events to refresh keyboard state
     SDL_PumpEvents();
 
-    // Only check timer if SDL_AddTimer failed (fallback to polling mode)
-    if (g_timer_id == 0) {
-        check_timer();
-    }
+    // Always check timer in polling mode for better responsiveness
+    // This ensures the timer callback fires even if SDL_AddTimer has delays
+    check_timer();
 
     // Update mouse state
     Uint32 mouse_state = SDL_GetMouseState((int*)&platform_mouse_x, (int*)&platform_mouse_y);
