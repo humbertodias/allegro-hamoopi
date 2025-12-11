@@ -39,6 +39,10 @@ jobs:
           echo "ARCH=x64" >> $GITHUB_ENV
         else
           ARCH=$(uname -m)
+          # Normalize to x86_64 for linuxdeploy
+          if [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "amd64" ]]; then
+            ARCH="x86_64"
+          fi
           echo "ARCH=$ARCH" >> $GITHUB_ENV
         fi
 
@@ -69,7 +73,7 @@ jobs:
             cp build/tools/font-generator/${{ env.APP_NAME }} AppDir/usr/bin/
 
             export QMAKE=$QT_ROOT_DIR/bin/qmake
-            ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt
+            ./linuxdeploy-${ARCH}.AppImage --appdir AppDir --plugin qt
 
             cd AppDir/usr
             tar -czf ../../${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz .
