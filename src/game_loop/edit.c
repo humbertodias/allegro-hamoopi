@@ -146,7 +146,7 @@ void GameLoop_EditMode() {
         char ED_Caminho[99];
         sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name);
         set_config_file(ED_Caminho);
-        char ED_State_s[3];
+        char ED_State_s[16];
         sprintf(ED_State_s, "%i", ED_State);
         set_config_int(ED_State_s, "XAlign", ED_XAlign);
         set_config_int(ED_State_s, "YAlign", ED_YAlign);
@@ -209,7 +209,7 @@ void GameLoop_EditMode() {
             char ED_Caminho[99];
             sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name);
             set_config_file(ED_Caminho);
-            char ED_State_s[3];
+            char ED_State_s[16];
             if (ED_IndexAnim < 10) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
             if (ED_IndexAnim >= 10) { sprintf(ED_State_s, "%i_%i", ED_State, ED_IndexAnim); }
             if (ED_HitBox_tot == 9) {
@@ -303,7 +303,7 @@ void GameLoop_EditMode() {
             char ED_Caminho[99];
             sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name);
             set_config_file(ED_Caminho);
-            char ED_State_s[3];
+            char ED_State_s[16];
             if (ED_IndexAnim < 10) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
             if (ED_IndexAnim >= 10) { sprintf(ED_State_s, "%i_%i", ED_State, ED_IndexAnim); }
             if (ED_HurtBox_tot == 9) {
@@ -1910,7 +1910,7 @@ void GameLoop_EditMode() {
         char ED_Caminho[99];
         sprintf(ED_Caminho, "data/chars/%s/chbox.ini", P[1].Name);
         set_config_file(ED_Caminho);
-        char ED_State_s[3];
+        char ED_State_s[16];
         if (ED_IndexAnim < 10) { sprintf(ED_State_s, "%i_0%i", ED_State, ED_IndexAnim); }
         if (ED_IndexAnim >= 10) { sprintf(ED_State_s, "%i_%i", ED_State, ED_IndexAnim); }
         if (ED_DrawBlueMode == 1) {
