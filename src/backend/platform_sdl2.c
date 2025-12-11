@@ -36,6 +36,9 @@ static Uint32 timer_callback_wrapper(Uint32 interval, void *param) {
     return interval;  // Continue timer with same interval
 }
 
+// Maximum callbacks to fire per check to prevent runaway during extreme lag
+#define MAX_TIMER_CALLBACKS_PER_CHECK 10
+
 // Helper function to check and fire timer callback
 static void check_timer(void) {
     if (g_timer_callback && g_timer_interval_ticks > 0) {
@@ -50,8 +53,8 @@ static void check_timer(void) {
             // Call callback once for each elapsed interval
             // Limit to prevent callback spam during extreme lag
             Uint64 callbacks_to_fire = intervals_elapsed;
-            if (callbacks_to_fire > 10) {
-                callbacks_to_fire = 10;  // Cap at 10 to prevent runaway
+            if (callbacks_to_fire > MAX_TIMER_CALLBACKS_PER_CHECK) {
+                callbacks_to_fire = MAX_TIMER_CALLBACKS_PER_CHECK;
             }
             
             for (Uint64 i = 0; i < callbacks_to_fire; i++) {

@@ -41,11 +41,18 @@ The renderer was created with `SDL_RENDERER_PRESENTVSYNC` flag, which forces the
    }
    
    // After: Calls callback for each elapsed interval
+   #define MAX_TIMER_CALLBACKS_PER_CHECK 10
+   
    if (elapsed_ticks >= g_timer_interval_ticks) {
        Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
        
-       // Fire callback for each elapsed interval (capped at 10)
-       for (Uint64 i = 0; i < intervals_elapsed && i < 10; i++) {
+       // Fire callback for each elapsed interval (capped to prevent runaway)
+       Uint64 callbacks_to_fire = intervals_elapsed;
+       if (callbacks_to_fire > MAX_TIMER_CALLBACKS_PER_CHECK) {
+           callbacks_to_fire = MAX_TIMER_CALLBACKS_PER_CHECK;
+       }
+       
+       for (Uint64 i = 0; i < callbacks_to_fire; i++) {
            g_timer_callback();  // Called multiple times!
        }
        
