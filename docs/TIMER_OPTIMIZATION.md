@@ -81,13 +81,15 @@ With VSync enabled, frame presentation conflicts with this internal timing, caus
 
 ## Platform-Specific Behavior
 
-| Platform | Timer Approach | Renderer |
-|----------|---------------|----------|
-| Linux | SDL_AddTimer with polling fallback | OpenGL |
-| macOS | SDL_AddTimer + always-on polling | Metal (preferred) |
-| Windows | SDL_AddTimer with polling fallback | Direct3D/OpenGL |
+| Platform | Timer Approach | Callback Behavior | Renderer |
+|----------|---------------|-------------------|----------|
+| Linux | SDL_AddTimer with fallback | Single callback per check | OpenGL |
+| macOS | SDL_AddTimer + always polling | **Multiple callbacks per check** | Metal |
+| Windows | SDL_AddTimer with fallback | Single callback per check | D3D/OpenGL |
 
-The hybrid approach on macOS compensates for platform-specific timer latency issues.
+**Key difference on macOS**: When polling detects multiple elapsed intervals, it fires the callback multiple times (capped at 10) to accurately increment the timer. This compensates for SDL_AddTimer latency on macOS.
+
+On other platforms, firing once per check is sufficient because SDL_AddTimer has lower latency.
 
 ## Timer Implementation Details
 

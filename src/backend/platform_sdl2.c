@@ -42,17 +42,27 @@ static void check_timer(void) {
         Uint64 current_tick = SDL_GetPerformanceCounter();
         Uint64 elapsed_ticks = current_tick - g_timer_last_tick;
 
-        // If enough time has elapsed, call the callback once per check
-        // NOTE: This differs from SDL_AddTimer which would fire multiple times for
-        // multiple elapsed intervals. We fire once and skip ahead to maintain timing
-        // while preventing callback spam during lag spikes. This is intentional for
-        // compatibility with the game's frame timing logic (while(timer==delay){}).
         if (elapsed_ticks >= g_timer_interval_ticks) {
-            g_timer_callback();
-
-            // Advance by the appropriate number of intervals to prevent falling behind
-            // If we've missed multiple intervals, skip ahead to the current time
             Uint64 intervals_elapsed = elapsed_ticks / g_timer_interval_ticks;
+            
+#ifdef __APPLE__
+            // On macOS, fire callback for each elapsed interval for better accuracy
+            // macOS has SDL_AddTimer latency issues, so polling needs to catch up
+            Uint64 callbacks_to_fire = intervals_elapsed;
+            if (callbacks_to_fire > 10) {
+                callbacks_to_fire = 10;  // Cap at 10 to prevent runaway
+            }
+            
+            for (Uint64 i = 0; i < callbacks_to_fire; i++) {
+                g_timer_callback();
+            }
+#else
+            // On other platforms, fire once and skip ahead to maintain timing
+            // This is intentional for compatibility with game timing logic
+            g_timer_callback();
+#endif
+            
+            // Advance by the appropriate number of intervals to prevent falling behind
             g_timer_last_tick += intervals_elapsed * g_timer_interval_ticks;
         }
     }
