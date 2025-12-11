@@ -1034,13 +1034,6 @@ int main() {
     load_fonts();
     load_configuration();
 
-    //Valores de Referencia:
-    //Genesis [320x224]
-    //Snes [256x224]
-    //CapcomCPS1 [384x224]
-    //NeoGeo [320x224]
-    bg_test = create_bitmap(1280, 960); //tamanho max do cenario
-
     //carrega a lista de Cenarios instalados
     for (int ind = 1; ind <= MAX_CHARS; ind++) {
         char strtemp[9] = "";
