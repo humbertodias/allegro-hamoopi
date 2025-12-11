@@ -44,7 +44,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.backend == 'allegro'
         run: |
           sudo apt-get update
-          sudo apt-get install -y liballegro4-dev
+          sudo apt-get install -y liballegro4-dev libpng-dev
 
       - name: Install dependencies (Linux - SDL2)
         if: matrix.os == 'ubuntu-latest' && matrix.backend == 'sdl2'
