@@ -1107,90 +1107,41 @@ int create_render_buffers() {
     //Snes [256x224]
     //CapcomCPS1 [384x224]
     //NeoGeo [320x224]
-    bg_test = create_bitmap(BACKGROUND_MAX_WIDTH, BACKGROUND_MAX_HEIGHT);
-    if (!bg_test) return -1;
-
-    bufferx = create_bitmap(BUFFER_MAX_WIDTH, BUFFER_MAX_HEIGHT);
-    if (!bufferx) return -1;
-    
-    LayerHUD = create_bitmap(WindowResX, WindowResY);
-    if (!LayerHUD) return -1;
-    
-    LayerHUDa = create_bitmap(GAME_BASE_WIDTH, GAME_BASE_HEIGHT);
-    if (!LayerHUDa) return -1;
-    
-    LayerHUDb = create_bitmap(WindowResX, WindowResY);
-    if (!LayerHUDb) return -1;
+    CREATE_BITMAP_CHECKED(bg_test, BACKGROUND_MAX_WIDTH, BACKGROUND_MAX_HEIGHT);
+    CREATE_BITMAP_CHECKED(bufferx, BUFFER_MAX_WIDTH, BUFFER_MAX_HEIGHT);
+    CREATE_BITMAP_CHECKED(LayerHUD, WindowResX, WindowResY);
+    CREATE_BITMAP_CHECKED(LayerHUDa, GAME_BASE_WIDTH, GAME_BASE_HEIGHT);
+    CREATE_BITMAP_CHECKED(LayerHUDb, WindowResX, WindowResY);
 
     for (int ind = 0; ind < MAX_SPRITE_ATLAS; ind++) {
-        P[1].SprAtlas[ind] = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-        if (!P[1].SprAtlas[ind]) return -1;
-        
-        P[2].SprAtlas[ind] = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-        if (!P[2].SprAtlas[ind]) return -1;
+        CREATE_BITMAP_CHECKED(P[1].SprAtlas[ind], SPRITE_SIZE, SPRITE_SIZE);
+        CREATE_BITMAP_CHECKED(P[2].SprAtlas[ind], SPRITE_SIZE, SPRITE_SIZE);
     }
 
-    P[1].Spr = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!P[1].Spr) return -1;
+    CREATE_BITMAP_CHECKED(P[1].Spr, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(P[2].Spr, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(Fireball[1].Spr, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(Fireball[2].Spr, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(P1_Sombra, SHADOW_WIDTH, SHADOW_HEIGHT);
+    CREATE_BITMAP_CHECKED(P2_Sombra, SHADOW_WIDTH, SHADOW_HEIGHT);
+    CREATE_BITMAP_CHECKED(P1_Sombra_Aux, SHADOW_WIDTH, SHADOW_HEIGHT);
+    CREATE_BITMAP_CHECKED(P2_Sombra_Aux, SHADOW_WIDTH, SHADOW_HEIGHT);
+    CREATE_BITMAP_CHECKED(P1_energy_flip, 250, 40);
+    CREATE_BITMAP_CHECKED(P1_energy_red_flip, 250, 40);
+    CREATE_BITMAP_CHECKED(ED_Spr, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(ED_Mini, MINI_SPRITE_SIZE, MINI_SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(P1_Spr_Aux, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(P2_Spr_Aux, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(ED_Spr_Aux, SPRITE_SIZE, SPRITE_SIZE);
+    CREATE_BITMAP_CHECKED(HitSparkspr, 260, 260);
+    CREATE_BITMAP_CHECKED(HitSpark_Aux, 130, 130);
+    CREATE_BITMAP_CHECKED(P1_Pallete, 32, 10);
+    CREATE_BITMAP_CHECKED(P2_Pallete, 32, 10);
     
-    P[2].Spr = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!P[2].Spr) return -1;
-    
-    Fireball[1].Spr = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!Fireball[1].Spr) return -1;
-    
-    Fireball[2].Spr = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!Fireball[2].Spr) return -1;
-    
-    P1_Sombra = create_bitmap(SHADOW_WIDTH, SHADOW_HEIGHT);
-    if (!P1_Sombra) return -1;
-    
-    P2_Sombra = create_bitmap(SHADOW_WIDTH, SHADOW_HEIGHT);
-    if (!P2_Sombra) return -1;
-    
-    P1_Sombra_Aux = create_bitmap(SHADOW_WIDTH, SHADOW_HEIGHT);
-    if (!P1_Sombra_Aux) return -1;
-    
-    P2_Sombra_Aux = create_bitmap(SHADOW_WIDTH, SHADOW_HEIGHT);
-    if (!P2_Sombra_Aux) return -1;
-    
-    P1_energy_flip = create_bitmap(250, 40);
-    if (!P1_energy_flip) return -1;
-    
-    P1_energy_red_flip = create_bitmap(250, 40);
-    if (!P1_energy_red_flip) return -1;
-    
-    ED_Spr = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!ED_Spr) return -1;
-    
-    ED_Mini = create_bitmap(MINI_SPRITE_SIZE, MINI_SPRITE_SIZE);
-    if (!ED_Mini) return -1;
-    
-    P1_Spr_Aux = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!P1_Spr_Aux) return -1;
-    
-    P2_Spr_Aux = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!P2_Spr_Aux) return -1;
-    
-    ED_Spr_Aux = create_bitmap(SPRITE_SIZE, SPRITE_SIZE);
-    if (!ED_Spr_Aux) return -1;
-    
-    HitSparkspr = create_bitmap(260, 260);
-    if (!HitSparkspr) return -1;
-    
-    HitSpark_Aux = create_bitmap(130, 130);
-    if (!HitSpark_Aux) return -1;
-    
-    P1_Pallete = create_bitmap(32, 10);
-    if (!P1_Pallete) return -1;
-    
-    P2_Pallete = create_bitmap(32, 10);
-    if (!P2_Pallete) return -1;
-    
-    clear_to_color(HitSparkspr, makecol(COLOR_MAGENTA_R, COLOR_MAGENTA_G, COLOR_MAGENTA_B));
-    clear_to_color(HitSpark_Aux, makecol(COLOR_MAGENTA_R, COLOR_MAGENTA_G, COLOR_MAGENTA_B));
-    clear_to_color(P1_Pallete, makecol(COLOR_MAGENTA_R, COLOR_MAGENTA_G, COLOR_MAGENTA_B));
-    clear_to_color(P2_Pallete, makecol(COLOR_MAGENTA_R, COLOR_MAGENTA_G, COLOR_MAGENTA_B));
+    clear_to_color(HitSparkspr, COLOR_TRANSPARENT);
+    clear_to_color(HitSpark_Aux, COLOR_TRANSPARENT);
+    clear_to_color(P1_Pallete, COLOR_TRANSPARENT);
+    clear_to_color(P2_Pallete, COLOR_TRANSPARENT);
     
     return 0;
 }
@@ -1642,38 +1593,18 @@ void load_audio_resources() {
  */
 int initialize_character_and_stage_lists() {
     // Create miniature display bitmaps
-    MINIspr[1] = create_bitmap(32, 32);
-    MINIspr[2] = create_bitmap(32, 32);
-    MINIspr[3] = create_bitmap(32, 32);
-    MINIspr[4] = create_bitmap(32, 32);
-    MINIspr[5] = create_bitmap(32, 32);
-    MINIspr[6] = create_bitmap(32, 32);
-    MINIspr[7] = create_bitmap(32, 32);
-    MINIspr[8] = create_bitmap(32, 32);
+    for (int i = 1; i <= MAX_STAGES; i++) {
+        CREATE_BITMAP_CHECKED(MINIspr[i], MINI_SPRITE_SIZE, MINI_SPRITE_SIZE);
+    }
 
-    MINIsprDisplay[0] = create_bitmap(64, 64);
-    MINIsprDisplay[1] = create_bitmap(64, 64);
-    MINIsprDisplay[2] = create_bitmap(64, 64);
-    MINIsprDisplay[3] = create_bitmap(64, 64);
-    MINIsprDisplay[4] = create_bitmap(64, 64);
-    MINIsprDisplay[5] = create_bitmap(64, 64);
-    MINIsprDisplay[6] = create_bitmap(64, 64);
-    MINIsprDisplay[7] = create_bitmap(64, 64);
-    MINIsprDisplay[8] = create_bitmap(64, 64);
+    for (int i = 0; i <= MAX_STAGES; i++) {
+        CREATE_BITMAP_CHECKED(MINIsprDisplay[i], DISPLAY_SPRITE_SIZE, DISPLAY_SPRITE_SIZE);
+        CREATE_BITMAP_CHECKED(MINIsprDisplayArcadeMode[i], DISPLAY_SPRITE_SIZE, DISPLAY_SPRITE_SIZE);
+    }
 
-    MINIsprDisplayArcadeMode[0] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[1] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[2] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[3] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[4] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[5] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[6] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[7] = create_bitmap(64, 64);
-    MINIsprDisplayArcadeMode[8] = create_bitmap(64, 64);
-
-    P1BIGDisplay = create_bitmap(128, 128);
-    P2BIGDisplay = create_bitmap(128, 128);
-    P2BIGDisplayInv = create_bitmap(128, 128);
+    CREATE_BITMAP_CHECKED(P1BIGDisplay, BIG_DISPLAY_SIZE, BIG_DISPLAY_SIZE);
+    CREATE_BITMAP_CHECKED(P2BIGDisplay, BIG_DISPLAY_SIZE, BIG_DISPLAY_SIZE);
+    CREATE_BITMAP_CHECKED(P2BIGDisplayInv, BIG_DISPLAY_SIZE, BIG_DISPLAY_SIZE);
 
     //carrega a lista de personagens instalados
     for (int ind = 1; ind <= MAX_CHARACTERS; ind++) {
@@ -1684,7 +1615,7 @@ int initialize_character_and_stage_lists() {
 
     //atualiza a qtde de personagens instalados
     for (int ind = 1; ind <= MAX_CHARACTERS; ind++) {
-        if (strcmp(Lista_de_Personagens_Instalados[ind], "") != 0) { Qtde_Personagens_Instalados++; }
+        if (!STR_EMPTY(Lista_de_Personagens_Instalados[ind])) { Qtde_Personagens_Instalados++; }
     }
     //faz o sorteio de personagens do modo historia <nao utilizado no momento, aguardando futura implementacao>
     // Ao sortear, levar em consideracao o total de personagens instalados, abastecendo a lista arcade apropriadamente
@@ -1700,7 +1631,7 @@ int initialize_character_and_stage_lists() {
     }
     //atualiza a qtde de Cenarios instalados
     for (int ind = 1; ind <= MAX_CHARACTERS; ind++) {
-        if (strcmp(Lista_de_Cenarios_Instalados[ind], "") != 0) { Qtde_Cenarios_Instalados++; }
+        if (!STR_EMPTY(Lista_de_Cenarios_Instalados[ind])) { Qtde_Cenarios_Instalados++; }
     }
     //faz o sorteio de Cenarios do modo historia <nao utilizado no momento, aguardando futura implementacao>
     // Ao sortear, levar em consideracao o total de Cenarios instalados, abastecendo a lista arcade apropriadamente
@@ -1883,12 +1814,12 @@ int main() {
             int fx_h;
             fx_w = WindowResX;
             fx_h = WindowResY;
-            if (fx_w == 320) {
-                fx_w = 640;
-                fx_h = 480;
+            if (fx_w == RES_320x240_WIDTH) {
+                fx_w = GAME_BASE_WIDTH;
+                fx_h = GAME_BASE_HEIGHT;
             }
-            rectfill(bufferx, 0, 0, fx_w, fx_h, makecol(0, 0, 0));
-            if (CtrlAnimTrans[16] == 0) { rectfill(LayerHUDa, 0, 0, fx_w, fx_h, makecol(0, 0, 0)); }
+            rectfill(bufferx, 0, 0, fx_w, fx_h, COLOR_BLACK);
+            if (CtrlAnimTrans[16] == 0) { rectfill(LayerHUDa, 0, 0, fx_w, fx_h, COLOR_BLACK); }
             drawing_mode(DRAW_MODE_SOLID, 0, 0, 0);
         }
 
@@ -1938,7 +1869,7 @@ int main() {
         //////////////////////////////
         //BLIT de BUFFERX em SCREEN!//
         //////////////////////////////
-        if (GamePlayMode == 0) { stretch_blit(bufferx, screen, 0, 0, 640, 480, 0, 0, screen->w, screen->h); }
+        if (GamePlayMode == 0) { stretch_blit(bufferx, screen, 0, 0, GAME_BASE_WIDTH, GAME_BASE_HEIGHT, 0, 0, screen->w, screen->h); }
         if (GamePlayMode == 1) {
             masked_stretch_blit(LayerHUDa, LayerHUDb, 0, 0, LayerHUDa->w, LayerHUDa->h, 0, 0, LayerHUDb->w,
                                 LayerHUDb->h);
@@ -1960,9 +1891,9 @@ int main() {
         }
 
         clear(LayerHUD);
-        clear_to_color(LayerHUD, makecol(255, 0, 255));
-        clear_to_color(LayerHUDa, makecol(255, 0, 255));
-        clear_to_color(LayerHUDb, makecol(255, 0, 255));
+        clear_to_color(LayerHUD, COLOR_TRANSPARENT);
+        clear_to_color(LayerHUDa, COLOR_TRANSPARENT);
+        clear_to_color(LayerHUDb, COLOR_TRANSPARENT);
         clear(bufferx);
     } //(while sair==0)
 
