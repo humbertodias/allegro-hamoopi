@@ -184,7 +184,7 @@ void ED_load_charini() {
     char ED_Caminho[99];
     sprintf(ED_Caminho, "data/chars/%s/char.ini", P[1].Name);
     set_config_file(ED_Caminho);
-    char ED_State_s[3];
+    char ED_State_s[4];
     sprintf(ED_State_s, "%i", ED_State);
     ED_FrameTime_00 = 0;
     ED_FrameTime_01 = 0;

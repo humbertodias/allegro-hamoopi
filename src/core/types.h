@@ -39,7 +39,7 @@ struct FireballsDEF {
     int YAlign;
     int IndexAnim;
     int State;
-    char State_s[3];
+    char State_s[4];
     int StartFrame;
     int TotalFrames;
 };
