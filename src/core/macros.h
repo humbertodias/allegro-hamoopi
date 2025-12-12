@@ -9,6 +9,8 @@
  * simplificando o código e evitando erros.
  */
 
+#include "constants.h"
+
 // ============================================================================
 // MACROS DE VERIFICAÇÃO DE MEMÓRIA
 // ============================================================================
@@ -226,25 +228,31 @@
 #define VALID_STAGE_ID(id) ((id) >= 1 && (id) <= MAX_STAGES)
 
 // ============================================================================
-// MACROS ESPECÍFICAS DO JOGO
+// MACROS ESPECÍFICAS DO JOGO (Requerem variáveis globais definidas)
 // ============================================================================
+
+// As macros abaixo dependem de variáveis globais e devem ser usadas
+// somente após a inicialização do jogo
 
 /**
  * Verifica se o jogador está no chão
+ * Requer: AlturaPiso definido
  */
-#define IS_GROUNDED(player) ((player).y >= AlturaPiso)
+// #define IS_GROUNDED(player) ((player).y >= AlturaPiso)
 
 /**
  * Verifica se o jogador está no ar
+ * Requer: AlturaPiso definido
  */
-#define IS_AIRBORNE(player) ((player).y < AlturaPiso)
+// #define IS_AIRBORNE(player) ((player).y < AlturaPiso)
 
 /**
  * Verifica se o estado é de pulo
+ * Requer: STATE_* constantes definidas
  */
-#define IS_JUMPING(state) \
-    ((state) == STATE_JUMP || \
-     (state) == STATE_JUMP_FORWARD || \
-     (state) == STATE_JUMP_BACKWARD)
+// #define IS_JUMPING(state) \
+//     ((state) == STATE_JUMP || \
+//      (state) == STATE_JUMP_FORWARD || \
+//      (state) == STATE_JUMP_BACKWARD)
 
 #endif // HAMOOPI_MACROS_H

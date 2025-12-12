@@ -13,6 +13,7 @@
 #include "constants.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 /**
  * Carrega um bitmap com fallback para imagem padrão

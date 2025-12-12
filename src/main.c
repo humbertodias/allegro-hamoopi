@@ -1088,6 +1088,7 @@ int create_render_buffers() {
     clear_to_color(P2_Pallete, makecol(COLOR_MAGENTA_R, COLOR_MAGENTA_G, COLOR_MAGENTA_B));
     
     return 0;
+}
 
 /**
  * Load all system bitmaps (UI elements, sprites, etc.)
