@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
-#include "ini.h"
+#include "minIni.h"
 
 
 // Global state
@@ -949,167 +949,31 @@ void platform_adjust_sample(PlatformSample *sample, int vol, int pan, int freq, 
 // CONFIG FILE
 // ============================================================================
 
-// Simple INI file parser for SDL2
+// minIni configuration - uses standard stdio
 static char config_file[512] = "config.ini";
-static char config_buffer[65536];
 
 void platform_set_config_file(const char *filename) {
     strncpy(config_file, filename, sizeof(config_file) - 1);
     config_file[sizeof(config_file) - 1] = '\0';
 }
 
-typedef struct {
-    const char *section;
-    const char *key;
-    char value_buf[256]; // buffer próprio para salvar o value
-    int found;
-} find_context;
-
-static int ini_find_handler(void* user, const char* section, const char* name, const char* value)
-{
-    find_context *ctx = (find_context*)user;
-
-    if (strcmp(section, ctx->section) == 0 &&
-        strcmp(name, ctx->key) == 0)
-    {
-        strncpy(ctx->value_buf, value ? value : "", sizeof(ctx->value_buf) - 1);
-        ctx->value_buf[sizeof(ctx->value_buf)-1] = '\0';
-        ctx->found = 1;
-        return 0; // parar o parse
-    }
-    return 1; // continuar
-}
-
-static void write_or_replace_key(FILE *out, const char *section,
-                                 const char *key, const char *value)
-{
-    FILE *in = fopen(config_file, "r");
-    char line[512];
-    int in_target_section = 0;
-    int key_written = 0;
-
-    if (!in) {
-        // No file exists → create a new one
-        fprintf(out, "[%s]\n%s=%s\n", section, key, value);
-        return;
-    }
-
-    while (fgets(line, sizeof(line), in)) {
-
-        char temp[512];
-        strcpy(temp, line);
-
-        // check section header
-        if (temp[0] == '[') {
-            // if we leave the section without writing key → write it before next section
-            if (in_target_section && !key_written) {
-                fprintf(out, "%s=%s\n", key, value);
-                key_written = 1;
-            }
-
-            // detect if this is our section
-            char secname[256];
-            if (sscanf(temp, "[%255[^]]]", secname) == 1 &&
-                strcmp(secname, section) == 0)
-            {
-                in_target_section = 1;
-            }
-            else {
-                in_target_section = 0;
-            }
-
-            fputs(line, out);
-            continue;
-        }
-
-        if (in_target_section) {
-            // If this line is the key we want to replace
-            char name[256];
-            if (sscanf(temp, "%255[^=]=", name) == 1 &&
-                strcmp(name, key) == 0)
-            {
-                fprintf(out, "%s=%s\n", key, value);
-                key_written = 1;
-                continue;  // skip original line
-            }
-        }
-
-        fputs(line, out);
-    }
-
-    fclose(in);
-
-    // If section existed but key wasn’t written
-    if (in_target_section && !key_written) {
-        fprintf(out, "%s=%s\n", key, value);
-    }
-
-    // If section does NOT exist → append at end
-    if (!in_target_section) {
-        fprintf(out, "\n[%s]\n%s=%s\n", section, key, value);
-    }
-}
-
-
 int platform_get_config_int(const char *section, const char *key, int default_value) {
-    find_context ctx;
-    ctx.section = section;
-    ctx.key = key;
-    ctx.value_buf[0] = '\0';
-    ctx.found = 0;
-
-    ini_parse(config_file, ini_find_handler, &ctx);
-
-    if (!ctx.found)
-        return default_value;
-
-    return atoi(ctx.value_buf);
+    return (int)ini_getl(section, key, (long)default_value, config_file);
 }
 
 const char* platform_get_config_string(const char *section, const char *key, const char *default_value)
 {
-    static char out[256]; // retorna ponteiro estático (como antes)
-    find_context ctx;
-    ctx.section = section;
-    ctx.key = key;
-    ctx.value_buf[0] = '\0';
-    ctx.found = 0;
-
-    ini_parse(config_file, ini_find_handler, &ctx);
-
-    if (!ctx.found) {
-        if (default_value) {
-            strncpy(out, default_value, sizeof(out)-1);
-            out[sizeof(out)-1] = '\0';
-        } else {
-            out[0] = '\0';
-        }
-        return out;
-    }
-
-    strncpy(out, ctx.value_buf, sizeof(out)-1);
-    out[sizeof(out)-1] = '\0';
+    static char out[256]; // static buffer for return value
+    ini_gets(section, key, default_value ? default_value : "", out, sizeof(out), config_file);
     return out;
 }
 
 void platform_set_config_int(const char *section, const char *key, int value) {
-    char temp[256];
-    snprintf(temp, sizeof(temp), "%d", value);
-
-    FILE *out = fopen("config.tmp", "w");
-    write_or_replace_key(out, section, key, temp);
-    fclose(out);
-
-    rename("config.tmp", config_file);
-
+    ini_putl(section, key, (long)value, config_file);
 }
 
 void platform_set_config_string(const char *section, const char *key, const char *value) {
-    FILE *out = fopen("config.tmp", "w");
-    write_or_replace_key(out, section, key, value);
-    fclose(out);
-
-    rename("config.tmp", config_file);
+    ini_puts(section, key, value, config_file);
 }
 
 

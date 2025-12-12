@@ -36,13 +36,13 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libinih-dev qt6-base-dev
+          sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev qt6-base-dev
 
       # macOS dependencies
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf inih qt@6
+          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf qt@6
 
       # Windows dependencies
       - name: Cache vcpkg packages (Windows)
@@ -61,7 +61,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           vcpkg integrate install
-          vcpkg install sdl2:x86-windows sdl2-image:x86-windows sdl2-mixer:x86-windows sdl2-ttf:x86-windows inih:x86-windows
+          vcpkg install sdl2:x86-windows sdl2-image:x86-windows sdl2-mixer:x86-windows sdl2-ttf:x86-windows
         shell: bash
 
       - name: Install Qt6 (Windows)
@@ -126,8 +126,8 @@ jobs:
           
             if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
               # Linux: Copy shared libraries
-              # Find and copy SDL2 libraries
-              for lib in libSDL2-2.0.so.0 libSDL2_image-2.0.so.0 libSDL2_mixer-2.0.so.0 libSDL2_ttf-2.0.so.0 libinih.so.0; do
+              # Copy SDL2 libraries
+              for lib in libSDL2-2.0.so.0 libSDL2_image-2.0.so.0 libSDL2_mixer-2.0.so.0 libSDL2_ttf-2.0.so.0; do
                 if [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
                   cp "/usr/lib/x86_64-linux-gnu/$lib" artifacts/lib/
                 elif [ -f "/usr/lib/$lib" ]; then
@@ -153,7 +153,7 @@ jobs:
               echo "Homebrew prefix: $BREW_PREFIX"
           
               # Copy SDL2 frameworks/dylibs
-              for lib in libSDL2-2.0.0.dylib libSDL2_image-2.0.0.dylib libSDL2_mixer-2.0.0.dylib libSDL2_ttf-2.0.0.dylib libinih.0.dylib; do
+              for lib in libSDL2-2.0.0.dylib libSDL2_image-2.0.0.dylib libSDL2_mixer-2.0.0.dylib libSDL2_ttf-2.0.0.dylib; do
                 if [ -f "$BREW_PREFIX/lib/$lib" ]; then
                   cp "$BREW_PREFIX/lib/$lib" artifacts/lib/
                   # Update the library path to use @rpath for better compatibility
@@ -170,7 +170,7 @@ jobs:
                 # Add @executable_path/lib to rpath
                 install_name_tool -add_rpath "@executable_path/lib" artifacts/HAMOOPI 2>/dev/null || echo "Warning: Could not add rpath to executable"
                 # Update library references in the executable
-                for lib in libSDL2-2.0.0.dylib libSDL2_image-2.0.0.dylib libSDL2_mixer-2.0.0.dylib libSDL2_ttf-2.0.0.dylib libinih.0.dylib; do
+                for lib in libSDL2-2.0.0.dylib libSDL2_image-2.0.0.dylib libSDL2_mixer-2.0.0.dylib libSDL2_ttf-2.0.0.dylib; do
                   install_name_tool -change "$BREW_PREFIX/lib/$lib" "@rpath/$lib" artifacts/HAMOOPI 2>/dev/null || true
                 done
               fi
@@ -257,7 +257,6 @@ jobs:
             cp "$VCPKG_BIN/SDL2_image.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_image.dll not found"
             cp "$VCPKG_BIN/SDL2_mixer.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_mixer.dll not found"
             cp "$VCPKG_BIN/SDL2_ttf.dll" artifacts/ 2>/dev/null || echo "Warning: SDL2_ttf.dll not found"
-            cp "$VCPKG_BIN/inih.dll" artifacts/ 2>/dev/null || echo "Warning: inih.dll not found"
             # SDL2_image dependencies
             cp "$VCPKG_BIN/jpeg62.dll" artifacts/ 2>/dev/null || echo "Warning: jpeg62.dll not found"
             cp "$VCPKG_BIN/libpng16.dll" artifacts/ 2>/dev/null || echo "Warning: libpng16.dll not found"

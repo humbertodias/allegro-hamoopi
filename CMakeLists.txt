@@ -24,7 +24,8 @@ if (WIN32)
             src/game_loop/options.c
             src/game_loop/versus.c
             src/game_loop/edit.c
-            src/backend/platform_sdl2.c)
+            src/backend/platform_sdl2.c
+            src/backend/minini/minIni.c)
 else ()
     add_executable(HAMOOPI
             src/main.c
@@ -41,7 +42,8 @@ else ()
             src/game_loop/options.c
             src/game_loop/versus.c
             src/game_loop/edit.c
-            src/backend/platform_sdl2.c)
+            src/backend/platform_sdl2.c
+            src/backend/minini/minIni.c)
 endif ()
 
 # Find SDL2 packages
@@ -50,13 +52,7 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
-# inih - configuration library
-# Try custom Find module first, fallback to pkg-config
-find_package(INIH QUIET)
-if (NOT INIH_FOUND)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(INIH REQUIRED inih)
-endif ()
+# minIni is now bundled in the source tree
 
 # Include directories for SDL2
 target_include_directories(HAMOOPI PRIVATE
@@ -64,7 +60,7 @@ target_include_directories(HAMOOPI PRIVATE
         ${SDL2_IMAGE_INCLUDE_DIRS}
         ${SDL2_MIXER_INCLUDE_DIRS}
         ${SDL2_TTF_INCLUDE_DIRS}
-        ${INIH_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/src/backend/minini
 )
 
 # Link SDL2 libraries
@@ -73,7 +69,6 @@ target_link_libraries(HAMOOPI
         ${SDL2_IMAGE_LIBRARIES}
         ${SDL2_MIXER_LIBRARIES}
         ${SDL2_TTF_LIBRARIES}
-        ${INIH_LIBRARIES}
 )
 
 # Link math library on Unix-like systems (not needed on Windows)
