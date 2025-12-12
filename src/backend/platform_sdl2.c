@@ -355,8 +355,6 @@ void platform_destroy_bitmap(PlatformBitmap *bitmap) {
 
 PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
 
-    SDL_Log("platform_load_bitmap(): loading bitmap '%s' ...", filename);
-
     SDL_Surface *loaded = IMG_Load(filename);
     if (!loaded) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
@@ -364,8 +362,6 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
                      filename, IMG_GetError());
         return NULL;
     }
-
-    SDL_Log("platform_load_bitmap(): '%s' loaded. Converting to ARGB8888...", filename);
 
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(loaded);
@@ -381,8 +377,6 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
     Uint32 colorkey = SDL_MapRGB(surface->format, 255, 0, 255);
     SDL_SetColorKey(surface, SDL_TRUE, colorkey);
 
-    SDL_Log("platform_load_bitmap(): colorkey applied: RGB(255,0,255)");
-
     PlatformBitmap *pb = malloc(sizeof(PlatformBitmap));
     if (!pb) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
@@ -394,8 +388,6 @@ PlatformBitmap* platform_load_bitmap(const char *filename, void *palette) {
     pb->surface = surface;
     pb->w = surface->w;
     pb->h = surface->h;
-
-    SDL_Log("platform_load_bitmap(): success! %dx%d bitmap loaded.", pb->w, pb->h);
 
     return pb;
 }
@@ -724,7 +716,6 @@ int platform_bitmap_height(PlatformBitmap *bitmap) {
 
 
 PlatformFont* platform_load_font(const char *filename, void *palette, void *param) {
-    SDL_Log("platform_load_font(): loading font '%s' ...", filename);
 
     int size = 16;  // Default size
     TTF_Font *font = TTF_OpenFont(filename, size);
@@ -736,9 +727,6 @@ PlatformFont* platform_load_font(const char *filename, void *palette, void *para
         return NULL;
     }
 
-    SDL_Log("platform_load_font(): font '%s' loaded successfully (size=%d).",
-            filename, size);
-
     PlatformFont *pf = (PlatformFont*)malloc(sizeof(PlatformFont));
     if (!pf) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
@@ -749,8 +737,6 @@ PlatformFont* platform_load_font(const char *filename, void *palette, void *para
 
     pf->font = font;
     pf->size = size;
-
-    SDL_Log("platform_load_font(): PlatformFont struct created.");
 
     return pf;
 }
